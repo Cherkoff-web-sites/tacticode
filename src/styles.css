@@ -372,4 +372,25 @@
   .history-muted.small {
     @apply text-xs;
   }
+
+  /* Swiper кастомные кнопки навигации */
+  .swiper-button-disabled {
+    @apply opacity-30 cursor-not-allowed;
+  }
+
+  /* Swiper кастомная пагинация */
+  .news-swiper-pagination,
+  .subscription-swiper-pagination {
+    @apply relative;
+  }
+
+  .news-swiper-pagination .swiper-pagination-bullet,
+  .subscription-swiper-pagination .swiper-pagination-bullet {
+    @apply !w-2 !h-2 !bg-gray-200 !opacity-100 !mx-1;
+  }
+
+  .news-swiper-pagination .swiper-pagination-bullet-active,
+  .subscription-swiper-pagination .swiper-pagination-bullet-active {
+    @apply !bg-primary !w-6 !rounded;
+  }
 }
