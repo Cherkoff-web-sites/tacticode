@@ -202,7 +202,7 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="h-18 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.06)] sticky top-0 z-10">
-        <div className={view !== "lk" ? "max-w-[1820px] mx-auto px-4 md:px-10" : "px-4 md:px-10"}>
+        <div className={view !== "lk" ? "max-w-[1820px] mx-auto p-4 md:px-10" : "px-4 md:px-10"}>
           <div className="flex items-center justify-between h-18">
             {/* Desktop: Logo + Navigation */}
             <div className="hidden md:flex items-center gap-10">
@@ -213,7 +213,7 @@ export function App() {
                   setMobileMenuOpen(false);
                 }}
               >
-                <img src={logoIcon} alt="Tacticode" className="h-10" />
+                <img src={logoIcon} alt="Tacticode" className="w-[174px] h-auto" />
               </button>
               <nav className="flex gap-6 text-sm">
                 <button
@@ -253,7 +253,7 @@ export function App() {
                   setMobileMenuOpen(false);
                 }}
               >
-                <img src={logoIcon} alt="Tacticode" className="h-10" />
+                <img src={logoIcon} alt="Tacticode" className="w-[29.1667vw] h-auto" />
               </button>
               <button
                 className="w-10 h-10 rounded-full border-none bg-transparent cursor-pointer p-0 flex items-center justify-center hover:opacity-80 transition-opacity"
@@ -336,10 +336,10 @@ export function App() {
 
       <main className={`flex-1 ${view === "home" ? "py-8 pb-10 flex flex-col items-stretch" : view === "news" || view === "subscription" || view === "contacts" ? "py-8 pb-10" : "py-8 px-10 pb-10"}`}>
         {view === "home" ? (
-          <div className="max-w-[1820px] mx-auto px-10 w-full">
-            <section className="mt-10">
+          <div className="max-w-[1820px] mx-auto px-[24px] lg:px-10 w-full">
+            <section className="mt-0 lg:mt-10">
               <div className="text-center mb-8">
-                <h1 className="m-0 text-[32px] font-bold leading-[1.4]">
+                <h1 className="m-0 text-[22px] lg:text-[32px] font-bold leading-[1.4] py-[28vh] lg:py-0">
                   Мы <span className="text-[#1d4ed8]">сделали</span> сервис, который
                 помогает тренерам{" "}
                   <span className="text-[#1d4ed8]">удобно</span> строить тактику,
@@ -348,7 +348,7 @@ export function App() {
             </div>
               <div className="relative">
                 <video
-                  className="w-full h-[360px] md:h-[760px] rounded-[32px] object-cover shadow-[0_24px_60px_rgba(15,23,42,0.18)]"
+                  className="w-full h-[160px] md:h-[760px] rounded-[32px] object-cover shadow-[0_24px_60px_rgba(15,23,42,0.18)]"
                   autoPlay
                   loop
                   muted
@@ -357,27 +357,34 @@ export function App() {
                 >
                   <source src={heroVideo} type="video/mp4" />
                 </video>
-                <div className="absolute left-1/2 -bottom-10 -translate-x-1/2 w-[min(720px,90%)]">
-                  <div className="flex justify-between gap-3 px-6 py-4 bg-white rounded-[20px] shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+                <div className="my-5 text-center font-bold lg:hidden">
+                  Спорт разный — Tacticode один
+                </div>
+                <div className="lg:absolute left-1/2 -bottom-10 lg:-translate-x-1/2 lg:w-[min(720px,90%)]">
+                  <div className="flex justify-between gap-3 px-6 py-4 bg-white rounded-[20px] shadow-[0_12px_30px_rgba(15,23,42,0.16)]  flex-col lg:flex-row">
                     <div className="flex-1 text-center text-[13px]">
-                      <div className="font-semibold">Российская</div>
-                      <div className="text-gray-500">разработка</div>
+                      <div className="text-gray-500">
+                        Российская разработка
+                      </div>
                     </div>
                     <div className="flex-1 text-center text-[13px]">
-                      <div className="font-semibold">Понятный</div>
-                      <div className="text-gray-500">интерфейс</div>
+                      <div className="text-gray-500">
+                        Понятный интерфейс
+                      </div>
                     </div>
                     <div className="flex-1 text-center text-[13px]">
-                      <div className="font-semibold">Простая</div>
-                      <div className="text-gray-500">оплата</div>
+                      <div className="text-gray-500">
+                        Простая оплата
+                      </div>
                     </div>
                     <div className="flex-1 text-center text-[13px]">
-                      <div className="font-semibold">Быстрый вход</div>
-                      <div className="text-gray-500">в приложение</div>
+                      <div className="text-gray-500">в 
+                        Быстрый приложение
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-18 mb-0 text-right font-bold">
+                <div className="mt-18 mb-0 text-right font-bold hidden lg:block">
                   Спорт разный — Tacticode один
                 </div>
               </div>
@@ -397,7 +404,7 @@ export function App() {
                 <Swiper
                   modules={[Navigation, Pagination]}
                   spaceBetween={20}
-                  slidesPerView={1}
+                  slidesPerView={1.1}
                   slidesPerGroup={1}
                   navigation={{
                     prevEl: newsPrevRef.current,
@@ -427,7 +434,7 @@ export function App() {
                         <div className="w-full h-[200px] overflow-hidden bg-gray-200">
                           <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                         </div>
-                        <div className="p-4 flex flex-col gap-2 flex-1">
+                        <div className="p-4 flex flex-col gap-2 flex-1 text-center md:text-left">
                           <h3 className="m-0 text-base font-semibold leading-[1.4] text-gray-900">{item.title}</h3>
                           <p className="m-0 text-[13px] text-gray-500 leading-[1.5] flex-1">{item.description}</p>
                           <div className="text-xs text-gray-400 mt-auto">{item.date}</div>
@@ -436,10 +443,10 @@ export function App() {
                     </SwiperSlide>
                   ))}
                 </Swiper>
-                <button ref={newsPrevRef} className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
+                <button ref={newsPrevRef} className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] hidden md:flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
                   ←
                 </button>
-                <button ref={newsNextRef} className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
+                <button ref={newsNextRef} className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] hidden md:flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
                   →
                 </button>
                 <div className="news-swiper-pagination flex justify-center gap-2 mt-4"></div>
@@ -460,7 +467,7 @@ export function App() {
                 <Swiper
                   modules={[Navigation, Pagination]}
                   spaceBetween={20}
-                  slidesPerView={1}
+                  slidesPerView={1.1}
                   slidesPerGroup={1}
                   navigation={{
                     prevEl: subscriptionPrevRef.current,
@@ -486,7 +493,7 @@ export function App() {
                 >
                   {subscriptionItems.map((item) => (
                     <SwiperSlide key={item.id}>
-                      <div className="relative w-full h-[300px] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
+                      <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
                         <img src={item.image} alt={`Подписка ${item.id}`} className="w-full h-full object-cover" />
                         {item.locked && (
                           <div className="absolute top-3 right-3 w-8 h-8 bg-black/70 rounded-lg flex items-center justify-center text-white">
@@ -500,10 +507,10 @@ export function App() {
                     </SwiperSlide>
                   ))}
                 </Swiper>
-                <button ref={subscriptionPrevRef} className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
+                <button ref={subscriptionPrevRef} className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] hidden md:flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
                   ←
                 </button>
-                <button ref={subscriptionNextRef} className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
+                <button ref={subscriptionNextRef} className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-5 w-10 h-10 rounded-full border-2 border-primary bg-white text-primary text-lg cursor-pointer z-[2] hidden md:flex items-center justify-center transition-all hover:bg-primary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
                   →
                 </button>
                 <div className="subscription-swiper-pagination flex justify-center gap-2 mt-4"></div>
@@ -514,18 +521,18 @@ export function App() {
               <div className="grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-10">
                 <div className="max-md:order-2">
                   <h2 className="m-0 mb-8 text-2xl font-bold">Как начать работу</h2>
-                  <ol className="list-none p-0 m-0 flex flex-col gap-6 [counter-reset:step-counter]">
+                  <ol className="list-decimal pl-5 m-0 flex flex-col gap-6">
                     {[
-                      { text: "Зарегистрируйтесь в личном кабинете на сайте", btn: "Зарегистрироваться", onClick: () => setLoginModalOpen(true) },
-                      { text: "Оформите подписку — без неё доступ к приложению будет закрыт", btn: "Оформить подписку" },
-                      { text: "Скачайте приложение для вашего компьютера", btn: "Скачать приложение", onClick: handleDownloadClick },
-                      { text: "Установите его и войдите в аккаунт, используя данные из личного кабинета" }
+                      { text: "1. Зарегистрируйтесь в личном кабинете на сайте", btn: "Зарегистрироваться", onClick: () => setLoginModalOpen(true) },
+                      { text: "2. Оформите подписку — без неё доступ к приложению будет закрыт", btn: "Оформить подписку" },
+                      { text: "3. Скачайте приложение для вашего компьютера", btn: "Скачать приложение", onClick: handleDownloadClick },
+                      { text: "4. Установите его и войдите в аккаунт, используя данные из личного кабинета" }
                     ].map((step, idx) => (
-                      <li key={idx} className="flex flex-col gap-3 relative pl-10 [counter-increment:step-counter] before:content-[counter(step-counter)] before:absolute before:left-0 before:top-0 before:w-7 before:h-7 before:rounded-full before:bg-primary before:text-white before:flex before:items-center before:justify-center before:text-sm before:font-semibold before:flex-shrink-0">
-                        <p className="m-0 text-sm leading-[1.5] text-gray-900">{step.text}</p>
+                      <li key={idx} className="flex flex-col gap-3">
+                        <p className="m-0 text-sm leading-[1.5] text-gray-900 font-semibold">{step.text}</p>
                         {step.btn && (
                           <button
-                            className="px-5 py-[10px] rounded-full border-none bg-[#eef2ff] text-gray-900 text-sm font-medium cursor-pointer self-start transition-colors hover:bg-[#e0e7ff]"
+                            className="px-5 py-[10px] rounded-full border-none bg-[#eef2ff] text-gray-900 text-sm cursor-pointer self-start transition-colors hover:bg-[#e0e7ff]"
                             onClick={step.onClick}
                           >
                             {step.btn}
@@ -541,7 +548,7 @@ export function App() {
                     Если у вас есть вопросы или нужна помощь — пишите нам
                   </p>
                   <div className="flex justify-center">
-                    <div className="w-[200px] h-[200px] rounded-2xl bg-white border-2 border-gray-200 flex items-center justify-center relative shadow-[0_4px_12px_rgba(15,23,42,0.08)] overflow-hidden">
+                    <div className="w-[200px] h-[200px] bg-white flex items-center justify-center relative overflow-hidden">
                       <img src={qrImage} alt="QR код Telegram" className="w-full h-full object-cover" />
                     </div>
                   </div>
@@ -630,7 +637,7 @@ export function App() {
                     Если у вас есть вопросы или нужна помощь — пишите нам
                   </p>
                   <div className="flex justify-center">
-                    <div className="w-[200px] h-[200px] rounded-2xl bg-white border-2 border-gray-200 flex items-center justify-center relative shadow-[0_4px_12px_rgba(15,23,42,0.08)] overflow-hidden">
+                    <div className="w-[200px] h-[200px] bg-white flex items-center justify-center relative overflow-hidden">
                       <img src={qrImage} alt="QR код Telegram" className="w-full h-full object-cover" />
                     </div>
                   </div>
@@ -1027,11 +1034,21 @@ export function App() {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2 max-md:items-start max-md:order-3">
-              <button className="inline-flex items-center gap-2 px-[18px] py-2 rounded-full border-none bg-[#eef2ff] text-gray-900 text-sm cursor-pointer hover:bg-[#e0e7ff] transition-colors">
-                <span>Скачать</span>
-                <img src={downloadIcon} alt="" className="w-5 h-5" />
-              </button>
-              <button className="w-9 h-9 rounded-full border-none bg-gray-200 cursor-pointer" aria-label="Профиль" />
+              <div className="flex items-center gap-2">
+                <button className="inline-flex items-center gap-2 px-[18px] py-2 rounded-full border-none bg-[#eef2ff] text-gray-900 text-sm cursor-pointer hover:bg-[#e0e7ff] transition-colors">
+                  <span>Скачать</span>
+                  <img src={downloadIcon} alt="" className="w-5 h-5" />
+                </button>
+                <button
+                  className="w-10 h-10 rounded-full border-none bg-transparent cursor-pointer p-0 flex items-center justify-center hover:opacity-80 transition-opacity"
+                  aria-label="Профиль"
+                  onClick={() =>
+                    isLoggedIn ? setView("lk") : setLoginModalOpen(true)
+                  }
+                >
+                  <img src={lkIcon} alt="Личный кабинет" className="w-10 h-10" />
+                </button>
+              </div>
               <button className="border-none bg-transparent p-0 text-[13px] text-gray-400 cursor-pointer">
                 Пользовательское соглашение
               </button>

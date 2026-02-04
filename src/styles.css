@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,8 +12,8 @@
   }
 
   body {
-    @apply m-0 font-sans bg-[#f5f7fb] text-gray-900;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    @apply m-0 font-sans bg-[#FFFFFF] text-gray-900;
+    font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   }
 
   a {
