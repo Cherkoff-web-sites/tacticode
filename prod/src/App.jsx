@@ -1,0 +1,29 @@
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AppProvider } from "./context/AppContext";
+import { Layout } from "./components/Layout";
+import { Modals } from "./components/Modals";
+import { HomePage } from "./pages/HomePage";
+import { NewsPage } from "./pages/NewsPage";
+import { SubscriptionPage } from "./pages/SubscriptionPage";
+import { ContactsPage } from "./pages/ContactsPage";
+import { LkPage } from "./LkPage";
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppProvider>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="subscription" element={<SubscriptionPage />} />
+            <Route path="contacts" element={<ContactsPage />} />
+            <Route path="lk" element={<LkPage />} />
+          </Route>
+        </Routes>
+        <Modals />
+      </AppProvider>
+    </BrowserRouter>
+  );
+}

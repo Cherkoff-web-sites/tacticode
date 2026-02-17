@@ -1,0 +1,429 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap");
+
+@font-face {
+  font-family: "Anton";
+  src: url("./assets/fonts/ANTON.OTF") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply m-0 font-sans bg-[#FFFFFF] text-gray-900;
+    font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  }
+
+  h2,
+  .h2 {
+    margin-bottom: 32px;
+    font-family: "Anton", "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    font-size: 32px;
+    line-height: 125%;
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 990px) {
+    h2,
+    .h2 {
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  /* Личный кабинет */
+  .lk-header-row {
+    @apply flex items-center justify-between mb-6 max-md:flex-col max-md:items-start max-md:gap-2;
+  }
+
+  .lk-header-left {
+    @apply flex flex-col gap-1;
+  }
+
+  .lk-title {
+    @apply m-0 text-[28px] font-bold;
+  }
+
+  .lk-logout {
+    @apply whitespace-nowrap max-md:pt-1;
+  }
+
+  .link-button {
+    @apply border-none bg-transparent p-0 text-sm text-primary cursor-pointer;
+  }
+
+  .link-button.subtle {
+    @apply text-gray-400;
+  }
+
+  .lk-content {
+    @apply grid grid-cols-[1.1fr_1.1fr_1.1fr] gap-8 max-lg:grid-cols-1;
+  }
+
+  .lk-column {
+    @apply flex flex-col;
+  }
+
+  .cards-column {
+    @apply flex flex-col gap-3;
+  }
+
+  .subscription-card {
+    @apply bg-white rounded-2xl p-[18px_20px] shadow-[0_1px_4px_rgba(15,23,42,0.04)] flex flex-col gap-2;
+  }
+
+  .subscription-card--active {
+    @apply bg-[#d9fce0];
+  }
+
+  .subscription-card--warning {
+    @apply bg-[#fff4d6];
+  }
+
+  .subscription-card--expired {
+    @apply bg-[#ffe1e1];
+  }
+
+  .subscription-card--inactive {
+    @apply bg-white;
+  }
+
+  .subscription-header {
+    @apply flex justify-between items-center;
+  }
+
+  .subscription-name {
+    @apply font-semibold;
+  }
+
+  .subscription-meta {
+    @apply text-xs text-gray-500;
+  }
+
+  .subscription-status-row {
+    @apply flex flex-wrap gap-1 text-[13px] max-md:flex-col max-md:items-start;
+  }
+
+  .subscription-status {
+    @apply text-gray-500;
+  }
+
+  .subscription-until {
+    @apply font-semibold;
+  }
+
+  .subscription-details {
+    @apply text-gray-400;
+  }
+
+  .primary-outline-btn {
+    @apply px-4 py-1.5 rounded-full border border-gray-900 bg-white text-[13px] cursor-pointer;
+  }
+
+  .field-group {
+    @apply mb-4;
+  }
+
+  .field-label {
+    @apply block text-[13px] text-gray-500 mb-1.5;
+  }
+
+  .input {
+    @apply min-h-11 rounded-full bg-gray-100 px-4 flex items-center justify-between text-sm text-gray-900;
+  }
+
+  .input-field {
+    @apply w-full border-none outline-none bg-gray-100;
+  }
+
+  .input-disabled {
+    @apply bg-gray-200;
+  }
+
+  .input-with-icon .icon-eye,
+  .input-with-icon .icon-calendar,
+  .input-with-icon .icon-select {
+    @apply w-4 h-4 rounded-full border-2 border-gray-400;
+  }
+
+  .icon-edit {
+    @apply w-4 h-4 rounded-full border-2 border-gray-300;
+  }
+
+  .input-icons {
+    @apply flex items-center gap-2.5;
+  }
+
+  .devices-card {
+    @apply bg-white rounded-2xl p-7 shadow-[0_1px_4px_rgba(15,23,42,0.04)] flex flex-col gap-4;
+  }
+
+  .devices-empty {
+    @apply flex flex-col items-center gap-2.5 text-center;
+  }
+
+  .devices-search-icon {
+    @apply w-10 h-10 rounded-full border-4 border-gray-200 relative;
+  }
+
+  .devices-search-icon::after {
+    content: "";
+    @apply absolute w-5 h-1 rounded-full bg-gray-200 rotate-45 -right-2 bottom-1.5;
+  }
+
+  .devices-empty-text {
+    @apply m-0 text-sm text-gray-400;
+  }
+
+  .devices-list {
+    @apply flex flex-col gap-2.5;
+  }
+
+  .device-row {
+    @apply flex items-center gap-3;
+  }
+
+  .device-icon {
+    @apply w-8 h-8 rounded-[10px] bg-gray-200;
+  }
+
+  .device-info {
+    @apply flex-1 flex flex-col gap-0.5;
+  }
+
+  .device-name {
+    @apply text-sm font-medium;
+  }
+
+  .device-meta {
+    @apply text-xs text-gray-400;
+  }
+
+  .device-remove {
+    @apply border-none bg-transparent cursor-pointer text-lg leading-none text-gray-400;
+  }
+
+  .devices-hint {
+    @apply m-0 text-xs text-gray-400;
+  }
+
+  .modal-devices-hint {
+    @apply mt-0 mb-4 text-center;
+  }
+
+  .primary-btn {
+    @apply px-5 py-3 rounded-full border-none bg-primary text-white text-sm font-medium cursor-pointer;
+  }
+
+  .primary-btn.wide {
+    @apply mt-2;
+  }
+
+  /* Модалки */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-[rgba(15,23,42,0.35)] flex items-center justify-center z-20;
+  }
+
+  .modal {
+    @apply w-[min(640px,calc(100%-32px))] bg-white rounded-3xl p-[24px_32px_28px] shadow-[0_20px_60px_rgba(15,23,42,0.25)] max-md:p-5;
+  }
+
+  .modal-header {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .modal-title {
+    @apply text-lg font-semibold;
+  }
+
+  .modal-close {
+    @apply w-8 h-8 rounded-full border-2 border-primary bg-white text-primary text-xl leading-none cursor-pointer;
+  }
+
+  .modal-section-title {
+    @apply text-sm text-gray-500 mb-2;
+  }
+
+  .modal-toggle {
+    @apply inline-flex p-1 bg-gray-100 rounded-full gap-1 mb-5;
+  }
+
+  .modal-toggle-btn {
+    @apply border-none bg-transparent px-[22px] py-2 rounded-full text-sm cursor-pointer text-gray-500;
+  }
+
+  .modal-toggle-btn--active {
+    @apply bg-[#e5edff] text-gray-900;
+  }
+
+  .modal-prices {
+    @apply mb-5;
+  }
+
+  .modal-price-main {
+    @apply text-[28px] font-extrabold text-[#1d4ed8] flex items-baseline gap-3;
+  }
+
+  .modal-price-old {
+    @apply text-sm text-gray-400 line-through;
+  }
+
+  .modal-price-sub {
+    @apply mt-2 text-xl font-bold text-[#1d4ed8] flex items-baseline gap-2.5;
+  }
+
+  .modal-price-strike {
+    @apply text-sm text-gray-400 line-through;
+  }
+
+  .modal-price-benefit {
+    @apply text-sm text-green-600;
+  }
+
+  .modal-actions {
+    @apply flex gap-3 mt-2 max-md:flex-col;
+  }
+
+  .modal-pay-btn {
+    @apply flex-1 justify-center;
+  }
+
+  .modal-actions-column {
+    @apply flex-col;
+  }
+
+  .auth-modal {
+    @apply w-full max-w-[390px];
+  }
+
+  .auth-modal .modal-header {
+    @apply justify-center;
+  }
+
+  .auth-modal .modal-close {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+  }
+
+  .auth-register-link {
+    @apply border-none bg-transparent p-0 mb-2 text-sm text-primary cursor-pointer;
+  }
+
+  .auth-form {
+    @apply mt-1;
+  }
+
+  .auth-row {
+    @apply flex justify-between items-center mt-1 mb-3;
+  }
+
+  .auth-remember {
+    @apply flex items-center gap-1.5 text-[13px] text-gray-600;
+  }
+
+  .auth-forgot {
+    @apply text-[13px];
+  }
+
+  .auth-error {
+    @apply text-[13px] text-red-600 mb-2;
+  }
+
+  .auth-submit {
+    @apply w-full justify-center;
+  }
+
+  .history-modal {
+    @apply max-w-[520px];
+  }
+
+  .history-header-row {
+    @apply flex justify-between items-center mb-3 text-sm;
+  }
+
+  .history-muted {
+    @apply text-gray-500;
+  }
+
+  .history-period {
+    @apply font-medium;
+  }
+
+  .history-list {
+    @apply max-h-[360px] pr-1 overflow-y-auto flex flex-col gap-2.5;
+  }
+
+  .history-item {
+    @apply bg-gray-50 rounded-2xl p-[14px_16px];
+  }
+
+  .history-item-main {
+    @apply flex justify-between items-center mb-1.5;
+  }
+
+  .history-item-amount {
+    @apply font-bold;
+  }
+
+  .history-item-date {
+    @apply text-[13px] text-gray-500;
+  }
+
+  .history-item-sub {
+    @apply flex justify-between gap-4 text-[13px];
+  }
+
+  .history-item-left {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .history-item-right {
+    @apply text-right flex flex-col gap-0.5;
+  }
+
+  .history-muted.small {
+    @apply text-xs;
+  }
+
+  /* Swiper кастомные кнопки навигации */
+  .swiper-button-disabled {
+    @apply opacity-30 cursor-not-allowed;
+  }
+
+  /* Swiper кастомная пагинация */
+  .news-swiper-pagination,
+  .subscription-swiper-pagination {
+    @apply relative;
+  }
+
+  .news-swiper-pagination .swiper-pagination-bullet,
+  .subscription-swiper-pagination .swiper-pagination-bullet {
+    @apply !w-2 !h-2 !bg-gray-200 !opacity-100 !mx-1;
+  }
+
+  .news-swiper-pagination .swiper-pagination-bullet-active,
+  .subscription-swiper-pagination .swiper-pagination-bullet-active {
+    @apply !bg-primary !w-6 !rounded;
+  }
+}
