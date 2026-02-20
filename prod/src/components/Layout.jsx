@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { CompilingOverlay } from "./CompilingOverlay";
 
 export function Layout() {
   const location = useLocation();
@@ -23,6 +24,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <CompilingOverlay />
     </div>
   );
 }

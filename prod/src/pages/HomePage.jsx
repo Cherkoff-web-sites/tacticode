@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
+import { SHOW_COMPILING_PRELOADER } from "../config";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -26,26 +27,27 @@ export function HomePage() {
   const subscriptionNextRef = useRef(null);
 
   return (
-    <div className="max-w-[1820px] mx-auto px-[24px] lg:px-10 w-full">
-      <section className="mt-0 lg:mt-10">
-        <div className="text-center mb-8">
-          <h1 className="m-0 text-[22px] lg:text-[32px] font-bold leading-[1.4] py-[28vh] lg:py-0">
-            Мы <span className="text-[#1d4ed8]">сделали</span> сервис, который помогает тренерам{" "}
-            <span className="text-[#1d4ed8]">удобно</span> строить тактику, стратегию, готовиться к играм и тренировкам
-          </h1>
-        </div>
+    <div className="max-w-[1868px] mx-auto px-[24px] w-full">
+      <section
+        className={`mt-0 lg:mt-10 ${SHOW_COMPILING_PRELOADER ? "relative z-[10000]" : ""}`}
+      >
+        <h1 className="max-w-[1350px] mb-8 mx-auto text-center text-[22px] lg:text-[56px] font-bold leading-[1.2] py-[28vh] lg:py-0">
+          Мы <span className="text-[#00459D]">сделали</span> сервис, который помогает тренерам{" "}
+          <span className="text-[#00459D]">удобно</span> строить тактику, стратегию, готовиться к&nbsp;играм и&nbsp;тренировкам
+        </h1>
         <div className="relative">
           <video
-            className="w-full h-[160px] md:h-[760px] rounded-[32px] object-cover shadow-[0_24px_60px_rgba(15,23,42,0.18)]"
+            className="w-full h-[160px] md:h-[800px] rounded-[16px] lg:rounded-[60px] object-cover border-2 lg:border-8 border-solid border-white shadow-[0px_4px_25px_rgba(0,69,157,0.05)]"
             autoPlay
             loop
             muted
-            playsInline
+            playsInline 
             poster={heroPoster}
           >
             <source src={heroVideo} type="video/mp4" />
           </video>
-          <div className="my-5 text-center font-bold lg:hidden">Спорт разный — Tacticode один</div>
+
+          {/* <div className="my-5 text-center font-bold lg:hidden">Спорт разный — Tacticode один</div>
           <div className="lg:absolute left-1/2 -bottom-10 lg:-translate-x-1/2 lg:w-[min(720px,90%)]">
             <div className="flex justify-between gap-3 px-6 py-4 bg-white rounded-[20px] shadow-[0_12px_30px_rgba(15,23,42,0.16)] flex-col lg:flex-row">
               <div className="flex-1 text-center text-[13px]"><div className="text-gray-500">Российская разработка</div></div>
@@ -54,7 +56,7 @@ export function HomePage() {
               <div className="flex-1 text-center text-[13px]"><div className="text-gray-500">Быстрый приложение</div></div>
             </div>
           </div>
-          <div className="mt-18 mb-0 text-right font-bold hidden lg:block">Спорт разный — Tacticode один</div>
+          <div className="mt-18 mb-0 text-right font-bold hidden lg:block">Спорт разный — Tacticode один</div> */}
         </div>
       </section>
 
