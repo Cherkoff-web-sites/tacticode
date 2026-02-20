@@ -32,6 +32,7 @@ export function AppProvider({ children }) {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [deviceToRemove, setDeviceToRemove] = useState(null);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [displayedNewsCount, setDisplayedNewsCount] = useState(8);
   const [authMode, setAuthMode] = useState("login"); // "login" | "register"
 
@@ -59,6 +60,11 @@ export function AppProvider({ children }) {
     apiLogout();
     setUser(null);
     navigate("/");
+  };
+
+  // Для превью: переключить состояние "залогинен" без бэкенда
+  const setDemoLoggedIn = (v) => {
+    setUser(v ? { id: 1 } : null);
   };
 
   const handleLoginSubmit = async (e) => {
@@ -121,8 +127,11 @@ export function AppProvider({ children }) {
     setDeviceToRemove,
     historyModalOpen,
     setHistoryModalOpen,
+    logoutModalOpen,
+    setLogoutModalOpen,
     displayedNewsCount,
-    setDisplayedNewsCount
+    setDisplayedNewsCount,
+    setDemoLoggedIn
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

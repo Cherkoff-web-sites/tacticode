@@ -32,7 +32,10 @@ export function Modals() {
     setDeviceToRemove,
     setDevices,
     historyModalOpen,
-    setHistoryModalOpen
+    setHistoryModalOpen,
+    logoutModalOpen,
+    setLogoutModalOpen,
+    handleLogout
   } = useApp();
 
   return (
@@ -103,6 +106,21 @@ export function Modals() {
             <div className="modal-actions modal-actions-column">
               <button type="button" className="primary-btn modal-pay-btn" onClick={() => { setDevices((prev) => prev.filter((d) => d.name !== deviceToRemove.name)); setDeviceToRemove(null); }}>Удалить устройство</button>
               <button type="button" className="primary-outline-btn modal-pay-btn" onClick={() => setDeviceToRemove(null)}>Вернуться назад</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logoutModalOpen && (
+        <div className="modal-backdrop" onClick={() => setLogoutModalOpen(false)}>
+          <div className="modal auth-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Вы точно хотите выйти?</div>
+              <button type="button" className="modal-close" onClick={() => setLogoutModalOpen(false)}>×</button>
+            </div>
+            <div className="modal-actions modal-actions-column">
+              <button type="button" className="primary-btn modal-pay-btn" onClick={() => { handleLogout(); setLogoutModalOpen(false); }}>Выйти</button>
+              <button type="button" className="primary-outline-btn modal-pay-btn" onClick={() => setLogoutModalOpen(false)}>Отмена</button>
             </div>
           </div>
         </div>

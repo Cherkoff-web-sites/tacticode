@@ -37,6 +37,3 @@ export const initialDevices = [
   { name: "EIII-PC", location: "Moscow, Russia · 14:56" },
   { name: "MSI Katana GF76 B12UCR-821XRU-13...", location: "Moscow, Russia · 14:56" }
 ];
-
-export const VALID_LOGIN = "konst@mail.ru";
-export const VALID_PASSWORD = "passkonst";

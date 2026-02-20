@@ -2,7 +2,6 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
-import { CompilingOverlay } from "./CompilingOverlay";
 
 export function Layout() {
   const location = useLocation();
@@ -12,7 +11,7 @@ export function Layout() {
   const isContent = path === "/news" || path === "/subscription" || path === "/contacts";
 
   const mainClass = isHome
-    ? "flex-1 py-8 pb-10 flex flex-col items-stretch"
+    ? "flex-1 pt-0 pb-[80px] md:pb-[160px] flex flex-col items-stretch"
     : isLk
       ? "flex-1 py-8 px-10 pb-10"
       : "flex-1 py-8 pb-10";
@@ -24,7 +23,6 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <CompilingOverlay />
     </div>
   );
 }

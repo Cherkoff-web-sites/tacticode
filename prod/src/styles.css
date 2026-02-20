@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
 @font-face {
   font-family: "Anton";
@@ -42,11 +42,37 @@
     letter-spacing: 0.02em;
   }
 
-  @media (max-width: 990px) {
+  section {
+    padding-top: 80px;
+    margin-bottom: 80px;
+  }
+
+  section:first-of-type {
+    padding-top: 0;
+  }
+
+  section:last-of-type {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 767px) {
     h2,
     .h2 {
       margin-bottom: 16px;
       font-size: 24px;
+    }
+
+    section {
+      padding-top: 40px;
+      margin-bottom: 40px;
+    }
+
+    section:first-of-type {
+      padding-top: 0;
+    }
+
+    section:last-of-type {
+      margin-bottom: 0;
     }
   }
 
@@ -251,6 +277,42 @@
   /* Модалки */
   .modal-backdrop {
     @apply fixed inset-0 bg-[rgba(15,23,42,0.35)] flex items-center justify-center z-20;
+  }
+
+  /* Мобильное меню: затемнение и slide-in */
+  .mobile-menu-backdrop {
+    @apply fixed inset-0 z-30 md:hidden bg-black/70;
+  }
+  .mobile-menu-backdrop.mobile-menu-backdrop--entering {
+    animation: mobileMenuBackdropIn 0.3s ease-out forwards;
+  }
+  .mobile-menu-backdrop.mobile-menu-backdrop--exiting {
+    animation: mobileMenuBackdropOut 0.3s ease-in forwards;
+  }
+  .mobile-menu-panel {
+    @apply fixed left-0 top-6 bottom-0 z-40 md:hidden w-full max-w-[272px] bg-white flex flex-col justify-between gap-2 pt-8 px-6 pb-6 rounded-r-2xl overflow-y-auto;
+  }
+  .mobile-menu-panel.mobile-menu-panel--entering {
+    animation: mobileMenuPanelIn 0.3s ease-out forwards;
+  }
+  .mobile-menu-panel.mobile-menu-panel--exiting {
+    animation: mobileMenuPanelOut 0.3s ease-in forwards;
+  }
+  @keyframes mobileMenuBackdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes mobileMenuBackdropOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  @keyframes mobileMenuPanelIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes mobileMenuPanelOut {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
   }
 
   .modal {
