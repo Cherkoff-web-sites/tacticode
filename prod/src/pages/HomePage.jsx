@@ -10,6 +10,8 @@ import { SwiperSection } from "../components/SwiperSection";
 
 export function HomePage() {
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
+  const heroAdvantagesClass = "flex-1 text-center text-[16px] lg:text-[24px] leading-[20px] lg:leading-[30px] font-light text-[#1A1A1A]";
+  const heroAdvantagesDiscClass = "w-[5px] h-[5px] lg:w-[8px] lg:h-[8px] shrink-0 rounded-full bg-[#D9E3F1]";
 
   return (
     <>
@@ -36,13 +38,13 @@ export function HomePage() {
             <div className="flex flex-col items-end">
               <h2 className="w-full mt-[16px] mb-[40px] text-center text-[18px] leading-[23px] lg:hidden">Спорт разный — Tacticode один</h2>
               <div className="lg:absolute left-[77px] bottom-0 flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-2 w-[100%] lg:max-w-[1112px] p-[24px] lg:px-[56px] lg: py-[42px] rounded-[16px] lg:rounded-[24px] bg-[#FFF] shadow-[0px_4px_25px_rgba(0,69,157,0.05)]">
-                <div className="flex-1 text-center text-[16px] lg:text-[24px] leading-[20px] lg:leading-[30px] font-light text-[#1A1A1A]">Российская разработка</div>
-                <div className="w-[5px] h-[5px] lg:w-[8px] lg:h-[8px] shrink-0 rounded-full bg-[#D9E3F1]" aria-hidden />
-                <div className="flex-1 text-center text-[16px] lg:text-[24px] leading-[20px] lg:leading-[30px] font-light text-[#1A1A1A]">Понятный интерфейс</div>
-                <div className="w-[5px] h-[5px] lg:w-[8px] lg:h-[8px] shrink-0 rounded-full bg-[#D9E3F1]" aria-hidden />
-                <div className="flex-1 text-center text-[16px] lg:text-[24px] leading-[20px] lg:leading-[30px] font-light text-[#1A1A1A]">Простая <br className="hidden md:block" /> оплата</div>
-                <div className="w-[5px] h-[5px] lg:w-[8px] lg:h-[8px] shrink-0 rounded-full bg-[#D9E3F1]" aria-hidden />
-                <div className="flex-1 text-center text-[16px] lg:text-[24px] leading-[20px] lg:leading-[30px] font-light text-[#1A1A1A]">Быстрый вход в&nbsp;приложение</div>
+                <div className={heroAdvantagesClass}>Российская разработка</div>
+                <div className={heroAdvantagesDiscClass} aria-hidden />
+                <div className={heroAdvantagesClass}>Понятный интерфейс</div>
+                <div className={heroAdvantagesDiscClass} aria-hidden />
+                <div className={heroAdvantagesClass}>Простая <br className="hidden md:block" /> оплата</div>
+                <div className={heroAdvantagesDiscClass} aria-hidden />
+                <div className={heroAdvantagesClass}>Быстрый вход в&nbsp;приложение</div>
               </div>
               <h2 className="hidden lg:block m-0 mt-[32px] mr-[73px]">Спорт разный — Tacticode один</h2>
             </div>

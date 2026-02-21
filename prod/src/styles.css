@@ -490,11 +490,18 @@
 
   .news-swiper-pagination .swiper-pagination-bullet,
   .subscription-swiper-pagination .swiper-pagination-bullet {
-    @apply !w-2 !h-2 !bg-gray-200 !opacity-100 !mx-1;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 12px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: #D9E3F1;
+    opacity: 1;
   }
 
   .news-swiper-pagination .swiper-pagination-bullet-active,
   .subscription-swiper-pagination .swiper-pagination-bullet-active {
-    @apply !bg-primary !w-6 !rounded;
+    width: 24px;
+    background-color: #00459D;
   }
 }
