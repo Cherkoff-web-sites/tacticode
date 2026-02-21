@@ -6,29 +6,36 @@ import { NewsCard } from "../components/NewsCard";
 
 export function NewsPage() {
   const { displayedNewsCount, setDisplayedNewsCount } = useApp();
+  const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
+  const totalNews = newsItems.length;
+  const visibleCount = Math.min(displayedNewsCount, totalNews);
+  const hasMore = displayedNewsCount < totalNews;
 
   return (
-    <div className="max-w-[1120px] mx-auto px-10 w-full">
-      <section className="mt-10 mb-20">
-        <h1 className="m-0 text-2xl font-bold mb-8">Новости</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {Array.from({ length: displayedNewsCount }).map((_, index) => {
-            const newsItem = newsItems[index % newsItems.length];
-            return <NewsCard key={"news-" + index} item={newsItem} />;
-          })}
-        </div>
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={() => setDisplayedNewsCount((prev) => prev + 8)}
-            className="px-5 py-3 rounded-full border-none bg-primary text-white text-sm font-medium cursor-pointer transition-colors hover:bg-primary-dark"
-          >
-            Загрузить еще
-          </button>
+    <>
+      <section>
+        <div className={containerClass}>
+          <h1 className="h2">Новости</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[24px]">
+            {newsItems.slice(0, visibleCount).map((newsItem) => (
+              <NewsCard key={newsItem.id} item={newsItem} />
+            ))}
+          </div>
+          {hasMore && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => setDisplayedNewsCount((prev) => Math.min(prev + 8, totalNews))}
+                className="w-full lg:w-auto p-[12px] lg:px-[40px] lg:py-[16px] rounded-full border-none mt-[32px] text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] font-light text-white bg-primary cursor-pointer transition-colors hover:bg-primary-dark"
+              >
+                Загрузить еще
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
       <HowToStartSection />
-    </div>
+    </>
   );
 }

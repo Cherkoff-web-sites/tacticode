@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import logoIcon from "../assets/icons/logo.svg";
 import logoBlackIcon from "../assets/icons/logo-black.svg";
@@ -90,9 +90,9 @@ export function Header() {
 
           {/* пк навигация */}
           <nav className="hidden md:flex items-center gap-[64px]">
-            <Link to="/news" className={navLinkClass}>Новости</Link>
-            <Link to="/subscription" className={navLinkClass}>Подписка</Link>
-            <Link to="/contacts" className={navLinkClass}>Контакты</Link>
+            <NavLink to="/news" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Новости</NavLink>
+            <NavLink to="/subscription" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Подписка</NavLink>
+            <NavLink to="/contacts" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Контакты</NavLink>
           </nav>
 
           <div className="hidden md:flex items-center gap-[40px]">
@@ -139,16 +139,16 @@ export function Header() {
             <nav>
               <ul className="flex flex-col gap-8">
                 <li>
-                  <Link to="/news" className={mobileMenuNavLinkClass} onClick={closeMobileMenu}>Новости</Link>
+                  <NavLink to="/news" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Новости</NavLink>
                 </li>
                 <li>
-                  <Link to="/subscription" className={mobileMenuNavLinkClass} onClick={closeMobileMenu}>Подписка</Link>
+                  <NavLink to="/subscription" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Подписка</NavLink>
                 </li>
                 <li>
-                  <Link to="/contacts" className={mobileMenuNavLinkClass} onClick={closeMobileMenu}>Контакты</Link>
+                  <NavLink to="/contacts" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Контакты</NavLink>
                 </li>
                 <li>
-                  <Link to="/lk" className={mobileMenuNavLinkClass} onClick={closeMobileMenu}>Личный кабинет</Link>
+                  <NavLink to="/lk" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Личный кабинет</NavLink>
                 </li>
               </ul>
             </nav>
