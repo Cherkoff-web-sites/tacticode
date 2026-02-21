@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
@@ -35,8 +35,28 @@ export function Modals() {
     setHistoryModalOpen,
     logoutModalOpen,
     setLogoutModalOpen,
+    newsModalItem,
+    setNewsModalItem,
     handleLogout
   } = useApp();
+
+  const isAnyModalOpen = Boolean(
+    loginModalOpen ||
+    activeModal ||
+    deviceToRemove ||
+    logoutModalOpen ||
+    historyModalOpen ||
+    newsModalItem
+  );
+
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isAnyModalOpen]);
 
   return (
     <>
@@ -62,6 +82,36 @@ export function Modals() {
             <div className="modal-actions">
               <button type="button" className="primary-btn modal-pay-btn" onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
               <button type="button" className="primary-outline-btn modal-pay-btn" onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {newsModalItem && (
+        <div className="modal-backdrop news-modal-backdrop" onClick={() => setNewsModalItem(null)}>
+          <div
+            className="relative bg-white w-full md:w-[800px] md:rounded-[20px] rounded-t-[20px] md:rounded-b-[20px] flex flex-col overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full border-2 border-[#00459D] bg-white text-[#00459D] text-xl leading-none cursor-pointer flex items-center justify-center z-10"
+              onClick={() => setNewsModalItem(null)}
+              aria-label="Закрыть"
+            >
+              ×
+            </button>
+            <div className="w-full aspect-[360/226] lg:aspect-[800/356] overflow-hidden">
+              <img src={newsModalItem.image} alt={newsModalItem.title} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col flex-1 gap-[16px] p-[16px] lg:p-[24px] lg:pt-[16px] text-center md:text-left text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] text-[#1A1A1A] min-h-0">
+              <div className="mt-auto font-light text-[#8D8D8D]">{newsModalItem.date}</div>
+              <h3 className="m-0 font-bold">{newsModalItem.title}</h3>
+              <div className="flex-1 overflow-y-auto">
+                <p className="flex-1 m-0 font-light whitespace-pre-line">
+                  {newsModalItem.description}
+                </p>
+              </div>
             </div>
           </div>
         </div>

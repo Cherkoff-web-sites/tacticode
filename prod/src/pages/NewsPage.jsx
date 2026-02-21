@@ -26,7 +26,7 @@ export function NewsPage() {
               <button
                 type="button"
                 onClick={() => setDisplayedNewsCount((prev) => Math.min(prev + 8, totalNews))}
-                className="w-full lg:w-auto p-[12px] lg:px-[40px] lg:py-[16px] rounded-full border-none mt-[32px] text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] font-light text-white bg-primary cursor-pointer transition-colors hover:bg-primary-dark"
+                className="w-full lg:w-auto p-[12px] lg:px-[40px] lg:py-[16px] rounded-full border-none mt-[32px] text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] font-light text-white bg-[#00459D] cursor-pointer transition-colors md:hover:bg-[#F2F5FA] md:hover:text-[#00459D] active:bg-[#D9E3F1] active:text-[#00459D]"
               >
                 Загрузить еще
               </button>

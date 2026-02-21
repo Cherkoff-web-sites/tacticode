@@ -34,6 +34,7 @@ export function AppProvider({ children }) {
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [displayedNewsCount, setDisplayedNewsCount] = useState(8);
+  const [newsModalItem, setNewsModalItem] = useState(null);
   const [authMode, setAuthMode] = useState("login"); // "login" | "register"
 
   const isLoggedIn = !!user;
@@ -131,6 +132,8 @@ export function AppProvider({ children }) {
     setLogoutModalOpen,
     displayedNewsCount,
     setDisplayedNewsCount,
+    newsModalItem,
+    setNewsModalItem,
     setDemoLoggedIn
   };
 

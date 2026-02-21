@@ -1,8 +1,28 @@
 import React from "react";
+import { useApp } from "../context/AppContext";
 
 export function NewsCard({ item, className }) {
+  const { setNewsModalItem } = useApp();
+
+  const handleClick = () => {
+    setNewsModalItem(item);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setNewsModalItem(item);
+    }
+  };
+
   return (
-    <article className={`flex flex-col h-full overflow-hidden rounded-[16px] lg:rounded-[20px] bg-[#F8F8F8] ${className ?? ""}`}>
+    <article
+      className={`flex flex-col h-full overflow-hidden rounded-[16px] lg:rounded-[20px] bg-[#F8F8F8] cursor-pointer ${className ?? ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
       <div className="w-full aspect-[312/226] lg:aspect-[440/226] rounded-[16px] lg:rounded-[20px] overflow-hidden">
         <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
       </div>

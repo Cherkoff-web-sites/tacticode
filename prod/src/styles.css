@@ -279,6 +279,10 @@
     @apply fixed inset-0 bg-[rgba(15,23,42,0.35)] flex items-center justify-center z-20;
   }
 
+  .news-modal-backdrop {
+    @apply items-end md:items-center;
+  }
+
   /* Мобильное меню: затемнение и slide-in */
   .mobile-menu-backdrop {
     @apply fixed inset-0 z-30 md:hidden bg-black/70;

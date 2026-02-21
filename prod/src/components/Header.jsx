@@ -15,8 +15,8 @@ export function Header() {
   };
 
   const personIconColors = isLoggedIn
-    ? "text-[#00459D] hover:text-[#F2F5FA] active:text-[#D9E3F1]"
-    : "text-[#D3D3D1] hover:text-[#00459D] active:text-[#003982]";
+    ? "text-[#00459D] md:hover:text-[#F2F5FA] active:text-[#D9E3F1]"
+    : "text-[#D3D3D1] md:hover:text-[#00459D] active:text-[#003982]";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileMenuClosing, setMobileMenuClosing] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
