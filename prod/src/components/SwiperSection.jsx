@@ -6,7 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-const containerClass = "w-full max-w-[1868px] pl-[24px] lg:px-[24px] mx-auto";
+const containerClass = "w-full max-w-[1868px] p-0 lg:px-[24px] mx-auto";
 
 export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginationId, renderSlide }) {
   const prevRef = useRef(null);
@@ -23,9 +23,9 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
           <Swiper
             modules={[Navigation, Pagination]}
             spaceBetween={8}
-            slidesPerView={1.068}
+            slidesPerView={1}
             slidesPerGroup={1}
-            className="swiper-equal-height"
+            className="swiper-equal-height px-[24px] lg:px-0"
             navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
             onBeforeInit={(swiper) => {
               swiper.params.navigation.prevEl = prevRef.current;

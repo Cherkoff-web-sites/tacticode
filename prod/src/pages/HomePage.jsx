@@ -55,7 +55,7 @@ export function HomePage() {
       <SwiperSection
         title="Новости"
         linkTo="/news"
-        items={newsItems}
+        items={newsItems.slice(0, 8)}
         slidesPerView={4}
         paginationId="news-swiper-pagination"
         renderSlide={(item) => <NewsCard item={item} />}
@@ -64,7 +64,7 @@ export function HomePage() {
       <SwiperSection
         title="Оформить подписку"
         linkTo="/subscription"
-        items={subscriptionItems}
+        items={subscriptionItems.slice(0, 6)}
         slidesPerView={3}
         paginationId="subscription-swiper-pagination"
         renderSlide={(item) => <SubscriptionCard item={item} />}
