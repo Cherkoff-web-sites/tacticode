@@ -11,7 +11,7 @@ export function SubscriptionPage() {
         <h1 className="m-0 text-2xl font-bold mb-8">Оформить подписку</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
           {subscriptionItems.map((item) => (
-            <SubscriptionCard key={item.id} item={item} variant="grid" />
+            <SubscriptionCard key={item.id} item={item} />
           ))}
         </div>
       </section>

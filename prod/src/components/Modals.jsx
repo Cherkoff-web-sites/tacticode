@@ -40,7 +40,7 @@ export function Modals() {
 
   return (
     <>
-      {activeModal && isLk && (
+      {activeModal && (
         <div className="modal-backdrop" onClick={() => setActiveModal(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
