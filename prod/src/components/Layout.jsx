@@ -8,7 +8,7 @@ export function Layout() {
   const path = location.pathname;
   const isHome = path === "/";
   const isLk = path === "/lk";
-  const isContent = path === "/news" || path === "/subscription" || path === "/contacts";
+  const isContacts = path === "/contacts";
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -18,7 +18,9 @@ export function Layout() {
     ? "flex-1 flex flex-col items-stretch pt-0 pb-[80px] md:pb-[160px]"
     : isLk
       ? "flex-1 py-8 px-10 pb-10"
-      : "flex-1 pt-[40px] md:pt-[70px] pb-[80px] md:pb-[160px]";
+      : isContacts
+        ? "flex-1 pt-[40px] md:pt-[70px] pb-[40px] md:pb-[160px]"
+        : "flex-1 pt-[40px] md:pt-[70px] pb-[80px] md:pb-[160px]";
 
   return (
     <div className="min-h-screen flex flex-col">
