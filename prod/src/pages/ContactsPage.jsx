@@ -1,12 +1,15 @@
 import React from "react";
 import qrImage from "../assets/images/qr.png";
+import qrImageMob from "../assets/images/qr_mob.png";
 
 export function ContactsPage() {
+  const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
+
   return (
-    <div className="max-w-[1120px] mx-auto px-10 w-full">
-      <section className="mt-10 mb-20">
-        <h1 className="m-0 text-2xl font-bold mb-8 max-md:text-center">Контакты</h1>
-        <div className="grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-10">
+    <section>
+      <div className={containerClass}>
+          <h1 className="h2 text-center md:text-left">Контакты</h1>
+          <div className="grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-10">
           <div className="max-md:order-2">
             <p className="m-0 text-sm text-gray-600 mb-8 flex items-center gap-2">
               <span className="text-base">⚡</span>
@@ -25,18 +28,17 @@ export function ContactsPage() {
               </a>
             </div>
           </div>
-          <div className="flex flex-col items-center gap-6 max-md:order-1">
-            <p className="m-0 text-sm text-gray-900 text-center flex items-center gap-2 justify-center">
-              Если у вас есть вопросы или нужна помощь — пишите нам <span className="text-base">👇</span>
+          <div className="max-w-[373px] flex flex-col items-center max-md:order-1">
+            <p className="mb-[16px] lg:mb-[24px] text-[20px] leading-[25px] text-center text-[#1A1A1A]">
+              Если у вас есть вопросы или нужна помощь — пишите нам 👇
             </p>
-            <div className="flex justify-center">
-              <div className="w-[200px] h-[200px] rounded-2xl bg-white border-2 border-gray-200 flex items-center justify-center relative shadow-[0_4px_12px_rgba(15,23,42,0.08)] overflow-hidden">
-                <img src={qrImage} alt="QR код Telegram" className="w-full h-full object-cover" />
-              </div>
+            <div className="flex items-center justify-center w-full h-[auto] mb-[24px]">
+              <img src={qrImageMob} alt="QR код Telegram" className="w-full max-w-[250px] h-auto object-cover md:hidden" />
+              <img src={qrImage} alt="QR код Telegram" className="w-full max-w-[250px] lg:max-w-[309px] h-auto object-cover hidden md:block" />
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+          </div>
+      </div>
+    </section>
   );
 }
