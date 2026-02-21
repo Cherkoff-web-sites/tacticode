@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
@@ -11,6 +11,18 @@ const containerClass = "w-full max-w-[1868px] p-0 lg:px-[24px] mx-auto";
 export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginationId, renderSlide }) {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
+  const swiperRef = useRef(null);
+
+  useEffect(() => {
+    const swiper = swiperRef.current;
+    if (!swiper || !prevRef.current || !nextRef.current) return;
+
+    swiper.params.navigation.prevEl = prevRef.current;
+    swiper.params.navigation.nextEl = nextRef.current;
+    swiper.navigation.destroy();
+    swiper.navigation.init();
+    swiper.navigation.update();
+  }, []);
 
   return (
     <section>
@@ -27,9 +39,8 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
             slidesPerGroup={1}
             className="swiper-equal-height px-[24px] lg:px-0"
             navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-            onBeforeInit={(swiper) => {
-              swiper.params.navigation.prevEl = prevRef.current;
-              swiper.params.navigation.nextEl = nextRef.current;
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
             }}
             pagination={{
               clickable: true,

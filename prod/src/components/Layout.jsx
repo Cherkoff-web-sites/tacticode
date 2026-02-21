@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
@@ -9,6 +9,10 @@ export function Layout() {
   const isHome = path === "/";
   const isLk = path === "/lk";
   const isContent = path === "/news" || path === "/subscription" || path === "/contacts";
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
 
   const mainClass = isHome
     ? "flex-1 flex flex-col items-stretch pt-0 pb-[80px] md:pb-[160px]"

@@ -22,6 +22,7 @@
   html {
     scrollbar-width: none;
     -ms-overflow-style: none;
+    scroll-behavior: smooth;
   }
 
   html::-webkit-scrollbar {
