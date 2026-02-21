@@ -504,4 +504,23 @@
     width: 24px;
     background-color: #00459D;
   }
+
+  .swiper-equal-height .swiper-wrapper {
+    align-items: stretch;
+  }
+
+  .swiper-equal-height .swiper-slide {
+    height: auto;
+  }
+
+  .swiper-equal-height .swiper-slide > * {
+    height: 100%;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }

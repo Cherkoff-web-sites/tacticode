@@ -25,6 +25,7 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
             spaceBetween={8}
             slidesPerView={1.068}
             slidesPerGroup={1}
+            className="swiper-equal-height"
             navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
             onBeforeInit={(swiper) => {
               swiper.params.navigation.prevEl = prevRef.current;
