@@ -275,15 +275,6 @@
     @apply mt-2;
   }
 
-  /* Модалки */
-  .modal-backdrop {
-    @apply fixed inset-0 bg-[rgba(15,23,42,0.35)] flex items-center justify-center z-20;
-  }
-
-  .news-modal-backdrop {
-    @apply items-end md:items-center;
-  }
-
   /* Мобильное меню: затемнение и slide-in */
   .mobile-menu-backdrop {
     @apply fixed inset-0 z-30 md:hidden bg-black/70;
@@ -303,6 +294,16 @@
   .mobile-menu-panel.mobile-menu-panel--exiting {
     animation: mobileMenuPanelOut 0.3s ease-in forwards;
   }
+  .mobile-menu-close-btn {
+    opacity: 0;
+  }
+  .mobile-menu-close-btn.mobile-menu-close-btn--entering {
+    animation: mobileMenuCloseIn 0.3s ease-out 0.2s forwards;
+  }
+  .mobile-menu-close-btn.mobile-menu-close-btn--exiting {
+    animation: mobileMenuCloseOut 0.1s ease-in forwards;
+    pointer-events: none;
+  }
   @keyframes mobileMenuBackdropIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -319,167 +320,13 @@
     from { transform: translateX(0); }
     to { transform: translateX(-100%); }
   }
-
-  .modal {
-    @apply w-[min(640px,calc(100%-32px))] bg-white rounded-3xl p-[24px_32px_28px] shadow-[0_20px_60px_rgba(15,23,42,0.25)] max-md:p-5;
+  @keyframes mobileMenuCloseIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-
-  .modal-header {
-    @apply flex justify-between items-center mb-4;
-  }
-
-  .modal-title {
-    @apply text-lg font-semibold;
-  }
-
-  .modal-close {
-    @apply w-8 h-8 rounded-full border-2 border-primary bg-white text-primary text-xl leading-none cursor-pointer;
-  }
-
-  .modal-section-title {
-    @apply text-sm text-gray-500 mb-2;
-  }
-
-  .modal-toggle {
-    @apply inline-flex p-1 bg-gray-100 rounded-full gap-1 mb-5;
-  }
-
-  .modal-toggle-btn {
-    @apply border-none bg-transparent px-[22px] py-2 rounded-full text-sm cursor-pointer text-gray-500;
-  }
-
-  .modal-toggle-btn--active {
-    @apply bg-[#e5edff] text-gray-900;
-  }
-
-  .modal-prices {
-    @apply mb-5;
-  }
-
-  .modal-price-main {
-    @apply text-[28px] font-extrabold text-[#1d4ed8] flex items-baseline gap-3;
-  }
-
-  .modal-price-old {
-    @apply text-sm text-gray-400 line-through;
-  }
-
-  .modal-price-sub {
-    @apply mt-2 text-xl font-bold text-[#1d4ed8] flex items-baseline gap-2.5;
-  }
-
-  .modal-price-strike {
-    @apply text-sm text-gray-400 line-through;
-  }
-
-  .modal-price-benefit {
-    @apply text-sm text-green-600;
-  }
-
-  .modal-actions {
-    @apply flex gap-3 mt-2 max-md:flex-col;
-  }
-
-  .modal-pay-btn {
-    @apply flex-1 justify-center;
-  }
-
-  .modal-actions-column {
-    @apply flex-col;
-  }
-
-  .auth-modal {
-    @apply w-full max-w-[390px];
-  }
-
-  .auth-modal .modal-header {
-    @apply justify-center;
-  }
-
-  .auth-modal .modal-close {
-    position: absolute;
-    top: -16px;
-    right: -16px;
-  }
-
-  .auth-register-link {
-    @apply border-none bg-transparent p-0 mb-2 text-sm text-primary cursor-pointer;
-  }
-
-  .auth-form {
-    @apply mt-1;
-  }
-
-  .auth-row {
-    @apply flex justify-between items-center mt-1 mb-3;
-  }
-
-  .auth-remember {
-    @apply flex items-center gap-1.5 text-[13px] text-gray-600;
-  }
-
-  .auth-forgot {
-    @apply text-[13px];
-  }
-
-  .auth-error {
-    @apply text-[13px] text-red-600 mb-2;
-  }
-
-  .auth-submit {
-    @apply w-full justify-center;
-  }
-
-  .history-modal {
-    @apply max-w-[520px];
-  }
-
-  .history-header-row {
-    @apply flex justify-between items-center mb-3 text-sm;
-  }
-
-  .history-muted {
-    @apply text-gray-500;
-  }
-
-  .history-period {
-    @apply font-medium;
-  }
-
-  .history-list {
-    @apply max-h-[360px] pr-1 overflow-y-auto flex flex-col gap-2.5;
-  }
-
-  .history-item {
-    @apply bg-gray-50 rounded-2xl p-[14px_16px];
-  }
-
-  .history-item-main {
-    @apply flex justify-between items-center mb-1.5;
-  }
-
-  .history-item-amount {
-    @apply font-bold;
-  }
-
-  .history-item-date {
-    @apply text-[13px] text-gray-500;
-  }
-
-  .history-item-sub {
-    @apply flex justify-between gap-4 text-[13px];
-  }
-
-  .history-item-left {
-    @apply flex flex-col gap-0.5;
-  }
-
-  .history-item-right {
-    @apply text-right flex flex-col gap-0.5;
-  }
-
-  .history-muted.small {
-    @apply text-xs;
+  @keyframes mobileMenuCloseOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-4px); }
   }
 
   /* Swiper кастомные кнопки навигации */
