@@ -142,7 +142,12 @@ export function Modals() {
 
     try {
       setRestoreLoading(true);
-      await apiPasswordRequestReset({ email });
+      const res = await apiPasswordRequestReset({ email });
+      if (res && res.code) {
+        // Временное поведение: показываем код вместо отправки на почту
+        // eslint-disable-next-line no-alert
+        alert(`Запомните ваш код для восстановления: ${res.code}`);
+      }
       setResetEmail(email);
       setCodePurpose("reset");
       setCodeEmail(email);
@@ -240,9 +245,14 @@ export function Modals() {
         titleClassName="text-center"
       >
         <p className="m-0 mb-3 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
-          Мы отправим на нее код подтверждения
+          Сейчас код не отправляется на почту, а показывается на экране
         </p>
-        <form onSubmit={handleRestoreSubmit}>
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await handleRestoreSubmit(event);
+          }}
+        >
           <div className="mb-4">
             <label className="block text-[13px] text-gray-500 mb-1.5">Логин/Почта</label>
             <input
@@ -502,7 +512,12 @@ export function Modals() {
                 }
                 try {
                   setRegisterLoading(true);
-                  await apiRegisterRequestCode({ email, password: registerPassword });
+                  const res = await apiRegisterRequestCode({ email, password: registerPassword });
+                  if (res && res.code) {
+                    // Временное поведение: показываем код вместо отправки на почту
+                    // eslint-disable-next-line no-alert
+                    alert(`Запомните ваш код: ${res.code}`);
+                  }
                   setCodePurpose("register");
                   setCodeEmail(email);
                   setCodeDigits(["", "", "", "", "", ""]);
