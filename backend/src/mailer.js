@@ -1,42 +1,37 @@
-const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+import nodemailer from "nodemailer";
 
-function getFrom() {
-  const email = process.env.MAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER;
-  const name = process.env.MAIL_FROM_NAME || "Tacticode";
-  return { email: email || "noreply@tacticode.ru", name };
+const SMTP_TIMEOUT_MS = 15000;
+
+let smtpTransporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  smtpTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: Number(process.env.SMTP_PORT) === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    connectionTimeout: SMTP_TIMEOUT_MS,
+    greetingTimeout: SMTP_TIMEOUT_MS,
+  });
 }
 
 export async function sendCodeEmail(to, subject, code) {
   const text = `Ваш код: ${code}`;
-  const apiKey = process.env.BREVO_API_KEY;
 
-  if (apiKey) {
+  if (smtpTransporter) {
     try {
-      const from = getFrom();
-      const res = await fetch(BREVO_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "api-key": apiKey,
-        },
-        body: JSON.stringify({
-          sender: { name: from.name, email: from.email },
-          to: [{ email: to }],
-          subject,
-          textContent: text,
-        }),
+      const from = process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@tacticode.ru";
+      await smtpTransporter.sendMail({
+        from,
+        to,
+        subject,
+        text,
       });
-      if (!res.ok) {
-        const errBody = await res.text();
-        console.error("[mailer] Brevo API error:", res.status, errBody);
-        return;
-      }
       return;
     } catch (err) {
-      console.error("[mailer] Brevo request failed (код сохранён в БД):", err);
+      console.error("[mailer] SMTP ошибка (код сохранён в БД):", err.message || err);
       return;
     }
   }
 
-  console.log(`[mailer] Ни Brevo, ни SMTP не настроены. Код для ${to}: ${code}`);
+  console.log(`[mailer] SMTP не настроен. Код для ${to}: ${code}`);
 }
