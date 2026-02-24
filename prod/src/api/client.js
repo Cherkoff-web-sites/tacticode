@@ -68,6 +68,45 @@ export async function apiLogin({ identifier, password }) {
   return data.user;
 }
 
+export async function apiRegisterRequestCode({ email, password }) {
+  return request("/api/auth/register/request-code", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function apiRegisterConfirm({ email, code }) {
+  const data = await request("/api/auth/register/confirm", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+  setToken(data.accessToken);
+  return data.user;
+}
+
+export async function apiPasswordRequestReset({ email }) {
+  return request("/api/auth/password/request-reset", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function apiPasswordVerifyCode({ email, code }) {
+  return request("/api/auth/password/verify-code", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+export async function apiPasswordReset({ email, code, password }) {
+  const data = await request("/api/auth/password/reset", {
+    method: "POST",
+    body: JSON.stringify({ email, code, password }),
+  });
+  setToken(data.accessToken);
+  return data.user;
+}
+
 export async function apiGetMe() {
   const data = await request("/api/auth/me");
   return data.user;

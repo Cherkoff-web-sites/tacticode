@@ -36,6 +36,8 @@ export function AppProvider({ children }) {
   const [displayedNewsCount, setDisplayedNewsCount] = useState(8);
   const [newsModalItem, setNewsModalItem] = useState(null);
   const [authMode, setAuthMode] = useState("login"); // "login" | "register"
+  const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
 
   const isLoggedIn = !!user;
 
@@ -55,7 +57,7 @@ export function AppProvider({ children }) {
 
   const setLoginModalOpenSafe = (v) => setLoginModalOpen(v);
 
-  const handleDownloadClick = () => setLoginModalOpen(true);
+  const handleDownloadClick = () => setDownloadModalOpen(true);
 
   const handleLogout = () => {
     apiLogout();
@@ -102,6 +104,7 @@ export function AppProvider({ children }) {
 
   const value = {
     user,
+    setUser,
     isLoggedIn,
     loginModalOpen,
     setLoginModalOpen: setLoginModalOpenSafe,
@@ -134,6 +137,10 @@ export function AppProvider({ children }) {
     setDisplayedNewsCount,
     newsModalItem,
     setNewsModalItem,
+    codeModalOpen,
+    setCodeModalOpen,
+    downloadModalOpen,
+    setDownloadModalOpen,
     setDemoLoggedIn
   };
 
