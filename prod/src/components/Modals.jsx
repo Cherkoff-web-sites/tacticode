@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import BaseModal from "./BaseModal";
 import {
@@ -19,6 +19,7 @@ const HISTORY_ITEMS = [
 
 export function Modals() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isLk = location.pathname === "/lk";
   const {
     loginModalOpen,
@@ -338,6 +339,7 @@ export function Modals() {
               const user = await apiPasswordReset({ email: resetEmail, code: resetCode, password: newPassword });
               setUser(user);
               setNewPasswordModalOpen(false);
+              navigate("/lk");
             } catch (err) {
               setNewPasswordError(err.message || "Не удалось обновить пароль");
             } finally {
@@ -595,6 +597,7 @@ export function Modals() {
                 setUser(user);
                 setCodeModalOpen(false);
                 setAuthMode("login");
+                navigate("/lk");
               } else if (codePurpose === "reset") {
                 await apiPasswordVerifyCode({ email: resetEmail, code });
                 setResetCode(code);
