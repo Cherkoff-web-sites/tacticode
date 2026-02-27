@@ -13,44 +13,48 @@ const sslInsecure =
     (process.env.DB_SSL_INSECURE || "").toLowerCase() !== "false");
 
 let connectionString = rawConnectionString;
+let connectionParams = null;
 
-if (rawConnectionString && sslInsecure) {
+if (rawConnectionString) {
   try {
     const url = new URL(rawConnectionString);
-    if (!url.searchParams.get("sslmode")) {
-      url.searchParams.set("sslmode", "require");
-    }
-    if (!url.searchParams.get("rejectUnauthorized")) {
-      url.searchParams.set("rejectUnauthorized", "false");
-    }
-    connectionString = url.toString();
+    // Убираем параметры, которые могут конфликтовать с ssl-конфигом
+    url.searchParams.delete("sslmode");
+    url.searchParams.delete("rejectUnauthorized");
+
+    connectionParams = {
+      host: url.hostname,
+      port: url.port ? Number(url.port) : 5432,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.replace(/^\//, "")
+    };
   } catch (err) {
     console.warn("Invalid DATABASE_URL, using as-is:", err.message);
     connectionString = rawConnectionString;
   }
 }
 
-const sslRequired =
-  connectionString &&
-  /sslmode=(verify-full|require)/i.test(connectionString);
-const sslConfig =
-  connectionString && (sslRequired || sslInsecure)
-    ? { ssl: { rejectUnauthorized: false } }
-    : {};
+const sslConfig = sslInsecure ? { ssl: { rejectUnauthorized: false } } : {};
 
 export const pool = new Pool(
-  connectionString
+  connectionParams
     ? {
-        connectionString,
+        ...connectionParams,
         ...sslConfig
       }
-    : {
-        host: process.env.DB_HOST || "localhost",
-        port: Number(process.env.DB_PORT) || 5432,
-        user: process.env.DB_USER || "postgres",
-        password: process.env.DB_PASSWORD || "postgres",
-        database: process.env.DB_NAME || "tacticode"
-      }
+    : connectionString
+      ? {
+          connectionString,
+          ...sslConfig
+        }
+      : {
+          host: process.env.DB_HOST || "localhost",
+          port: Number(process.env.DB_PORT) || 5432,
+          user: process.env.DB_USER || "postgres",
+          password: process.env.DB_PASSWORD || "postgres",
+          database: process.env.DB_NAME || "tacticode"
+        }
 );
 
 function logDbSslConfig() {
@@ -58,6 +62,13 @@ function logDbSslConfig() {
     return;
   }
   const ssl = pool?.options?.ssl || null;
+  const safeOptions = {
+    host: pool?.options?.host,
+    port: pool?.options?.port,
+    user: pool?.options?.user,
+    database: pool?.options?.database,
+    ssl
+  };
   let safeUrl = connectionString;
   if (safeUrl) {
     try {
@@ -72,6 +83,7 @@ function logDbSslConfig() {
   }
   console.log("DB connection string:", safeUrl || "<env>");
   console.log("DB SSL config:", ssl);
+  console.log("DB pool options:", safeOptions);
 }
 
 logDbSslConfig();
