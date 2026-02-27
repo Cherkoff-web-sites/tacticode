@@ -53,6 +53,29 @@ export const pool = new Pool(
       }
 );
 
+function logDbSslConfig() {
+  if (process.env.NODE_ENV === "test") {
+    return;
+  }
+  const ssl = pool?.options?.ssl || null;
+  let safeUrl = connectionString;
+  if (safeUrl) {
+    try {
+      const url = new URL(safeUrl);
+      if (url.password) {
+        url.password = "*****";
+      }
+      safeUrl = url.toString();
+    } catch {
+      // ignore malformed url
+    }
+  }
+  console.log("DB connection string:", safeUrl || "<env>");
+  console.log("DB SSL config:", ssl);
+}
+
+logDbSslConfig();
+
 export async function query(text, params) {
   const start = Date.now();
   const res = await pool.query(text, params);
