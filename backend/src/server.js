@@ -14,9 +14,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+if (dbDisabled) {
+  console.warn("DB_DISABLED=true — all /api routes (except /api/health) disabled");
+  app.use("/api", (req, res) => {
+    return res.status(503).json({ error: "База данных временно отключена" });
+  });
+}
 
 app.use("/api/auth", authRoutes);
 app.use("/api/devices", deviceRoutes);
@@ -43,5 +52,7 @@ app.listen(port, "0.0.0.0", () => {
 });
 
 // Не блокируем запуск сервера, даже если БД временно недоступна
-ensureSchema();
+if (!dbDisabled) {
+  ensureSchema();
+}
 
