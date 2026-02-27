@@ -6,10 +6,16 @@ dotenv.config();
 const { Pool } = pg;
 
 const connectionString = process.env.DATABASE_URL;
+const sslRequired =
+  connectionString &&
+  /sslmode=(verify-full|require)/i.test(connectionString);
 
 export const pool = new Pool(
   connectionString
-    ? { connectionString }
+    ? {
+        connectionString,
+        ...(sslRequired ? { ssl: { rejectUnauthorized: false } } : {})
+      }
     : {
         host: process.env.DB_HOST || "localhost",
         port: Number(process.env.DB_PORT) || 5432,
