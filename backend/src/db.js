@@ -36,24 +36,32 @@ if (rawConnectionString) {
 }
 
 const sslConfig = sslInsecure ? { ssl: { rejectUnauthorized: false } } : {};
+const poolConfig = {
+  max: Number(process.env.DB_POOL_MAX) || 2,
+  idleTimeoutMillis: Number(process.env.DB_POOL_IDLE_MS) || 10000,
+  connectionTimeoutMillis: Number(process.env.DB_POOL_CONNECT_MS) || 10000
+};
 
 export const pool = new Pool(
   connectionParams
     ? {
         ...connectionParams,
-        ...sslConfig
+        ...sslConfig,
+        ...poolConfig
       }
     : connectionString
       ? {
           connectionString,
-          ...sslConfig
+          ...sslConfig,
+          ...poolConfig
         }
       : {
           host: process.env.DB_HOST || "localhost",
           port: Number(process.env.DB_PORT) || 5432,
           user: process.env.DB_USER || "postgres",
           password: process.env.DB_PASSWORD || "postgres",
-          database: process.env.DB_NAME || "tacticode"
+          database: process.env.DB_NAME || "tacticode",
+          ...poolConfig
         }
 );
 
