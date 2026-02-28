@@ -10,6 +10,7 @@ RUN npm run build
 FROM node:20-alpine
 
 WORKDIR /app
+RUN apk add --no-cache curl
 COPY backend/package*.json ./
 RUN npm install --production
 COPY backend/ ./
@@ -19,5 +20,5 @@ COPY --from=frontend-build /app/dist /app/public
 
 EXPOSE 4000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=5 \
-  CMD node -e "require('http').get('http://0.0.0.0:4000/api/health', (r) => {if (r.statusCode !== 200) process.exit(1)}).on('error', () => process.exit(1))"
+  CMD curl -fsS http://127.0.0.1:4000/api/health || exit 1
 CMD ["node", "src/server.js"]
