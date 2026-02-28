@@ -17,15 +17,7 @@ app.use(express.json());
 const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
-});
-
-app.get("/", (req, res) => {
-  res.status(200).send("OK");
+  res.sendStatus(200);
 });
 
 if (dbDisabled) {
