@@ -5,12 +5,13 @@ import authRoutes from "./authRoutes.js";
 import deviceRoutes from "./deviceRoutes.js";
 import { query } from "./db.js";
 import fs from "fs";
+import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 
 dotenv.config();
 
-console.log("------------------- APP START -------------------");
+console.log("------------------- APP START 22 -------------------");
 console.log("ENV PORT:", process.env.PORT || "<default 4000>");
 console.log("ENV DB_DISABLED:", process.env.DB_DISABLED || "<not set>");
 
@@ -37,6 +38,36 @@ app.get("/api/health", (req, res) => {
 });
 
 console.log("Health endpoint: /api/health");
+
+function logSelfHealthcheck() {
+  try {
+    const start = Date.now();
+    const req = http.request(
+      "http://127.0.0.1:4000/api/health",
+      { method: "GET", timeout: 3000 },
+      (res) => {
+        const ms = Date.now() - start;
+        console.log(
+          `[${new Date().toISOString()}] Self-healthcheck -> ${res.statusCode} (${ms}ms)`
+        );
+        res.resume();
+      }
+    );
+    req.on("timeout", () => {
+      req.destroy(new Error("Self-healthcheck timeout"));
+    });
+    req.on("error", (err) => {
+      console.log(
+        `[${new Date().toISOString()}] Self-healthcheck error: ${err.message}`
+      );
+    });
+    req.end();
+  } catch (err) {
+    console.log(
+      `[${new Date().toISOString()}] Self-healthcheck setup error: ${err.message}`
+    );
+  }
+}
 
 if (dbDisabled) {
   console.warn("DB_DISABLED=true — all /api routes (except /api/health) disabled");
@@ -67,6 +98,7 @@ const port = Number(process.env.PORT) || 4000;
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`Backend listening on http://0.0.0.0:${port}`);
+  setInterval(logSelfHealthcheck, 10000);
 });
 
 // Не блокируем запуск сервера, даже если БД временно недоступна
