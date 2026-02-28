@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
-console.log("------------------- APP START 22 -------------------");
+console.log("------------------- APP START 33 -------------------");
 console.log("ENV PORT:", process.env.PORT || "<default 4000>");
 console.log("ENV DB_DISABLED:", process.env.DB_DISABLED || "<not set>");
 
@@ -32,6 +32,12 @@ app.use((req, res, next) => {
 });
 
 const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const staticDir = path.join(__dirname, "..", "public");
+app.use(express.static(staticDir));
+console.log("Static files dir:", staticDir);
 
 app.get("/api/health", (req, res) => {
   res.sendStatus(200);
@@ -81,8 +87,6 @@ app.use("/api/devices", deviceRoutes);
 
 async function ensureSchema() {
   try {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
     const initPath = path.join(__dirname, "..", "sql", "init.sql");
     const sql = fs.readFileSync(initPath, "utf8");
     await query(sql);
