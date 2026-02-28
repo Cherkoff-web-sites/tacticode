@@ -10,11 +10,23 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
+console.log("------------------- APP START -------------------");
+console.log("ENV PORT:", process.env.PORT || "<default 4000>");
+console.log("ENV DB_DISABLED:", process.env.DB_DISABLED || "<not set>");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] Incoming request: ${req.method} ${req.url}`);
+  const start = Date.now();
+  const stamp = new Date().toISOString();
+  console.log(`[${stamp}] Incoming request: ${req.method} ${req.url}`);
+  res.on("finish", () => {
+    const ms = Date.now() - start;
+    console.log(
+      `[${new Date().toISOString()}] Response: ${req.method} ${req.url} -> ${res.statusCode} (${ms}ms)`
+    );
+  });
   next();
 });
 
@@ -23,6 +35,8 @@ const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
 app.get("/api/health", (req, res) => {
   res.sendStatus(200);
 });
+
+console.log("Health endpoint: /api/health");
 
 if (dbDisabled) {
   console.warn("DB_DISABLED=true — all /api routes (except /api/health) disabled");
