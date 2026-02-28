@@ -20,6 +20,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
+});
+
 if (dbDisabled) {
   console.warn("DB_DISABLED=true — all /api routes (except /api/health) disabled");
   app.use("/api", (req, res) => {
