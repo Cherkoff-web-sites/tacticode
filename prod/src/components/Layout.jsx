@@ -9,6 +9,7 @@ export function Layout() {
   const isHome = path === "/";
   const isLk = path === "/lk";
   const isContacts = path === "/contacts";
+  const isDocuments = path === "/privacy" || path === "/terms";
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -20,7 +21,9 @@ export function Layout() {
       ? "flex-1 py-8 px-10 pb-10"
       : isContacts
         ? "flex-1 pt-[40px] md:pt-[70px] pb-[40px] md:pb-[160px]"
-        : "flex-1 pt-[40px] md:pt-[70px] pb-[80px] md:pb-[160px]";
+        : isDocuments
+          ? "flex-1 pt-[40px] md:pt-[70px] pb-[48px] md:pb-[50px]"
+          : "flex-1 pt-[40px] md:pt-[70px] pb-[80px] md:pb-[160px]";
 
   return (
     <div className="min-h-screen flex flex-col">

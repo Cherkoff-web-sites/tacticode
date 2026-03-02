@@ -47,9 +47,9 @@ export function Footer() {
             </div>
           </div>
           <div className={`flex items-center justify-between ${bottomBlockClass}`}>
-            <Link to="#" className="p-0 border-none bg-transparent cursor-pointer hover:underline">Политика конфиденциальности</Link>
+            <Link to="/privacy" className="p-0 border-none bg-transparent cursor-pointer hover:underline">Политика конфиденциальности</Link>
             <p className="m-0 p-0">&copy;&nbsp;2025&nbsp;ООО &laquo;Спорттехлаб&raquo;. Все права защищены</p>
-            <Link to="#" className="p-0 border-none bg-transparent cursor-pointer hover:underline">Пользовательское соглашение</Link>
+            <Link to="/terms" className="p-0 border-none bg-transparent cursor-pointer hover:underline">Пользовательское соглашение</Link>
           </div>
         </div>
 
@@ -89,8 +89,8 @@ export function Footer() {
               </button>
             </div>
             <div className="flex flex-col items-center gap-[16px] text-center text-[16px] leading-[20px] font-light text-[#D3D3D1]">
-              <Link to="#" className="p-0 border-none text-[16px] leading-[20px] font-light text-[#D3D3D1] bg-transparent cursor-pointer active:underline">Политика конфиденциальности</Link>
-              <Link to="#" className="p-0 border-none text-[16px] leading-[20px] font-light text-[#D3D3D1] bg-transparent cursor-pointer active:underline">Пользовательское соглашение</Link>
+              <Link to="/privacy" className="p-0 border-none text-[16px] leading-[20px] font-light text-[#D3D3D1] bg-transparent cursor-pointer active:underline">Политика конфиденциальности</Link>
+              <Link to="/terms" className="p-0 border-none text-[16px] leading-[20px] font-light text-[#D3D3D1] bg-transparent cursor-pointer active:underline">Пользовательское соглашение</Link>
               <p className="m-0 p-0">&copy;&nbsp;2025&nbsp;ООО &laquo;Спорттехлаб&raquo;. Все права защищены</p>
             </div>
           </div>

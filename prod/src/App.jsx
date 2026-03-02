@@ -7,6 +7,8 @@ import { HomePage } from "./pages/HomePage";
 import { NewsPage } from "./pages/NewsPage";
 import { SubscriptionPage } from "./pages/SubscriptionPage";
 import { ContactsPage } from "./pages/ContactsPage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { UserAgreementPage } from "./pages/UserAgreementPage";
 import { LkPage } from "./LkPage";
 
 export function App() {
@@ -19,6 +21,8 @@ export function App() {
             <Route path="news" element={<NewsPage />} />
             <Route path="subscription" element={<SubscriptionPage />} />
             <Route path="contacts" element={<ContactsPage />} />
+            <Route path="privacy" element={<PrivacyPolicyPage />} />
+            <Route path="terms" element={<UserAgreementPage />} />
             <Route path="lk" element={<LkPage />} />
           </Route>
         </Routes>
