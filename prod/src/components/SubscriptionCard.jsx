@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 import lockIcon from "../assets/icons/lockikon.svg";
 
 const paymentButtonClass =
-  "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] md:px-[2.08vw] md:py-[0.63vw] lg:py-[0.83vw] rounded-full border-none text-[16px] md:text-[0.83vw] lg:text-[1.04vw] leading-[20px] md:leading-[1.04vw] lg:leading-[1.3vw] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
+  "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] md:px-[min(2.08vw,40px)] md:py-[min(0.63vw,12px)] lg:py-[min(0.83vw,16px)] rounded-full border-none text-[16px] md:text-[min(0.83vw,16px)] lg:text-[min(1.04vw,20px)] leading-[20px] md:leading-[min(1.04vw,20px)] lg:leading-[min(1.3vw,25px)] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
 
 export function SubscriptionCard({ item, className }) {
   const { period, setPeriod, setSubscriptions } = useApp();
@@ -96,21 +96,21 @@ export function SubscriptionCard({ item, className }) {
       )}
       {!isLocked && (
         <div
-          className={`absolute inset-0 flex flex-col w-full h-full p-[24px] lg:p-[1.67vw] bg-white transition-opacity duration-200 ${
+          className={`absolute inset-0 flex flex-col w-full h-full p-[24px] lg:p-[min(1.67vw,32px)] bg-white transition-opacity duration-200 ${
             showUnlockedMessage ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <h3 className="md:mb-[0.83vw] text-[20px] md:text-[1.04vw] md:text-left text-center font-bold">
+          <h3 className="md:mb-[min(0.83vw,16px)] text-[20px] md:text-[min(1.04vw,20px)] md:text-left text-center font-bold">
             {item.name ?? "Подписка"}
           </h3>
-          <p className="mb-[8px] text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">
+          <p className="mb-[8px] text-[16px] md:text-[min(1.04vw,20px)] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">
             Выберите длительность подписки
           </p>
-          <div className="flex flex-col gap-[20px] md:gap-[1.35vw] lg:gap-[1.35vw] h-full">
-            <div className="inline-flex justify-between gap-[48px] lg:gap-[2.5vw] w-full md:w-auto md:self-start p-[8px] md:px-[1.04vw] md:py-[0.63vw] lg:px-[1.04vw] lg:py-[0.63vw] rounded-full bg-[#F8F8F8]">
+          <div className="flex flex-col gap-[20px] md:gap-[min(1.35vw,26px)] lg:gap-[min(1.35vw,26px)] h-full">
+            <div className="inline-flex justify-between gap-[48px] lg:gap-[min(2.5vw,48px)] w-full md:w-auto md:self-start p-[8px] md:px-[min(1.04vw,20px)] md:py-[min(0.63vw,12px)] lg:px-[min(1.04vw,20px)] lg:py-[min(0.63vw,12px)] rounded-full bg-[#F8F8F8]">
               <button
                 type="button"
-                className={`px-[16px] md:px-[1.04vw] py-[8px] md:py-[0.63vw] lg:px-[1.04vw] lg:py-[0.63vw] rounded-full border-none text-[16px] md:text-[1.04vw] lg:text-[1.04vw] leading-[1.25] font-light cursor-pointer ${
+                className={`px-[16px] md:px-[min(1.04vw,20px)] py-[8px] md:py-[min(0.63vw,12px)] lg:px-[min(1.04vw,20px)] lg:py-[min(0.63vw,12px)] rounded-full border-none text-[16px] md:text-[min(1.04vw,20px)] lg:text-[min(1.04vw,20px)] leading-[1.25] font-light cursor-pointer ${
                   period === "year" ? "bg-[#D9E3F1]" : "bg-transparent"
                 }`}
                 onClick={() => setPeriod("year")}
@@ -119,7 +119,7 @@ export function SubscriptionCard({ item, className }) {
               </button>
               <button
                 type="button"
-                className={`px-[16px] md:px-[1.04vw] py-[8px] md:py-[0.63vw] lg:px-[1.04vw] lg:py-[0.63vw] rounded-full border-none text-[16px] md:text-[1.04vw] lg:text-[1.04vw] leading-[1.25] font-light cursor-pointer ${
+                className={`px-[16px] md:px-[min(1.04vw,20px)] py-[8px] md:py-[min(0.63vw,12px)] lg:px-[min(1.04vw,20px)] lg:py-[min(0.63vw,12px)] rounded-full border-none text-[16px] md:text-[min(1.04vw,20px)] lg:text-[min(1.04vw,20px)] leading-[1.25] font-light cursor-pointer ${
                   period === "month" ? "bg-[#D9E3F1]" : "bg-transparent"
                 }`}
                 onClick={() => setPeriod("month")}
@@ -128,38 +128,38 @@ export function SubscriptionCard({ item, className }) {
               </button>
             </div>
 
-            <div className="flex max-md:justify-center md:min-h-[5vw] h-full">
+            <div className="flex max-md:justify-center md:min-h-[min(5vw,96px)] h-full">
               {period === "year" ? (
-                <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[0.83vw] max-md:max-w-[242px]">
-                  <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[0.83vw] flex-wrap">
-                    <p className="h2 m-0 lg:text-[1.67vw] text-[#00459D]">3990&nbsp;р/год</p>
-                    <p className="text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-[#8D8D8D] line-through">
+                <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[min(0.83vw,16px)] max-md:max-w-[242px]">
+                  <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[min(0.83vw,16px)] flex-wrap">
+                    <p className="h2 m-0 lg:text-[min(1.67vw,32px)] text-[#00459D]">3990&nbsp;р/год</p>
+                    <p className="text-[16px] md:text-[min(1.04vw,20px)] leading-[1.25] font-light text-[#8D8D8D] line-through">
                       5980&nbsp;р/год
                     </p>
                   </div>
 
-                  <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[0.83vw] flex-wrap">
-                    <p className="h2 m-0 lg:text-[1.67vw] text-[#00459D]">322&nbsp;р/месяц</p>
-                    <p className="text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-[#8D8D8D] line-through">
+                  <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[min(0.83vw,16px)] flex-wrap">
+                    <p className="h2 m-0 lg:text-[min(1.67vw,32px)] text-[#00459D]">322&nbsp;р/месяц</p>
+                    <p className="text-[16px] md:text-[min(1.04vw,20px)] leading-[1.25] font-light text-[#8D8D8D] line-through">
                       490&nbsp;р/месяц
                     </p>
-                    <p className="text-[16px] md:text-[1.04vw] leading-[1.25] font-bold md:font-light text-[#1A1A1A]">
+                    <p className="text-[16px] md:text-[min(1.04vw,20px)] leading-[1.25] font-bold md:font-light text-[#1A1A1A]">
                       Выгода 32%
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[0.83vw] max-md:max-w-[242px]">
-                  <p className="h2 m-0 lg:text-[1.67vw] text-[#00459D]">490&nbsp;р/месяц</p>
+                <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[min(0.83vw,16px)] max-md:max-w-[242px]">
+                  <p className="h2 m-0 lg:text-[min(1.67vw,32px)] text-[#00459D]">490&nbsp;р/месяц</p>
                 </div>
               )}
             </div>
 
             <div>
-              <p className="mb-[8px] text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">
+              <p className="mb-[8px] text-[16px] md:text-[min(1.04vw,20px)] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">
                 Выберите способ оплаты
               </p>
-              <div className="flex max-md:flex-col gap-[8px] md:gap-[1.25vw]">
+              <div className="flex max-md:flex-col gap-[8px] md:gap-[min(1.25vw,24px)]">
                 <button
                   type="button"
                   className={paymentButtonClass}

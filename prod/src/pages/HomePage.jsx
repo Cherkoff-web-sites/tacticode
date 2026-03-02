@@ -10,14 +10,14 @@ import { SwiperSection } from "../components/SwiperSection";
 
 export function HomePage() {
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
-  const heroAdvantagesClass = "flex-1 text-center text-[16px] lg:text-[1.25vw] leading-[1.25] font-light text-[#1A1A1A]";
-  const heroAdvantagesDiscClass = "w-[5px] h-[5px] lg:w-[0.42vw] lg:h-[0.42vw] shrink-0 rounded-full bg-[#D9E3F1]";
+  const heroAdvantagesClass = "flex-1 text-center text-[16px] lg:text-[min(1.25vw,24px)] leading-[1.25] font-light text-[#1A1A1A]";
+  const heroAdvantagesDiscClass = "w-[5px] h-[5px] lg:w-[min(0.42vw,8px)] lg:h-[min(0.42vw,8px)] shrink-0 rounded-full bg-[#D9E3F1]";
 
   return (
     <>
       <section>
         <div className={containerClass}>
-            <h1 className="max-w-[315px] lg:max-w-[70.3vw] py-[28vh] lg:py-[154px] mx-auto my-0 text-[22px] lg:text-[2.92vw] font-black leading-[1.2] text-center">
+            <h1 className="max-w-[315px] lg:max-w-[min(70.3vw,1350px)] py-[28vh] lg:py-[154px] mx-auto my-0 text-[22px] lg:text-[min(2.92vw,56px)] font-black leading-[1.2] text-center">
               <span className="text-[#00459D]">Мы сделали</span> сервис, который помогает тренерам <span className="text-[#00459D]">удобно</span> строить тактику, стратегию, готовиться к&nbsp;играм и&nbsp;тренировкам
             </h1>
         </div>
@@ -37,7 +37,7 @@ export function HomePage() {
           <div className="relative">
             <div className="flex flex-col items-end">
               <h2 className="w-full mt-[16px] mb-[40px] text-center text-[18px] leading-[23px] lg:hidden">Спорт разный — Tacticode один</h2>
-              <div className="lg:absolute left-[77px] bottom-0 flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-2 w-[100%] lg:max-w-[57.92vw] p-[24px] lg:px-[2.92vw] lg: py-[2.19vw] rounded-[16px] lg:rounded-[24px] bg-[#FFF] shadow-[0px_4px_25px_rgba(0,69,157,0.05)]">
+              <div className="lg:absolute left-[77px] bottom-0 flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-2 w-[100%] lg:max-w-[min(57.92vw,1112px)] p-[24px] lg:px-[min(2.92vw,56px)] lg:py-[min(2.19vw,42px)] rounded-[16px] lg:rounded-[24px] bg-[#FFF] shadow-[0px_4px_25px_rgba(0,69,157,0.05)]">
                 <div className={heroAdvantagesClass}>Российская разработка</div>
                 <div className={heroAdvantagesDiscClass} aria-hidden />
                 <div className={heroAdvantagesClass}>Понятный интерфейс</div>
@@ -46,7 +46,7 @@ export function HomePage() {
                 <div className={heroAdvantagesDiscClass} aria-hidden />
                 <div className={heroAdvantagesClass}>Быстрый вход в&nbsp;приложение</div>
               </div>
-              <h2 className="hidden lg:block m-0 mt-[1.67vw] mr-[3.8vw] lg:text-[1.67vw]">Спорт разный — Tacticode один</h2>
+              <h2 className="hidden lg:block m-0 mt-[min(1.67vw,32px)] mr-[min(3.8vw,73px)] lg:text-[min(1.67vw,32px)]">Спорт разный — Tacticode один</h2>
             </div>
           </div>
         </div>
