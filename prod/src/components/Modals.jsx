@@ -16,7 +16,7 @@ const HISTORY_ITEMS = [
   { id: 3, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
   { id: 4, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" }
 ];
-const paymentButtonClass =
+const secondButtonClass =
   "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] lg:py-[16px] rounded-full border-none text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
 
 export function Modals() {
@@ -194,200 +194,8 @@ export function Modals() {
 
   return (
     <>
-      <BaseModal
-        isOpen={Boolean(activeModal)}
-        onClose={() => setActiveModal(null)}
-        panelClassName="!max-w-[590px]"
-        title={subscriptionTitle}
-        titleClassName="md:mb-[16px] text-[20px] md:text-[20px] md:text-left"
-      >
-        <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите длительность подписки</p>
-        <div className="flex flex-col gap-[20px] md:gap-[26px] h-full">
-          <div className="inline-flex justify-between gap-[48px] w-full md:w-auto md:self-start p-[8px] md:px-[20px] md:py-[12px] rounded-full bg-[#F8F8F8]">
-            <button
-              type="button"
-              className={`px-[16px] md:px-[20px] py-[8px] md:py-[12px] rounded-full border-none text-[16px] md:text-[20px] leading-[1.25] font-light cursor-pointer ${period === "year" ? "bg-[#D9E3F1]" : "bg-transparent"}`}
-              onClick={() => setPeriod("year")}
-            >
-              На год
-            </button>
-            <button
-              type="button"
-              className={`px-[16px] md:px-[20px] py-[8px] md:py-[12px] rounded-full border-none text-[16px] md:text-[20px] leading-[1.25] font-light cursor-pointer ${period === "month" ? "bg-[#D9E3F1]" : "bg-transparent"}`}
-              onClick={() => setPeriod("month")}
-            >
-              На месяц
-            </button>
-          </div>
-          <div className="flex max-md:justify-center md:min-h-[96px] h-full">
-            {period === "year" ? (
-              <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
-                <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
-                  <p className="h2 m-0 text-[#00459D]">
-                    3990&nbsp;р/год
-                  </p>
-                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D] line-through">5980&nbsp;р/год</p>
-                </div>
-
-                <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
-                  <p className="h2 m-0 text-[#00459D]">
-                    322&nbsp;р/месяц
-                  </p>
-                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D] line-through">490&nbsp;р/месяц</p>
-                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-bold md:font-light text-[#1A1A1A]">Выгода 32%</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
-                <p className="h2 m-0 text-[#00459D]">
-                  490&nbsp;р/месяц
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="">
-            <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите способ оплаты</p>
-            <div className="flex max-md:flex-col gap-[8px] md:gap-[24px]">
-              <button type="button" className={paymentButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
-              <button type="button" className={paymentButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
-            </div>
-          </div>
-        </div>
-      </BaseModal>
-
-      <BaseModal
-        isOpen={restoreModalOpen}
-        onClose={() => setRestoreModalOpen(false)}
-        title="Укажите почту"
-        panelClassName="w-full max-w-[390px]"
-        titleClassName="text-center"
-      >
-        <form
-          onSubmit={async (event) => {
-            event.preventDefault();
-            await handleRestoreSubmit(event);
-          }}
-        >
-          <div className="mb-4">
-            <label className="block text-[13px] text-gray-500 mb-1.5">Логин/Почта</label>
-            <input
-              className={`input input-field ${restoreEmailError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-              type="email"
-              value={restoreEmail}
-              onChange={(e) => { setRestoreEmail(e.target.value); if (restoreEmailError) setRestoreEmailError(""); }}
-              placeholder="Логин/Почта"
-            />
-          </div>
-          {restoreEmailError && (
-            <p className="m-0 mb-3 text-[13px] leading-[16px] text-[#FF383C]">
-              {restoreEmailError}
-            </p>
-          )}
-          <button
-            type="submit"
-            className="w-full inline-flex items-center justify-center gap-[12px] px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors disabled:cursor-not-allowed disabled:bg-[#F5F5F5] disabled:text-[#B0B0B0]"
-            disabled={restoreLoading}
-          >
-            {restoreLoading ? "Отправляем..." : "Отправить код"}
-          </button>
-        </form>
-        <button
-          type="button"
-          className="mt-4 border-none bg-transparent p-0 text-[14px] leading-[18px] text-[#8D8D8D] cursor-pointer"
-          onClick={() => { setRestoreModalOpen(false); setLoginModalOpen(true); setAuthMode("login"); }}
-        >
-          ← Вернуться назад
-        </button>
-      </BaseModal>
-
-      <BaseModal
-        isOpen={newPasswordModalOpen}
-        onClose={() => setNewPasswordModalOpen(false)}
-        title="Придумайте новый пароль"
-        panelClassName="w-full max-w-[390px]"
-        titleClassName="text-center"
-      >
-        <p className="m-0 mb-4 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
-          Не забудьте его сохранить или записать
-        </p>
-        <div className="mb-4">
-          <label className="block text-[13px] text-gray-500 mb-1.5">Новый пароль</label>
-          <input
-            className={`input input-field ${newPasswordError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-            type="password"
-            value={newPassword}
-            onChange={(e) => { setNewPassword(e.target.value); if (newPasswordError) setNewPasswordError(""); }}
-            placeholder="Новый пароль"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-[13px] text-gray-500 mb-1.5">Повторите пароль</label>
-          <input
-            className={`input input-field ${newPasswordError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-            type="password"
-            value={newPassword2}
-            onChange={(e) => { setNewPassword2(e.target.value); if (newPasswordError) setNewPasswordError(""); }}
-            placeholder="Повторите пароль"
-          />
-        </div>
-        {newPasswordError && (
-          <p className="m-0 mb-4 text-[13px] leading-[16px] text-[#FF383C]">
-            {newPasswordError}
-          </p>
-        )}
-        <button
-          type="button"
-          className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-white bg-[#00459D] cursor-pointer transition-colors disabled:bg-[#F2F5FA] disabled:text-[#C0C7D1] disabled:cursor-not-allowed"
-          disabled={newPasswordLoading}
-          onClick={async () => {
-            if (!newPassword || !newPassword2) {
-              setNewPasswordError("Заполните оба поля");
-              return;
-            }
-            if (newPassword !== newPassword2) {
-              setNewPasswordError("Пароли не совпадают");
-              return;
-            }
-            try {
-              setNewPasswordLoading(true);
-              const user = await apiPasswordReset({ email: resetEmail, code: resetCode, password: newPassword });
-              setUser(user);
-              setNewPasswordModalOpen(false);
-              navigate("/lk");
-            } catch (err) {
-              setNewPasswordError(err.message || "Не удалось обновить пароль");
-            } finally {
-              setNewPasswordLoading(false);
-            }
-          }}
-        >
-          {newPasswordLoading ? "Сохраняем..." : "Войти"}
-        </button>
-      </BaseModal>
-
-      <BaseModal
-        isOpen={Boolean(newsModalItem)}
-        onClose={() => setNewsModalItem(null)}
-        title={newsModalItem?.title}
-        long
-        panelClassName="bg-white w-full md:w-[800px] md:rounded-[20px] rounded-t-[20px] md:rounded-b-[20px] flex flex-col overflow-hidden p-0"
-        showClose
-        titleClassName="sr-only"
-      >
-        <div className="w-full aspect-[360/226] lg:aspect-[800/356] overflow-hidden">
-          <img src={newsModalItem?.image} alt={newsModalItem?.title} className="w-full h-full object-cover" />
-        </div>
-        <div className="flex flex-col flex-1 gap-[16px] p-[16px] lg:p-[24px] lg:pt-[16px] text-center md:text-left text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] text-[#1A1A1A] min-h-0">
-          <div className="mt-auto font-light text-[#8D8D8D]">{newsModalItem?.date}</div>
-          <h3 className="m-0 font-bold">{newsModalItem?.title}</h3>
-          <div className="flex-1 overflow-y-auto">
-            <p className="flex-1 m-0 font-light whitespace-pre-line">
-              {newsModalItem?.description}
-            </p>
-          </div>
-        </div>
-      </BaseModal>
-
+           
+      {/* [ ] Вход / Регистрация */}
       <BaseModal
         isOpen={Boolean(loginModalOpen)}
         onClose={() => { setLoginModalOpen(false); setAuthMode("login"); }}
@@ -554,6 +362,7 @@ export function Modals() {
         )}
       </BaseModal>
 
+      {/* [ ] Код с почты */}
       <BaseModal
         isOpen={codeModalOpen}
         onClose={() => { setCodeModalOpen(false); setCodeError(""); }}
@@ -628,7 +437,233 @@ export function Modals() {
           Отправить код еще раз
         </button>
       </BaseModal>
+      
+      {/* [ ] Восстановление: ввод почты */}
+      <BaseModal
+        isOpen={restoreModalOpen}
+        onClose={() => setRestoreModalOpen(false)}
+        title="Укажите почту"
+        panelClassName="w-full max-w-[390px]"
+        titleClassName="text-center"
+      >
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await handleRestoreSubmit(event);
+          }}
+        >
+          <div className="mb-4">
+            <label className="block text-[13px] text-gray-500 mb-1.5">Логин/Почта</label>
+            <input
+              className={`input input-field ${restoreEmailError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
+              type="email"
+              value={restoreEmail}
+              onChange={(e) => { setRestoreEmail(e.target.value); if (restoreEmailError) setRestoreEmailError(""); }}
+              placeholder="Логин/Почта"
+            />
+          </div>
+          {restoreEmailError && (
+            <p className="m-0 mb-3 text-[13px] leading-[16px] text-[#FF383C]">
+              {restoreEmailError}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="w-full inline-flex items-center justify-center gap-[12px] px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors disabled:cursor-not-allowed disabled:bg-[#F5F5F5] disabled:text-[#B0B0B0]"
+            disabled={restoreLoading}
+          >
+            {restoreLoading ? "Отправляем..." : "Отправить код"}
+          </button>
+        </form>
+        <button
+          type="button"
+          className="mt-4 border-none bg-transparent p-0 text-[14px] leading-[18px] text-[#8D8D8D] cursor-pointer"
+          onClick={() => { setRestoreModalOpen(false); setLoginModalOpen(true); setAuthMode("login"); }}
+        >
+          ← Вернуться назад
+        </button>
+      </BaseModal>
 
+      {/* [ ] Восстановление: новый пароль */}
+      <BaseModal
+        isOpen={newPasswordModalOpen}
+        onClose={() => setNewPasswordModalOpen(false)}
+        title="Придумайте новый пароль"
+        panelClassName="w-full max-w-[390px]"
+        titleClassName="text-center"
+      >
+        <p className="m-0 mb-4 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
+          Не забудьте его сохранить или записать
+        </p>
+        <div className="mb-4">
+          <label className="block text-[13px] text-gray-500 mb-1.5">Новый пароль</label>
+          <input
+            className={`input input-field ${newPasswordError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
+            type="password"
+            value={newPassword}
+            onChange={(e) => { setNewPassword(e.target.value); if (newPasswordError) setNewPasswordError(""); }}
+            placeholder="Новый пароль"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-[13px] text-gray-500 mb-1.5">Повторите пароль</label>
+          <input
+            className={`input input-field ${newPasswordError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
+            type="password"
+            value={newPassword2}
+            onChange={(e) => { setNewPassword2(e.target.value); if (newPasswordError) setNewPasswordError(""); }}
+            placeholder="Повторите пароль"
+          />
+        </div>
+        {newPasswordError && (
+          <p className="m-0 mb-4 text-[13px] leading-[16px] text-[#FF383C]">
+            {newPasswordError}
+          </p>
+        )}
+        <button
+          type="button"
+          className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-white bg-[#00459D] cursor-pointer transition-colors disabled:bg-[#F2F5FA] disabled:text-[#C0C7D1] disabled:cursor-not-allowed"
+          disabled={newPasswordLoading}
+          onClick={async () => {
+            if (!newPassword || !newPassword2) {
+              setNewPasswordError("Заполните оба поля");
+              return;
+            }
+            if (newPassword !== newPassword2) {
+              setNewPasswordError("Пароли не совпадают");
+              return;
+            }
+            try {
+              setNewPasswordLoading(true);
+              const user = await apiPasswordReset({ email: resetEmail, code: resetCode, password: newPassword });
+              setUser(user);
+              setNewPasswordModalOpen(false);
+              navigate("/lk");
+            } catch (err) {
+              setNewPasswordError(err.message || "Не удалось обновить пароль");
+            } finally {
+              setNewPasswordLoading(false);
+            }
+          }}
+        >
+          {newPasswordLoading ? "Сохраняем..." : "Войти"}
+        </button>
+      </BaseModal>
+      
+      {/* [ ] Скачать прил */}
+      <BaseModal
+        isOpen={downloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+        title="Скачать Tacticode"
+      >
+        <p className="m-0 mb-4 text-center text-[16px] leading-[20px] font-light text-[#1A1A1A]">
+          Удобно стройте тактику, стратегию, готовьтесь к играм и тренировкам вместе с Tacticode
+        </p>
+        <p className="m-0 mb-4 text-center text-[16px] leading-[20px] font-light text-[#8D8D8D]">
+          Скачать для
+        </p>
+        <div className="flex flex-col gap-[12px]">
+          {["Windows 7", "Windows 10", "Windows 11", "Mac OS"].map((label) => (
+            <button
+              key={label}
+              type="button"
+              className="w-full px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#D9E3F1]"
+              onClick={() => setDownloadModalOpen(false)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </BaseModal>
+
+      {/* [x] Новость */}
+      <BaseModal
+        isOpen={Boolean(newsModalItem)}
+        onClose={() => setNewsModalItem(null)}
+        title={newsModalItem?.title}
+        titleClassName="sr-only"
+        panelClassName="!max-w-[880px] !p-0"
+        long
+      >
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="shrink-0 w-full aspect-[360/226] lg:aspect-[800/356] rounded-[16px] md:rounded-[20px_20px_0_0] overflow-hidden">
+            <img src={newsModalItem?.image} alt={newsModalItem?.title} className="w-full h-full object-cover" />
+          </div>
+          <div className="flex flex-col flex-1 min-h-0 gap-[8px] md:gap-[16px] p-[16px_16px_0_16px] lg:p-[24px_24px_0_24px]">
+            <p className="shrink-0 text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D]">{newsModalItem?.date}</p>
+            <h3 className="shrink-0 text-[16px] md:text-[24px] leading-[1.25] font-bold text-[#1A1A1A]">{newsModalItem?.title}</h3>
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <p className="pb-[16px] md:pb-[24px] text-[16px] md:text-[24px] leading-[1.25] font-light text-[#1A1A1A]">
+                {newsModalItem?.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* [x] Купить подписку */}
+      <BaseModal
+        isOpen={Boolean(activeModal)}
+        onClose={() => setActiveModal(null)}
+        panelClassName="!max-w-[590px]"
+        title={subscriptionTitle}
+        titleClassName="md:mb-[16px] text-[20px] md:text-[20px] md:text-left"
+      >
+        <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите длительность подписки</p>
+        <div className="flex flex-col gap-[20px] md:gap-[26px] h-full">
+          <div className="inline-flex justify-between gap-[48px] w-full md:w-auto md:self-start p-[8px] md:px-[20px] md:py-[12px] rounded-full bg-[#F8F8F8]">
+            <button
+              type="button"
+              className={`px-[16px] md:px-[20px] py-[8px] md:py-[12px] rounded-full border-none text-[16px] md:text-[20px] leading-[1.25] font-light cursor-pointer ${period === "year" ? "bg-[#D9E3F1]" : "bg-transparent"}`}
+              onClick={() => setPeriod("year")}
+            >
+              На год
+            </button>
+            <button
+              type="button"
+              className={`px-[16px] md:px-[20px] py-[8px] md:py-[12px] rounded-full border-none text-[16px] md:text-[20px] leading-[1.25] font-light cursor-pointer ${period === "month" ? "bg-[#D9E3F1]" : "bg-transparent"}`}
+              onClick={() => setPeriod("month")}
+            >
+              На месяц
+            </button>
+          </div>
+          <div className="flex max-md:justify-center md:min-h-[96px] h-full">
+            {period === "year" ? (
+              <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
+                <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
+                  <p className="h2 m-0 text-[#00459D]">
+                    3990&nbsp;р/год
+                  </p>
+                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D] line-through">5980&nbsp;р/год</p>
+                </div>
+
+                <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
+                  <p className="h2 m-0 text-[#00459D]">
+                    322&nbsp;р/месяц
+                  </p>
+                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D] line-through">490&nbsp;р/месяц</p>
+                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-bold md:font-light text-[#1A1A1A]">Выгода 32%</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
+                <p className="h2 m-0 text-[#00459D]">
+                  490&nbsp;р/месяц
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="">
+            <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите способ оплаты</p>
+            <div className="flex max-md:flex-col gap-[8px] md:gap-[24px]">
+              <button type="button" className={secondButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
+              <button type="button" className={secondButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
+            </div>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* [ ] Удалить устройство */}
       <BaseModal
         isOpen={Boolean(deviceToRemove && isLk)}
         onClose={() => setDeviceToRemove(null)}
@@ -660,19 +695,7 @@ export function Modals() {
         </div>
       </BaseModal>
 
-      <BaseModal
-        isOpen={Boolean(logoutModalOpen)}
-        onClose={() => setLogoutModalOpen(false)}
-        title="Вы точно хотите выйти?"
-        panelClassName="w-full max-w-[390px]"
-        titleClassName="text-center"
-      >
-        <div className="flex gap-3 mt-2 flex-col">
-          <button type="button" className="primary-btn flex-1 justify-center" onClick={() => { handleLogout(); setLogoutModalOpen(false); }}>Выйти</button>
-          <button type="button" className="primary-outline-btn flex-1 justify-center" onClick={() => setLogoutModalOpen(false)}>Отмена</button>
-        </div>
-      </BaseModal>
-
+      {/* [ ] История платежей */}
       <BaseModal
         isOpen={Boolean(historyModalOpen && isLk)}
         onClose={() => setHistoryModalOpen(false)}
@@ -705,29 +728,18 @@ export function Modals() {
           ))}
         </div>
       </BaseModal>
-
+            
+      {/* [ ] Выйти */}
       <BaseModal
-        isOpen={downloadModalOpen}
-        onClose={() => setDownloadModalOpen(false)}
-        title="Скачать Tacticode"
+        isOpen={Boolean(logoutModalOpen)}
+        onClose={() => setLogoutModalOpen(false)}
+        title="Вы точно хотите выйти?"
+        panelClassName="w-full max-w-[390px]"
+        titleClassName="text-center"
       >
-        <p className="m-0 mb-4 text-center text-[16px] leading-[20px] font-light text-[#1A1A1A]">
-          Удобно стройте тактику, стратегию, готовьтесь к играм и тренировкам вместе с Tacticode
-        </p>
-        <p className="m-0 mb-4 text-center text-[16px] leading-[20px] font-light text-[#8D8D8D]">
-          Скачать для
-        </p>
-        <div className="flex flex-col gap-[12px]">
-          {["Windows 7", "Windows 10", "Windows 11", "Mac OS"].map((label) => (
-            <button
-              key={label}
-              type="button"
-              className="w-full px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#D9E3F1]"
-              onClick={() => setDownloadModalOpen(false)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex gap-3 mt-2 flex-col">
+          <button type="button" className="primary-btn flex-1 justify-center" onClick={() => { handleLogout(); setLogoutModalOpen(false); }}>Выйти</button>
+          <button type="button" className="primary-outline-btn flex-1 justify-center" onClick={() => setLogoutModalOpen(false)}>Отмена</button>
         </div>
       </BaseModal>
     </>

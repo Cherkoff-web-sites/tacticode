@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { initialSubscriptions, initialDevices } from "../data";
+import { MOCK_SUBSCRIPTIONS, MOCK_DEVICES } from "../LkPage.mock";
 import {
   apiGetDevices,
   apiGetMe,
@@ -21,8 +21,8 @@ export function useApp() {
 export function AppProvider({ children }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [subscriptions, setSubscriptions] = useState(initialSubscriptions);
-  const [devices, setDevices] = useState(initialDevices);
+  const [subscriptions, setSubscriptions] = useState(MOCK_SUBSCRIPTIONS);
+  const [devices, setDevices] = useState(MOCK_DEVICES);
   const [activeModal, setActiveModal] = useState(null);
   const [period, setPeriod] = useState("year");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
