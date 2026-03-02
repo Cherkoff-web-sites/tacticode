@@ -11,11 +11,13 @@ import {
 } from "../api/client";
 
 const HISTORY_ITEMS = [
-  { id: 1, amount: "3990 р", date: "13.10.2025", sport: "Хоккей 🏒", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 2, amount: "490 р", date: "13.10.2025", sport: "Хоккей 🏒", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
-  { id: 3, amount: "490 р", date: "13.10.2025", sport: "Футбол ⚽", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 4, amount: "3990 р", date: "13.10.2025", sport: "Хоккей 🏒", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" }
+  { id: 1, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 2, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
+  { id: 3, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 4, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" }
 ];
+const paymentButtonClass =
+  "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] lg:py-[16px] rounded-full border-none text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
 
 export function Modals() {
   const location = useLocation();
@@ -178,6 +180,14 @@ export function Modals() {
     newPasswordModalOpen
   );
 
+  const subscriptionTitle =
+    activeModal?.title ||
+    subscriptions.find((s) => s.id === activeModal?.id)?.name ||
+    "Подписка";
+
+  const getSubscriptionName = (id) =>
+    subscriptions.find((s) => s.id === id)?.name || "Подписка";
+
   useEffect(() => {
     if (isAnyModalOpen) {
       document.body.style.overflow = "hidden";
@@ -192,49 +202,66 @@ export function Modals() {
       <BaseModal
         isOpen={Boolean(activeModal)}
         onClose={() => setActiveModal(null)}
-        title={subscriptions.find((s) => s.id === activeModal?.id)?.name?.split(" ")[0]}
-        titleClassName="text-[20px] leading-[25px] font-bold text-[#1A1A1A] mb-4"
+        panelClassName="!max-w-[590px]"
+        title={subscriptionTitle}
+        titleClassName="md:mb-[16px] text-[20px] md:text-[20px] md:text-left"
       >
-        <div className="text-[14px] leading-[18px] text-[#8D8D8D] mb-3">Выберите длительность подписки</div>
-        <div className="inline-flex p-1 bg-gray-100 rounded-full gap-1 mb-5">
-          <button
-            type="button"
-            className={`border-none bg-transparent px-[22px] py-2 rounded-full text-sm cursor-pointer ${period === "year" ? "bg-[#e5edff] text-gray-900" : "text-gray-500"}`}
-            onClick={() => setPeriod("year")}
-          >
-            На год
-          </button>
-          <button
-            type="button"
-            className={`border-none bg-transparent px-[22px] py-2 rounded-full text-sm cursor-pointer ${period === "month" ? "bg-[#e5edff] text-gray-900" : "text-gray-500"}`}
-            onClick={() => setPeriod("month")}
-          >
-            На месяц
-          </button>
-        </div>
-        <div className="mb-6">
-          {period === "year" ? (
-            <>
-              <div className="text-[28px] leading-[34px] font-extrabold text-[#00459D] flex items-baseline gap-3">
-                3990&nbsp;р/год
-                <div className="text-sm text-gray-400 line-through">5980&nbsp;р/год</div>
+        <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите длительность подписки</p>
+        <div className="flex flex-col gap-[20px] md:gap-[26px] h-full">
+          <div className="inline-flex justify-between gap-[48px] w-full md:w-auto md:self-start p-[8px] md:px-[20px] md:py-[12px] rounded-full bg-[#F8F8F8]">
+            <button
+              type="button"
+              className={`px-[16px] md:px-[20px] py-[8px] md:py-[12px] rounded-full border-none text-[16px] md:text-[20px] leading-[1.25] font-light cursor-pointer ${period === "year" ? "bg-[#D9E3F1]" : "bg-transparent"}`}
+              onClick={() => setPeriod("year")}
+            >
+              На год
+            </button>
+            <button
+              type="button"
+              className={`px-[16px] md:px-[20px] py-[8px] md:py-[12px] rounded-full border-none text-[16px] md:text-[20px] leading-[1.25] font-light cursor-pointer ${period === "month" ? "bg-[#D9E3F1]" : "bg-transparent"}`}
+              onClick={() => setPeriod("month")}
+            >
+              На месяц
+            </button>
+          </div>
+
+
+          <div className="flex max-md:justify-center md:min-h-[96px] h-full">
+            {period === "year" ? (
+              <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
+                <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
+                  <p className="h2 m-0 text-[#00459D]">
+                    3990&nbsp;р/год
+                  </p>
+                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D] line-through">5980&nbsp;р/год</p>
+                </div>
+
+                <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
+                  <p className="h2 m-0 text-[#00459D]">
+                    322&nbsp;р/месяц
+                  </p>
+                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D] line-through">490&nbsp;р/месяц</p>
+                  <p className="text-[16px] md:text-[20px] leading-[1.25] font-bold md:font-light text-[#1A1A1A]">Выгода 32%</p>
+                </div>
               </div>
-              <div className="mt-2 text-xl leading-[26px] font-bold text-[#00459D] flex items-baseline gap-2.5">
-                322&nbsp;р/месяц
-                <span className="text-sm text-gray-400 line-through">490&nbsp;р/месяц</span>
-                <span className="text-sm text-green-600">Выгода 32%</span>
+            ) : (
+              <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
+                <p className="h2 m-0 text-[#00459D]">
+                  490&nbsp;р/месяц
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="text-[28px] leading-[34px] font-extrabold text-[#00459D]">
-              490&nbsp;р/месяц
+            )}
+          </div>
+
+
+          <div className="">
+            <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите способ оплаты</p>
+            <div className="flex max-md:flex-col gap-[8px] md:gap-[24px]">
+              <button type="button" className={paymentButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
+              <button type="button" className={paymentButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
             </div>
-          )}
-        </div>
-        <div className="text-[14px] leading-[18px] text-[#8D8D8D] mb-2">Выберите способ оплаты</div>
-        <div className="flex gap-3 mt-2 max-md:flex-col">
-          <button type="button" className="primary-btn flex-1 justify-center" onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
-          <button type="button" className="primary-outline-btn flex-1 justify-center" onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
+          </div>
+
         </div>
       </BaseModal>
 
@@ -688,7 +715,7 @@ export function Modals() {
                   <div className="text-gray-500">{item.line2}</div>
                 </div>
                 <div className="text-right flex flex-col gap-0.5">
-                  <div className="text-gray-500">{item.sport}</div>
+                  <div className="text-gray-500">{getSubscriptionName(item.subscriptionId)}</div>
                   <div className="text-gray-500 text-xs">{item.methodLabel}</div>
                 </div>
               </div>

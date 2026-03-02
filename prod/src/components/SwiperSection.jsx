@@ -29,7 +29,7 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
       <div className={containerClass}>
         <div className="flex items-end justify-center lg:justify-start gap-[24px] mb-[16px] lg:mb-[32px]">
           <h2 className="mb-0 text-center md:text-right">{title}</h2>
-          <Link to={linkTo} className="hidden md:block p-0 border-none text-[20px] leading-[25px] font-light text-[#00459D] bg-transparent cursor-pointer hover:underline">Смотреть все</Link>
+          <Link to={linkTo} className="hidden md:block p-0 border-none text-[20px] leading-[25px] font-light text-[#00459D] bg-transparent cursor-pointer hover:text-[#003982] active:text-[#003982]">Смотреть все</Link>
         </div>
         <div className="relative">
           <Swiper

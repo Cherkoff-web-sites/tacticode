@@ -46,7 +46,7 @@ export function LkPage() {
                       <span className="subscription-name">{sub.name}</span>
                       <button
                         className="primary-outline-btn"
-                        onClick={() => setActiveModal({ id: sub.id, mode: "buy" })}
+                        onClick={() => setActiveModal({ id: sub.id, title: sub.name, mode: "buy" })}
                       >
                         Купить
                       </button>
@@ -69,7 +69,7 @@ export function LkPage() {
                     <span className="subscription-name">{sub.name}</span>
                     <button
                       className="primary-outline-btn"
-                      onClick={() => setActiveModal({ id: sub.id, mode: "renew" })}
+                      onClick={() => setActiveModal({ id: sub.id, title: sub.name, mode: "renew" })}
                     >
                       Продлить
                     </button>

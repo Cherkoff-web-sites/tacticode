@@ -87,6 +87,11 @@ if (dbDisabled) {
 app.use("/api/auth", authRoutes);
 app.use("/api/devices", deviceRoutes);
 
+// SPA fallback for direct navigation (e.g. /subscription)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(staticDir, "index.html"));
+});
+
 async function ensureSchema() {
   try {
     const initPath = path.join(__dirname, "..", "sql", "init.sql");

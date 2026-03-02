@@ -26,12 +26,12 @@ export const newsItems = [
 ];
 
 export const subscriptionItems = [
-  { id: 1, image: footballImage, locked: false },
-  { id: 2, image: basketballImage, locked: true },
-  { id: 3, image: hockeyImage, locked: true },
-  { id: 4, image: tennisImage, locked: true },
-  { id: 5, image: voleyballImage, locked: true },
-  { id: 6, image: waterballImage, locked: true }
+  { id: "football", name: "Футбол ⚽", image: footballImage, locked: false },
+  { id: "basketball", name: "Баскетбол 🏀", image: basketballImage, locked: true },
+  { id: "hockey", name: "Хоккей 🏒", image: hockeyImage, locked: true },
+  { id: "tennis", name: "Теннис 🎾", image: tennisImage, locked: true },
+  { id: "volleyball", name: "Волейбол 🏐", image: voleyballImage, locked: true },
+  { id: "waterball", name: "Водное поло 🤽", image: waterballImage, locked: true }
 ];
 
 export const initialSubscriptions = [

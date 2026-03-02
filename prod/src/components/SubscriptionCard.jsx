@@ -2,10 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "../context/AppContext";
 import lockIcon from "../assets/icons/lockikon.svg";
 
+const paymentButtonClass =
+  "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] md:px-[2.08vw] md:py-[0.63vw] lg:py-[0.83vw] rounded-full border-none text-[16px] md:text-[0.83vw] lg:text-[1.04vw] leading-[20px] md:leading-[1.04vw] lg:leading-[1.3vw] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
+
 export function SubscriptionCard({ item, className }) {
-  const { setActiveModal } = useApp();
+  const { period, setPeriod, setSubscriptions } = useApp();
   const cardRef = useRef(null);
   const [showLockedMessage, setShowLockedMessage] = useState(false);
+  const [showUnlockedMessage, setShowUnlockedMessage] = useState(false);
   const isLocked = !!item.locked;
 
   const handleClick = () => {
@@ -13,7 +17,7 @@ export function SubscriptionCard({ item, className }) {
       setShowLockedMessage(true);
       return;
     }
-    setActiveModal({ id: item.id });
+    setShowUnlockedMessage(true);
   };
 
   const handleKeyDown = (e) => {
@@ -24,12 +28,13 @@ export function SubscriptionCard({ item, className }) {
   };
 
   useEffect(() => {
-    if (!showLockedMessage) return undefined;
+    if (!showLockedMessage && !showUnlockedMessage) return undefined;
 
     const handleOutside = (event) => {
       if (!cardRef.current) return;
       if (!cardRef.current.contains(event.target)) {
         setShowLockedMessage(false);
+        setShowUnlockedMessage(false);
       }
     };
 
@@ -39,20 +44,38 @@ export function SubscriptionCard({ item, className }) {
       document.removeEventListener("mousedown", handleOutside);
       document.removeEventListener("touchstart", handleOutside);
     };
-  }, [showLockedMessage]);
+  }, [showLockedMessage, showUnlockedMessage]);
 
   return (
     <div
-      className={`relative w-full aspect-[312/413] lg:aspect-[590/450] rounded-[20px] overflow-hidden ${className ?? ""}`}
+      className={`relative w-full aspect-[312/413] lg:aspect-[590/450] rounded-[20px] overflow-hidden transition-shadow duration-200 hover:shadow-[0px_4px_25px_rgba(0,69,157,0.05)] cursor-default ${className ?? ""}`}
       ref={cardRef}
       role="button"
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      onMouseEnter={() => isLocked && setShowLockedMessage(true)}
-      onMouseLeave={() => isLocked && setShowLockedMessage(false)}
+      onMouseEnter={() => {
+        if (isLocked) {
+          setShowLockedMessage(true);
+        } else {
+          setShowUnlockedMessage(true);
+        }
+      }}
+      onMouseLeave={() => {
+        if (isLocked) {
+          setShowLockedMessage(false);
+        } else {
+          setShowUnlockedMessage(false);
+        }
+      }}
     >
-      <img src={item.image} alt={`Подписка ${item.id}`} className="w-full h-full object-cover" />
+      <img
+        src={item.image}
+        alt={`Подписка ${item.name ?? item.id}`}
+        className={`w-full h-full object-cover transition-opacity duration-200 ${
+          showUnlockedMessage ? "opacity-0" : "opacity-100"
+        }`}
+      />
       {isLocked && (
         <img
           src={lockIcon}
@@ -69,6 +92,101 @@ export function SubscriptionCard({ item, className }) {
           <p className="m-0 text-[16px] leading-[20px] lg:text-[20px] lg:leading-[25px] font-light">
             К&nbsp;сожалению, данный вид спорта еще находится в&nbsp;разработке, но&nbsp;мы&nbsp;обязательно сообщим, когда он&nbsp;станет доступен. Следите за&nbsp;новостями на&nbsp;сайте.
           </p>
+        </div>
+      )}
+      {!isLocked && (
+        <div
+          className={`absolute inset-0 flex flex-col w-full h-full p-[24px] lg:p-[1.67vw] bg-white transition-opacity duration-200 ${
+            showUnlockedMessage ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <h3 className="md:mb-[0.83vw] text-[20px] md:text-[1.04vw] md:text-left text-center font-bold">
+            {item.name ?? "Подписка"}
+          </h3>
+          <p className="mb-[8px] text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">
+            Выберите длительность подписки
+          </p>
+          <div className="flex flex-col gap-[20px] md:gap-[1.35vw] lg:gap-[1.35vw] h-full">
+            <div className="inline-flex justify-between gap-[48px] lg:gap-[2.5vw] w-full md:w-auto md:self-start p-[8px] md:px-[1.04vw] md:py-[0.63vw] lg:px-[1.04vw] lg:py-[0.63vw] rounded-full bg-[#F8F8F8]">
+              <button
+                type="button"
+                className={`px-[16px] md:px-[1.04vw] py-[8px] md:py-[0.63vw] lg:px-[1.04vw] lg:py-[0.63vw] rounded-full border-none text-[16px] md:text-[1.04vw] lg:text-[1.04vw] leading-[1.25] font-light cursor-pointer ${
+                  period === "year" ? "bg-[#D9E3F1]" : "bg-transparent"
+                }`}
+                onClick={() => setPeriod("year")}
+              >
+                На год
+              </button>
+              <button
+                type="button"
+                className={`px-[16px] md:px-[1.04vw] py-[8px] md:py-[0.63vw] lg:px-[1.04vw] lg:py-[0.63vw] rounded-full border-none text-[16px] md:text-[1.04vw] lg:text-[1.04vw] leading-[1.25] font-light cursor-pointer ${
+                  period === "month" ? "bg-[#D9E3F1]" : "bg-transparent"
+                }`}
+                onClick={() => setPeriod("month")}
+              >
+                На месяц
+              </button>
+            </div>
+
+            <div className="flex max-md:justify-center md:min-h-[5vw] h-full">
+              {period === "year" ? (
+                <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[0.83vw] max-md:max-w-[242px]">
+                  <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[0.83vw] flex-wrap">
+                    <p className="h2 m-0 lg:text-[1.67vw] text-[#00459D]">3990&nbsp;р/год</p>
+                    <p className="text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-[#8D8D8D] line-through">
+                      5980&nbsp;р/год
+                    </p>
+                  </div>
+
+                  <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[0.83vw] flex-wrap">
+                    <p className="h2 m-0 lg:text-[1.67vw] text-[#00459D]">322&nbsp;р/месяц</p>
+                    <p className="text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-[#8D8D8D] line-through">
+                      490&nbsp;р/месяц
+                    </p>
+                    <p className="text-[16px] md:text-[1.04vw] leading-[1.25] font-bold md:font-light text-[#1A1A1A]">
+                      Выгода 32%
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[0.83vw] max-md:max-w-[242px]">
+                  <p className="h2 m-0 lg:text-[1.67vw] text-[#00459D]">490&nbsp;р/месяц</p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-[8px] text-[16px] md:text-[1.04vw] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">
+                Выберите способ оплаты
+              </p>
+              <div className="flex max-md:flex-col gap-[8px] md:gap-[1.25vw]">
+                <button
+                  type="button"
+                  className={paymentButtonClass}
+                  onClick={() => {
+                    setSubscriptions((prev) =>
+                      prev.map((s) => (s.id === item.id ? { ...s, status: s.purchasedStatus } : s))
+                    );
+                    setShowUnlockedMessage(false);
+                  }}
+                >
+                  Банковской картой
+                </button>
+                <button
+                  type="button"
+                  className={paymentButtonClass}
+                  onClick={() => {
+                    setSubscriptions((prev) =>
+                      prev.map((s) => (s.id === item.id ? { ...s, status: s.purchasedStatus } : s))
+                    );
+                    setShowUnlockedMessage(false);
+                  }}
+                >
+                  По QR-коду (СБП)
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
