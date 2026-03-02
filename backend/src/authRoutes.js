@@ -93,10 +93,9 @@ router.post("/register/request-code", async (req, res) => {
       [trimmedEmail, code, trimmedEmail, passwordHash, CODE_TTL_MINUTES]
     );
 
-    // Временная заглушка: почта не отправляется, код показывается на фронте
-    // await sendCodeEmail(trimmedEmail, "Код подтверждения регистрации Tacticode", code);
+    await sendCodeEmail(trimmedEmail, "Код подтверждения регистрации Tacticode", code);
 
-    return res.json({ ok: true, code });
+    return res.json({ ok: true });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });
@@ -214,10 +213,9 @@ router.post("/password/request-reset", async (req, res) => {
       [trimmedEmail, code, CODE_TTL_MINUTES]
     );
 
-    // Временная заглушка: почта не отправляется, код показывается на фронте
-    // await sendCodeEmail(trimmedEmail, "Код для восстановления доступа Tacticode", code);
+    await sendCodeEmail(trimmedEmail, "Код для восстановления доступа Tacticode", code);
 
-    return res.json({ ok: true, code });
+    return res.json({ ok: true });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });

@@ -145,12 +145,7 @@ export function Modals() {
 
     try {
       setRestoreLoading(true);
-      const res = await apiPasswordRequestReset({ email });
-      if (res && res.code) {
-        // Временное поведение: показываем код вместо отправки на почту
-        // eslint-disable-next-line no-alert
-        alert(`Запомните ваш код для восстановления: ${res.code}`);
-      }
+      await apiPasswordRequestReset({ email });
       setResetEmail(email);
       setCodePurpose("reset");
       setCodeEmail(email);
@@ -224,8 +219,6 @@ export function Modals() {
               На месяц
             </button>
           </div>
-
-
           <div className="flex max-md:justify-center md:min-h-[96px] h-full">
             {period === "year" ? (
               <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
@@ -252,8 +245,6 @@ export function Modals() {
               </div>
             )}
           </div>
-
-
           <div className="">
             <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите способ оплаты</p>
             <div className="flex max-md:flex-col gap-[8px] md:gap-[24px]">
@@ -261,7 +252,6 @@ export function Modals() {
               <button type="button" className={paymentButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
             </div>
           </div>
-
         </div>
       </BaseModal>
 
@@ -272,9 +262,6 @@ export function Modals() {
         panelClassName="w-full max-w-[390px]"
         titleClassName="text-center"
       >
-        <p className="m-0 mb-3 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
-          Сейчас код не отправляется на почту, а показывается на экране
-        </p>
         <form
           onSubmit={async (event) => {
             event.preventDefault();
@@ -541,12 +528,7 @@ export function Modals() {
                 }
                 try {
                   setRegisterLoading(true);
-                  const res = await apiRegisterRequestCode({ email, password: registerPassword });
-                  if (res && res.code) {
-                    // Временное поведение: показываем код вместо отправки на почту
-                    // eslint-disable-next-line no-alert
-                    alert(`Запомните ваш код: ${res.code}`);
-                  }
+                  await apiRegisterRequestCode({ email, password: registerPassword });
                   setCodePurpose("register");
                   setCodeEmail(email);
                   setCodeDigits(["", "", "", "", "", ""]);
