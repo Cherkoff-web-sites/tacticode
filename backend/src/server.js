@@ -52,10 +52,12 @@ function logSelfHealthcheck() {
       "http://127.0.0.1:4000/api/health",
       { method: "GET", timeout: 3000 },
       (res) => {
-        const ms = Date.now() - start;
-        console.log(
-          `[${new Date().toISOString()}] Self-healthcheck -> ${res.statusCode} (${ms}ms)`
-        );
+        if (res.statusCode !== 200) {
+          const ms = Date.now() - start;
+          console.warn(
+            `[${new Date().toISOString()}] Self-healthcheck warning: ${res.statusCode} (${ms}ms)`
+          );
+        }
         res.resume();
       }
     );

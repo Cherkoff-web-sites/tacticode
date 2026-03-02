@@ -12,7 +12,7 @@ FROM node:20-alpine
 WORKDIR /app
 RUN apk add --no-cache curl
 COPY backend/package*.json ./
-RUN npm install --production
+RUN npm install --omit=dev
 COPY backend/ ./
 
 # Serve frontend static files from backend
