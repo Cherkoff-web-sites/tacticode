@@ -5,6 +5,8 @@ WORKDIR /app
 COPY prod/package*.json ./
 RUN npm install
 COPY prod/ ./
+# Пустой VITE_API_BASE_URL → относительные запросы /api/* на тот же хост (бэк + фронт в одном контейнере)
+ENV VITE_API_BASE_URL=
 RUN npm run build
 
 FROM node:20-alpine
