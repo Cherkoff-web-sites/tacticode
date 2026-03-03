@@ -199,24 +199,16 @@ export function Modals() {
       <BaseModal
         isOpen={Boolean(loginModalOpen)}
         onClose={() => { setLoginModalOpen(false); setAuthMode("login"); }}
-        title=""
+        title={authMode === "login" ? "Войти" : "Зарегистрироваться"}
         panelClassName="w-full max-w-[390px]"
-        titleClassName="sr-only"
       >
         <div className="flex flex-col items-center gap-2 mb-4 text-[16px] leading-[20px]">
           <button
             type="button"
-            className={`border-none bg-transparent p-0 cursor-pointer ${authMode === "login" ? "text-[#00459D] font-bold" : "text-[#8D8D8D]"}`}
-            onClick={() => setAuthMode("login")}
+            className="secondButtonClass border-none bg-transparent p-0 cursor-pointer underline"
+            onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
           >
-            Войти
-          </button>
-          <button
-            type="button"
-            className={`border-none bg-transparent p-0 cursor-pointer ${authMode === "register" ? "text-[#00459D] font-bold" : "text-[#8D8D8D]"}`}
-            onClick={() => setAuthMode("register")}
-          >
-            Зарегистрироваться
+            {authMode === "login" ? "Зарегистрироваться" : "Войти"}
           </button>
         </div>
 
