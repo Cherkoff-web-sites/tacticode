@@ -18,7 +18,7 @@ export function Layout() {
   const mainClass = isHome
     ? "flex-1 flex flex-col items-stretch pt-0 pb-[80px] md:pb-[160px]"
     : isLk
-      ? "flex-1 py-8 px-10 pb-10"
+      ? "flex-1 pt-[40px] md:pt-[70px] pb-[80px] md:pb-[48px]"
       : isContacts
         ? "flex-1 pt-[40px] md:pt-[70px] pb-[40px] md:pb-[160px]"
         : isDocuments

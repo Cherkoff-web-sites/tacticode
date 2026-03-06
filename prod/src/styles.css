@@ -93,19 +93,23 @@
 @layer components {
   /* Личный кабинет */
   .lk-header-row {
-    @apply flex items-center justify-between mb-6 max-md:flex-col max-md:items-start max-md:gap-2;
+    @apply pt-0 mb-[24px] md:mb-[40px];
+  }
+
+  .lk-header-row-content {
+    @apply flex items-end justify-between gap-[24px] max-md:flex-col max-md:items-center max-md:gap-[8px];
   }
 
   .lk-header-left {
-    @apply flex flex-col gap-1;
+    @apply flex items-end gap-[24px] max-md:flex-col max-md:items-center max-md:gap-[8px];
   }
 
-  .lk-title {
-    @apply m-0 text-[28px] font-bold;
+  .lk-history-link {
+    @apply mb-[4px] text-center md:text-left;
   }
 
   .lk-logout {
-    @apply whitespace-nowrap max-md:pt-1;
+    @apply whitespace-nowrap text-center;
   }
 
   .link-button {
@@ -117,11 +121,15 @@
   }
 
   .lk-content {
-    @apply grid grid-cols-[1.1fr_1.1fr_1.1fr] gap-8 max-lg:grid-cols-1;
+    @apply pt-0 mb-0;
+  }
+
+  .lk-content-grid {
+    @apply flex flex-col gap-[24px] lg:flex-row lg:items-stretch lg:justify-between;
   }
 
   .lk-column {
-    @apply flex flex-col;
+    @apply flex flex-col min-h-0;
   }
 
   .cards-column {
@@ -181,41 +189,11 @@
   }
 
   .field-group {
-    @apply mb-4;
+    @apply mb-[16px] md:mb-[24px];
   }
 
   .field-label {
-    @apply block text-[13px] text-gray-500 mb-1.5;
-  }
-
-  .input {
-    @apply min-h-11 rounded-full bg-gray-100 px-4 flex items-center justify-between text-sm text-gray-900;
-  }
-
-  .input-field {
-    @apply w-full border-none outline-none bg-gray-100;
-  }
-
-  .input-disabled {
-    @apply bg-gray-200;
-  }
-
-  .input-with-icon .icon-eye,
-  .input-with-icon .icon-calendar,
-  .input-with-icon .icon-select {
-    @apply w-4 h-4 rounded-full border-2 border-gray-400;
-  }
-
-  .icon-edit {
-    @apply w-4 h-4 rounded-full border-2 border-gray-300;
-  }
-
-  .input-icons {
-    @apply flex items-center gap-2.5;
-  }
-
-  .devices-card {
-    @apply bg-white rounded-2xl p-7 shadow-[0_1px_4px_rgba(15,23,42,0.04)] flex flex-col gap-4;
+    @apply block mb-[8px] text-[#8D8D8D];
   }
 
   .devices-empty {
@@ -236,35 +214,31 @@
   }
 
   .devices-list {
-    @apply flex flex-col gap-2.5;
+    @apply flex flex-col gap-[16px];
   }
 
   .device-row {
-    @apply flex items-center gap-3;
-  }
-
-  .device-icon {
-    @apply w-8 h-8 rounded-[10px] bg-gray-200;
+    @apply flex items-start gap-[16px];
   }
 
   .device-info {
-    @apply flex-1 flex flex-col gap-0.5;
+    @apply flex-1 flex flex-col gap-[4px] min-w-0;
   }
 
   .device-name {
-    @apply text-sm font-medium;
+    @apply font-light break-words;
   }
 
   .device-meta {
-    @apply text-xs text-gray-400;
+    @apply font-light break-words;
   }
 
   .device-remove {
-    @apply border-none bg-transparent cursor-pointer text-lg leading-none text-gray-400;
+    @apply border-none bg-transparent cursor-pointer text-[20px] leading-none text-[#8D8D8D] self-start;
   }
 
   .devices-hint {
-    @apply m-0 text-xs text-gray-400;
+    @apply m-0 text-[#8D8D8D];
   }
 
   .modal-devices-hint {
