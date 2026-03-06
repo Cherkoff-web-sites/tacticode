@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import logoIcon from "../assets/icons/logo.svg";
 import logoBlackIcon from "../assets/icons/logo-black.svg";
@@ -8,10 +8,18 @@ import burgerIcon from "../assets/icons/burger.svg";
 
 export function Header() {
   const { isLoggedIn, setLoginModalOpen, setLogoutModalOpen, handleDownloadClick } = useApp();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isOnLk = location.pathname === "/lk";
 
   const handleProfileClick = () => {
-    if (isLoggedIn) setLogoutModalOpen(true);
-    else setLoginModalOpen(true);
+    if (!isLoggedIn) {
+      setLoginModalOpen(true);
+    } else if (isOnLk) {
+      setLogoutModalOpen(true);
+    } else {
+      navigate("/lk");
+    }
   };
 
   const personIconColors = isLoggedIn

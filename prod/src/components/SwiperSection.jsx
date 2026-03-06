@@ -27,7 +27,7 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
   return (
     <section>
       <div className={containerClass}>
-        <div className="flex items-end justify-center lg:justify-start gap-[24px] mb-[16px] lg:mb-[32px]">
+        <div className="flex items-end justify-center lg:justify-start gap-[24px] mb-0 lg:mb-0">
           <h2 className="mb-0 text-center md:text-right">{title}</h2>
           <Link to={linkTo} className="hidden md:block p-0 border-none text-[20px] leading-[25px] font-light text-[#00459D] bg-transparent cursor-pointer hover:text-[#003982] active:text-[#003982]">Смотреть все</Link>
         </div>
@@ -37,7 +37,7 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
             spaceBetween={8}
             slidesPerView={1}
             slidesPerGroup={1}
-            className="swiper-equal-height px-[24px] lg:px-0"
+            className="swiper-equal-height swiper-padding-for-shadow px-[24px] lg:px-0 py-4 lg:py-8"
             navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
             onSwiper={(swiper) => {
               swiperRef.current = swiper;
@@ -58,7 +58,7 @@ export function SwiperSection({ title, linkTo, items, slidesPerView = 4, paginat
           </Swiper>
 
           {/* Управление */}
-          <div className="flex items-center justify-center gap-[16px] mt-[16px] lg:mt-[32px]">
+          <div className="flex items-center justify-center gap-[16px] mt-0 lg:mt-0">
             <button ref={prevRef} className="flex items-center justify-center p-[6px] lg:p-[8px] rounded-full bg-[#F2F5FA] text-[#00459D] cursor-pointer transition-all md:hover:bg-[#00459D] md:hover:text-white md:active:bg-[#003982] md:active:text-white disabled:opacity-80">
               <svg className="w-[20px] lg:w-[24px] h-auto" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7.49994 12.0001C7.49983 11.9015 7.5192 11.804 7.55691 11.713C7.59463 11.622 7.64994 11.5394 7.71971 11.4698L15.2197 3.96979C15.5127 3.67674 15.9873 3.67674 16.2802 3.96979C16.5731 4.26286 16.5733 4.73742 16.2802 5.0303L9.31046 12.0001L16.2802 18.9698C16.5733 19.2629 16.5733 19.7374 16.2802 20.0303C15.9871 20.3232 15.5126 20.3234 15.2197 20.0303L7.71971 12.5303C7.64994 12.4607 7.59463 12.3781 7.55691 12.2871C7.5192 12.1961 7.49983 12.0986 7.49994 12.0001Z" fill="currentColor"/>

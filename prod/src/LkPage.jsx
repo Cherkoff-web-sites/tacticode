@@ -6,7 +6,7 @@ export function LkPage() {
     subscriptions,
     devices,
     setHistoryModalOpen,
-    handleLogout,
+    setLogoutModalOpen,
     setActiveModal,
     setDeviceToRemove,
   } = useApp();
@@ -20,7 +20,7 @@ export function LkPage() {
             Посмотреть историю платежей
           </button>
         </div>
-        <button type="button" className="link-button lk-logout" onClick={handleLogout}>
+        <button type="button" className="link-button lk-logout" onClick={() => setLogoutModalOpen(true)}>
           Выйти из аккаунта
         </button>
       </section>

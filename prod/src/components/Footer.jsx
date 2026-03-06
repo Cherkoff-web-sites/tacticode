@@ -1,15 +1,23 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import logoIcon from "../assets/icons/logo.svg";
 import logoWhiteIcon from "../assets/icons/logo-white.svg";
 
 export function Footer() {
   const { isLoggedIn, setLoginModalOpen, setLogoutModalOpen, handleDownloadClick } = useApp();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isOnLk = location.pathname === "/lk";
 
   const handleProfileClick = () => {
-    if (isLoggedIn) setLogoutModalOpen(true);
-    else setLoginModalOpen(true);
+    if (!isLoggedIn) {
+      setLoginModalOpen(true);
+    } else if (isOnLk) {
+      setLogoutModalOpen(true);
+    } else {
+      navigate("/lk");
+    }
   };
 
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";

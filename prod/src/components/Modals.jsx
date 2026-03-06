@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import BaseModal from "./BaseModal";
 import {
@@ -14,10 +14,86 @@ const HISTORY_ITEMS = [
   { id: 1, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
   { id: 2, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
   { id: 3, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 4, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" }
+  { id: 4, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 5, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 6, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
+  { id: 7, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 8, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 9, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 10, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
+  { id: 11, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 12, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 13, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 14, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
+  { id: 15, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
+  { id: 16, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" }
 ];
 const secondButtonClass =
-  "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] lg:py-[16px] rounded-full border-none text-[16px] lg:text-[20px] leading-[20px] lg:leading-[25px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
+  "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
+const primaryModalButtonClass =
+  "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-white bg-[#00459D] cursor-pointer transition-colors md:hover:bg-[#F2F5FA] md:hover:text-[#00459D] active:bg-[#D9E3F1] active:text-[#00459D]";
+
+/** Стили для синих текстовых ссылок во всех модалках */
+const MODAL_LINK_CLASS = "p-0 border-none bg-transparent cursor-pointer text-[16px] md:text-[20px] leading-[1.25] font-light text-[#00459D] hover:text-[#003982] active:text-[#003982]";
+
+/** Базовый шрифт для текста в модалках с формами (вход, регистрация, коды, восстановление) */
+const MODAL_TEXT_FONT = "text-[16px] md:text-[20px] leading-[1.25] font-light";
+
+/** Кастомный чекбокс: скрытый инпут + квадрат 24×24, скругление 4px, фон D9E3F1 / при выборе 00459D, отступ до надписи 8px */
+const MODAL_CHECKBOX_WRAPPER = "relative inline-flex shrink-0 w-6 h-6";
+const MODAL_CHECKBOX_INPUT = "peer absolute inset-0 w-6 h-6 opacity-0 cursor-pointer z-10";
+const MODAL_CHECKBOX_BOX = "w-6 h-6 rounded-[4px] bg-[#D9E3F1] peer-checked:bg-[#00459D] shrink-0 pointer-events-none block";
+
+/** Плавающий лейбл: обёртка и стили лейбла/инпута */
+const MODAL_FLOATING_WRAPPER = "relative";
+const MODAL_FLOATING_LABEL_PLACEHOLDER = "absolute left-[24px] pointer-events-none transition-all duration-200 top-1/2 -translate-y-1/2 text-[16px] md:text-[20px] leading-[1.25] font-light text-[#8D8D8D]";
+const MODAL_FLOATING_LABEL_LIFTED = "absolute left-[24px] pointer-events-none transition-all duration-200 top-[8.5px] translate-y-0 text-[12px] text-[#8D8D8D]";
+const MODAL_FLOATING_LABEL_LIFTED_ERROR = "absolute left-[24px] pointer-events-none transition-all duration-200 top-[8.5px] translate-y-0 text-[12px] text-[#FF383C]";
+const MODAL_INPUT_BASE = "input input-field w-full pl-[24px] pr-14 pt-[23.5px] pb-[8.5px] text-[20px] leading-[1.25] font-light text-[#000] border-none outline-none rounded-full bg-[#F8F8F8] placeholder:opacity-0";
+const INPUT_ERROR_CLASS = "bg-[#FFE3E3]";
+
+const ClearFieldSvg = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0">
+    <rect x="3.05078" y="14.8638" width="2" height="16" rx="1" transform="rotate(-135 3.05078 14.8638)" fill="#8D8D8D"/>
+    <rect x="1.63672" y="3.55029" width="2" height="16" rx="1" transform="rotate(-45 1.63672 3.55029)" fill="#8D8D8D"/>
+  </svg>
+);
+
+function ModalFloatingInput({ label, value, onChange, type = "text", error, id, ...inputProps }) {
+  const [focused, setFocused] = useState(false);
+  const str = value != null ? String(value) : "";
+  const hasValue = str.length > 0;
+  const lifted = focused || hasValue;
+  const labelClass = lifted
+    ? (error ? MODAL_FLOATING_LABEL_LIFTED_ERROR : MODAL_FLOATING_LABEL_LIFTED)
+    : (error ? "absolute left-[24px] pointer-events-none transition-all duration-200 top-1/2 -translate-y-1/2 text-[16px] md:text-[20px] leading-[1.25] font-light text-[#FF383C]" : MODAL_FLOATING_LABEL_PLACEHOLDER);
+  return (
+    <div className={MODAL_FLOATING_WRAPPER}>
+      <span className={labelClass}>{label}</span>
+      <input
+        id={id}
+        type={type}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder={label}
+        className={`${MODAL_INPUT_BASE} ${error ? INPUT_ERROR_CLASS : ""}`}
+        {...inputProps}
+      />
+      {hasValue && (
+        <button
+          type="button"
+          className="absolute right-[24px] top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] hover:opacity-70 active:opacity-90"
+          onClick={() => onChange("")}
+          aria-label="Очистить поле"
+        >
+          <ClearFieldSvg />
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function Modals() {
   const location = useLocation();
@@ -194,51 +270,48 @@ export function Modals() {
 
   return (
     <>
-           
-      {/* [ ] Вход / Регистрация */}
+      {/* Вход / Регистрация */}
       <BaseModal
         isOpen={Boolean(loginModalOpen)}
         onClose={() => { setLoginModalOpen(false); setAuthMode("login"); }}
-        title={authMode === "login" ? "Войти" : "Зарегистрироваться"}
+        title=""
+        titleClassName="sr-only"
         panelClassName="w-full max-w-[390px]"
       >
-        <div className="flex flex-col items-center gap-2 mb-4 text-[16px] leading-[20px]">
-          <button
-            type="button"
-            className="secondButtonClass border-none bg-transparent p-0 cursor-pointer underline"
-            onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
-          >
-            {authMode === "login" ? "Зарегистрироваться" : "Войти"}
-          </button>
+        <div className="flex flex-col items-center gap-[8px] mb-[24px]">
+          {authMode === "login" ? (
+            <>
+              <h3 className="mb-0 text-[20px] md:text-[24px] leading-[1.25] text-center font-bold">Войти</h3>
+              <button type="button" className="p-0 border-none text-[16px] md:text-[20px] leading-[1.25] font-light text-[#00459D] bg-transparent cursor-pointer hover:text-[#003982] active:text-[#003982]" onClick={() => setAuthMode("register")}>Зарегистрироваться</button>
+            </>
+          ) : (
+            <>
+              <h3 className="mb-0 text-[20px] md:text-[24px] leading-[1.25] text-center font-bold">Зарегистрироваться</h3>
+              <button type="button" className="p-0 border-none text-[16px] md:text-[20px] leading-[1.25] font-light text-[#00459D] bg-transparent cursor-pointer hover:text-[#003982] active:text-[#003982]" onClick={() => setAuthMode("login")}>Войти</button>
+            </>
+          )}
         </div>
 
         {authMode === "login" ? (
-          <form className="mt-1" onSubmit={handleLoginSubmit}>
-            <div className="mb-4">
-              <label className="block text-[13px] text-gray-500 mb-1.5">Логин/Почта</label>
-              <input
-                className={`input input-field ${loginError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-                type="text"
-                value={login}
-                onChange={(e) => setLogin(e.target.value)}
-                placeholder="Логин/Почта"
-              />
+          <form className="flex flex-col gap-[16px] md:gap-[24px]" onSubmit={handleLoginSubmit}>
+            <div className="">
+              <ModalFloatingInput label="Логин/Почта" value={login} onChange={setLogin} type="text" error={!!loginError} />
             </div>
-            <div className="mb-4">
-              <label className="block text-[13px] text-gray-500 mb-1.5">Пароль</label>
-              <input
-                className={`input input-field ${loginError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Пароль"
-              />
+            <div className="">
+              <ModalFloatingInput label="Пароль" value={password} onChange={setPassword} type="password" error={!!loginError} />
             </div>
-            <div className="flex justify-between items-center mt-1 mb-3">
-              <label className="flex items-center gap-1.5 text-[13px] text-gray-600"><input type="checkbox" /> <span>Запомнить меня</span></label>
+            <div className="flex justify-between items-center">
+              <label className={`flex items-center gap-2 text-[#8D8D8D] ${MODAL_TEXT_FONT} cursor-pointer select-none`}>
+                <span className={MODAL_CHECKBOX_WRAPPER}>
+                  <input type="checkbox" className={MODAL_CHECKBOX_INPUT} />
+                  <span className={MODAL_CHECKBOX_BOX} aria-hidden />
+                  <svg className="absolute inset-0 m-auto w-3.5 h-3.5 opacity-0 peer-checked:opacity-100 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                </span>
+                <span>Запомнить меня</span>
+              </label>
               <button
                 type="button"
-                className="link-button subtle text-[13px]"
+                className={`${MODAL_LINK_CLASS} !text-[#8D8D8D]`}
                 onClick={() => {
                   setRestoreEmail(login || "");
                   setRestoreEmailError("");
@@ -251,11 +324,11 @@ export function Modals() {
               </button>
             </div>
             {loginError && (
-              <p className="m-0 mb-2 text-[13px] leading-[16px] text-[#FF383C]">
+              <p className={`${MODAL_TEXT_FONT} text-center md:text-left`}>
                 Неверный логин или пароль. Если не можете войти,{" "}
                 <button
                   type="button"
-                  className="border-none bg-transparent p-0 text-[#00459D] cursor-pointer underline"
+                  className={`${MODAL_LINK_CLASS}`}
                   onClick={() => {
                     setRestoreEmail(login || "");
                     setRestoreEmailError("");
@@ -268,52 +341,35 @@ export function Modals() {
                 </button>
               </p>
             )}
-            <button type="submit" className="primary-btn w-full justify-center" disabled={isAuthLoading}>{isAuthLoading ? "Вход..." : "Войти"}</button>
+            <button type="submit" className={`${secondButtonClass} w-full md:w-full mt-[8px] md:mt-[16px] justify-center disabled:cursor-not-allowed disabled:opacity-70`} disabled={isAuthLoading}>{isAuthLoading ? "Вход..." : "Войти"}</button>
           </form>
         ) : (
-          <div className="mt-1">
-            <div className="mb-4">
-              <label className="block text-[13px] text-gray-500 mb-1.5">Логин/Почта</label>
-              <input
-                className={`input input-field ${registerError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-                type="email"
-                value={registerEmail}
-                onChange={(e) => { setRegisterEmail(e.target.value); if (registerError) setRegisterError(""); }}
-                placeholder="Логин/Почта"
-              />
+          <div className="flex flex-col gap-[16px] md:gap-[24px]">
+            <div className="">
+              <ModalFloatingInput label="Логин/Почта" value={registerEmail} onChange={(v) => { setRegisterEmail(v); if (registerError) setRegisterError(""); }} type="email" error={!!registerError} />
             </div>
-            <div className="mb-4">
-              <label className="block text-[13px] text-gray-500 mb-1.5">Пароль</label>
-              <input
-                className={`input input-field ${registerError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-                type="password"
-                value={registerPassword}
-                onChange={(e) => { setRegisterPassword(e.target.value); if (registerError) setRegisterError(""); }}
-                placeholder="Пароль"
-              />
+            <div className="">
+              <ModalFloatingInput label="Пароль" value={registerPassword} onChange={(v) => { setRegisterPassword(v); if (registerError) setRegisterError(""); }} type="password" error={!!registerError} />
             </div>
-            <div className="mb-4">
-              <label className="block text-[13px] text-gray-500 mb-1.5">Повторите пароль</label>
-              <input
-                className={`input input-field ${registerError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-                type="password"
-                value={registerPassword2}
-                onChange={(e) => { setRegisterPassword2(e.target.value); if (registerError) setRegisterError(""); }}
-                placeholder="Повторите пароль"
-              />
+            <div className="">
+              <ModalFloatingInput label="Повторите пароль" value={registerPassword2} onChange={(v) => { setRegisterPassword2(v); if (registerError) setRegisterError(""); }} type="password" error={!!registerError} />
             </div>
-            <div className="flex items-center gap-1.5 mb-4 text-[13px] text-gray-600">
-              <input type="checkbox" />
+            <label className={`flex items-center gap-2 text-[#8D8D8D] ${MODAL_TEXT_FONT} cursor-pointer select-none`}>
+              <span className={MODAL_CHECKBOX_WRAPPER}>
+                <input type="checkbox" className={MODAL_CHECKBOX_INPUT} />
+                <span className={MODAL_CHECKBOX_BOX} aria-hidden />
+                <svg className="absolute inset-0 m-auto w-3.5 h-3.5 opacity-0 peer-checked:opacity-100 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              </span>
               <span>Запомнить меня</span>
-            </div>
+            </label>
             {registerError && (
-              <p className="m-0 mb-2 text-[13px] leading-[16px] text-[#FF383C]">
+              <p className={`m-0 mb-2 text-[#FF383C] ${MODAL_TEXT_FONT}`}>
                 {registerError}
               </p>
             )}
             <button
               type="button"
-              className="primary-btn w-full justify-center mb-3"
+              className={`${secondButtonClass} w-full md:w-full justify-center mt-[8px] md:mt-[16px] mb-0 disabled:cursor-not-allowed disabled:opacity-70`}
               disabled={registerLoading}
               onClick={async () => {
                 setRegisterError("");
@@ -344,17 +400,17 @@ export function Modals() {
             >
               {registerLoading ? "Отправляем..." : "Отправить код"}
             </button>
-            <p className="m-0 text-[11px] leading-[14px] text-gray-400 text-left">
+            <p className={`!text-[16px] text-[#8D8D8D] text-center md:text-left ${MODAL_TEXT_FONT}`}>
               Отправляя данные, вы соглашаетесь с нашей{" "}
-              <button type="button" className="link-button p-0 text-[11px]">политикой конфиденциальности</button>
+              <Link to="/privacy" className={`!text-[16px] ${MODAL_LINK_CLASS}`} onClick={() => setLoginModalOpen(false)}>политикой конфиденциальности</Link>
               {" "}и{" "}
-              <button type="button" className="link-button p-0 text-[11px]">пользовательским соглашением</button>
+              <Link to="/terms" className={`!text-[16px] ${MODAL_LINK_CLASS}`} onClick={() => setLoginModalOpen(false)}>пользовательским соглашением</Link>
             </p>
           </div>
         )}
       </BaseModal>
 
-      {/* [ ] Код с почты */}
+      {/* Код с почты */}
       <BaseModal
         isOpen={codeModalOpen}
         onClose={() => { setCodeModalOpen(false); setCodeError(""); }}
@@ -362,37 +418,39 @@ export function Modals() {
         panelClassName="w-full max-w-[390px]"
         titleClassName="text-center"
       >
-        <p className="m-0 mb-3 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
+        <p className={`m-0 mb-[24px] text-center text-[#8D8D8D] ${MODAL_TEXT_FONT}`}>
           Мы отправили код на указанную почту
         </p>
-        <div className="flex justify-center gap-2 mb-4">
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <input
-              key={i}
-              ref={(el) => {
-                codeInputsRef.current[i] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              pattern="\d*"
-              maxLength={1}
-              value={codeDigits[i]}
-              onChange={(e) => handleCodeChange(i, e.target.value)}
-              onKeyDown={(e) => handleCodeKeyDown(i, e)}
-              className={`w-[32px] h-[32px] rounded-full text-center text-[16px] leading-[20px] border-none outline-none ${
-                codeError ? "bg-[#FFE3E3] text-[#FF383C]" : "bg-[#F2F5FA]"
-              }`}
-            />
-          ))}
+        <div className="mb-[24px]">
+          <div className="flex flex-row justify-between gap-2 md:gap-[2px]">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <input
+                key={i}
+                ref={(el) => {
+                  codeInputsRef.current[i] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="\d*"
+                maxLength={1}
+                value={codeDigits[i]}
+                onChange={(e) => handleCodeChange(i, e.target.value)}
+                onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                className={`flex-1 min-w-0 aspect-square md:flex-none md:w-[57px] md:h-[57px] rounded-full border-none outline-none px-0 text-center text-[20px] leading-[1.25] font-light ${
+                  codeError ? "bg-[#FFE3E3] text-[#FF383C]" : "bg-[#F2F5FA]"
+                }`}
+              />
+            ))}
+          </div>
+          {codeError && (
+            <p className={`m-0 mt-2 text-[#FF383C] text-center text-[20px] leading-[1.25] font-light`}>
+              {codeError}
+            </p>
+          )}
         </div>
-        {codeError && (
-          <p className="m-0 mb-2 text-[13px] leading-[16px] text-[#FF383C] text-center">
-            {codeError}
-          </p>
-        )}
         <button
           type="button"
-          className="primary-btn w-full justify-center mb-2"
+          className={`${secondButtonClass} w-full md:w-full justify-center mb-0 disabled:cursor-not-allowed disabled:opacity-70`}
           disabled={codeLoading}
           onClick={async () => {
             const code = codeDigits.join("");
@@ -425,12 +483,12 @@ export function Modals() {
         >
           {codeLoading ? "Проверяем..." : codePurpose === "reset" ? "Продолжить" : "Зарегистрироваться"}
         </button>
-        <button type="button" className="border-none bg-transparent p-0 mx-auto block text-sm text-[#00459D] cursor-pointer">
+        <button type="button" className={`${MODAL_LINK_CLASS} ${MODAL_TEXT_FONT} mx-auto block mt-4`}>
           Отправить код еще раз
         </button>
       </BaseModal>
       
-      {/* [ ] Восстановление: ввод почты */}
+      {/* Восстановление: ввод почты */}
       <BaseModal
         isOpen={restoreModalOpen}
         onClose={() => setRestoreModalOpen(false)}
@@ -438,30 +496,26 @@ export function Modals() {
         panelClassName="w-full max-w-[390px]"
         titleClassName="text-center"
       >
+        <p className={`m-0 mb-[24px] md:mb-[32px] text-center text-[#8D8D8D] ${MODAL_TEXT_FONT}`}>
+          Мы отправим на нее код подтверждения
+        </p>
         <form
           onSubmit={async (event) => {
             event.preventDefault();
             await handleRestoreSubmit(event);
           }}
         >
-          <div className="mb-4">
-            <label className="block text-[13px] text-gray-500 mb-1.5">Логин/Почта</label>
-            <input
-              className={`input input-field ${restoreEmailError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-              type="email"
-              value={restoreEmail}
-              onChange={(e) => { setRestoreEmail(e.target.value); if (restoreEmailError) setRestoreEmailError(""); }}
-              placeholder="Логин/Почта"
-            />
+          <div className="mb-[24px] md:mb-[32px]">
+            <ModalFloatingInput label="Логин/Почта" value={restoreEmail} onChange={(v) => { setRestoreEmail(v); if (restoreEmailError) setRestoreEmailError(""); }} type="email" error={!!restoreEmailError} />
+            {restoreEmailError && (
+              <p className={`m-0 mt-[8px] md:mt-[16px] text-center text-[#FF383C] ${MODAL_TEXT_FONT}`}>
+                {restoreEmailError}
+              </p>
+            )}
           </div>
-          {restoreEmailError && (
-            <p className="m-0 mb-3 text-[13px] leading-[16px] text-[#FF383C]">
-              {restoreEmailError}
-            </p>
-          )}
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center gap-[12px] px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors disabled:cursor-not-allowed disabled:bg-[#F5F5F5] disabled:text-[#B0B0B0]"
+            className={`${secondButtonClass} w-full md:w-full justify-center disabled:cursor-not-allowed disabled:opacity-70`}
             disabled={restoreLoading}
           >
             {restoreLoading ? "Отправляем..." : "Отправить код"}
@@ -469,14 +523,17 @@ export function Modals() {
         </form>
         <button
           type="button"
-          className="mt-4 border-none bg-transparent p-0 text-[14px] leading-[18px] text-[#8D8D8D] cursor-pointer"
+          className={`mt-[16px] md:mt-[24px] w-full flex items-center justify-center gap-1 border-none bg-transparent p-0 text-[#8D8D8D] cursor-pointer ${MODAL_TEXT_FONT}`}
           onClick={() => { setRestoreModalOpen(false); setLoginModalOpen(true); setAuthMode("login"); }}
         >
-          ← Вернуться назад
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+            <path d="M0.274981 6.47611L0.275824 6.477L5.17445 11.352C5.54143 11.7172 6.13501 11.7158 6.50031 11.3488C6.86556 10.9818 6.86415 10.3883 6.49717 10.023L3.20823 6.75L15.0625 6.75C15.5803 6.75 16 6.33028 16 5.8125C16 5.29472 15.5803 4.875 15.0625 4.875L3.20828 4.875L6.49712 1.602C6.86411 1.23675 6.86551 0.643175 6.50026 0.276191C6.13496 -0.0908871 5.54134 -0.0921526 5.1744 0.273004L0.275776 5.148L0.274933 5.14889C-0.0922394 5.51536 -0.0910664 6.11086 0.274981 6.47611Z" fill="#8D8D8D"/>
+          </svg>
+          <span>Вернуться назад</span>
         </button>
       </BaseModal>
 
-      {/* [ ] Восстановление: новый пароль */}
+      {/* Восстановление: новый пароль */}
       <BaseModal
         isOpen={newPasswordModalOpen}
         onClose={() => setNewPasswordModalOpen(false)}
@@ -484,37 +541,25 @@ export function Modals() {
         panelClassName="w-full max-w-[390px]"
         titleClassName="text-center"
       >
-        <p className="m-0 mb-4 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
+        <p className={`m-0 mb-[24px] text-center text-[#8D8D8D] ${MODAL_TEXT_FONT}`}>
           Не забудьте его сохранить или записать
         </p>
-        <div className="mb-4">
-          <label className="block text-[13px] text-gray-500 mb-1.5">Новый пароль</label>
-          <input
-            className={`input input-field ${newPasswordError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-            type="password"
-            value={newPassword}
-            onChange={(e) => { setNewPassword(e.target.value); if (newPasswordError) setNewPasswordError(""); }}
-            placeholder="Новый пароль"
-          />
+        <div className="mb-[24px] md:mb-[40px]">
+          <div className="mb-[16px] md:mb-[24px]">
+            <ModalFloatingInput label="Новый пароль" value={newPassword} onChange={(v) => { setNewPassword(v); if (newPasswordError) setNewPasswordError(""); }} type="password" error={!!newPasswordError} />
+          </div>
+          <div>
+            <ModalFloatingInput label="Повторите пароль" value={newPassword2} onChange={(v) => { setNewPassword2(v); if (newPasswordError) setNewPasswordError(""); }} type="password" error={!!newPasswordError} />
+          </div>
+          {newPasswordError && (
+            <p className={`m-0 mt-[8px] md:mt-[16px] text-[#FF383C] ${MODAL_TEXT_FONT}`}>
+              {newPasswordError}
+            </p>
+          )}
         </div>
-        <div className="mb-4">
-          <label className="block text-[13px] text-gray-500 mb-1.5">Повторите пароль</label>
-          <input
-            className={`input input-field ${newPasswordError ? "bg-[#FFE3E3] text-[#FF383C]" : ""}`}
-            type="password"
-            value={newPassword2}
-            onChange={(e) => { setNewPassword2(e.target.value); if (newPasswordError) setNewPasswordError(""); }}
-            placeholder="Повторите пароль"
-          />
-        </div>
-        {newPasswordError && (
-          <p className="m-0 mb-4 text-[13px] leading-[16px] text-[#FF383C]">
-            {newPasswordError}
-          </p>
-        )}
         <button
           type="button"
-          className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-white bg-[#00459D] cursor-pointer transition-colors disabled:bg-[#F2F5FA] disabled:text-[#C0C7D1] disabled:cursor-not-allowed"
+          className={`${secondButtonClass} w-full md:w-full justify-center disabled:cursor-not-allowed disabled:opacity-70`}
           disabled={newPasswordLoading}
           onClick={async () => {
             if (!newPassword || !newPassword2) {
@@ -542,33 +587,52 @@ export function Modals() {
         </button>
       </BaseModal>
       
-      {/* [ ] Скачать прил */}
+      {/* Скачать прил */}
       <BaseModal
         isOpen={downloadModalOpen}
         onClose={() => setDownloadModalOpen(false)}
         title="Скачать Tacticode"
       >
-        <p className="m-0 mb-4 text-center text-[16px] leading-[20px] font-light text-[#1A1A1A]">
-          Удобно стройте тактику, стратегию, готовьтесь к играм и тренировкам вместе с Tacticode
+        <p className={`mb-[16px] md:mb-[24px] text-center text-[#1A1A1A] ${MODAL_TEXT_FONT}`}>
+          Удобно стройте тактику, стратегию, готовтесь к&nbsp;играм и&nbsp;тренировкам вместе с&nbsp;Tacticode
         </p>
-        <p className="m-0 mb-4 text-center text-[16px] leading-[20px] font-light text-[#8D8D8D]">
+        <p className={`mb-[16px] text-center text-[#8D8D8D] ${MODAL_TEXT_FONT}`}>
           Скачать для
         </p>
-        <div className="flex flex-col gap-[12px]">
-          {["Windows 7", "Windows 10", "Windows 11", "Mac OS"].map((label) => (
+        <div className="flex flex-col gap-[16px] pb-[16px] md:pb-[24px]">
+          {["Windows 7", "Windows 10", "Windows 11"].map((label) => (
             <button
               key={label}
               type="button"
-              className="w-full px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#D9E3F1]"
+              className={`${secondButtonClass} w-full md:w-full`}
               onClick={() => setDownloadModalOpen(false)}
             >
               {label}
             </button>
           ))}
         </div>
+        <svg className="w-full h-[2px] shrink-0" viewBox="0 0 425 2" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <rect width="425" height="2" rx="1" fill="url(#download-modal-divider)" />
+          <defs>
+            <linearGradient id="download-modal-divider" x1="0" y1="1" x2="425" y2="1" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#F2F5FA" stopOpacity="0.15" />
+              <stop offset="0.503748" stopColor="#F2F5FA" />
+              <stop offset="1" stopColor="#F2F5FA" stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="flex flex-col gap-[16px] mt-[16px] md:mt-[24px]">
+          <button
+            type="button"
+            className={`${secondButtonClass} w-full md:w-full`}
+            onClick={() => setDownloadModalOpen(false)}
+          >
+            Mac OS
+          </button>
+        </div>
       </BaseModal>
 
-      {/* [x] Новость */}
+      {/* Новость */}
       <BaseModal
         isOpen={Boolean(newsModalItem)}
         onClose={() => setNewsModalItem(null)}
@@ -593,7 +657,7 @@ export function Modals() {
         </div>
       </BaseModal>
 
-      {/* [x] Купить подписку */}
+      {/* Купить подписку */}
       <BaseModal
         isOpen={Boolean(activeModal)}
         onClose={() => setActiveModal(null)}
@@ -647,7 +711,7 @@ export function Modals() {
           </div>
           <div className="">
             <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите способ оплаты</p>
-            <div className="flex max-md:flex-col gap-[8px] md:gap-[24px]">
+            <div className="flex max-md:flex-col justify-between gap-[8px] md:gap-[24px]">
               <button type="button" className={secondButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
               <button type="button" className={secondButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
             </div>
@@ -655,21 +719,21 @@ export function Modals() {
         </div>
       </BaseModal>
 
-      {/* [ ] Удалить устройство */}
+      {/* Удалить устройство */}
       <BaseModal
         isOpen={Boolean(deviceToRemove && isLk)}
         onClose={() => setDeviceToRemove(null)}
         title="Вы уверены, что хотите удалить устройство?"
-        panelClassName="w-full max-w-[390px]"
-        titleClassName="text-center"
+        panelClassName="w-full !max-w-[444px]"
+        titleClassName="md:!mb-[16px]"
       >
-        <p className="m-0 mb-4 text-center text-[14px] leading-[18px] text-[#8D8D8D]">
+        <p className={`${MODAL_TEXT_FONT} m-0 mb-[24px] text-center text-[#8D8D8D]`}>
           Удалить привязанное устройство можно 1 раз в месяц
         </p>
-        <div className="flex flex-col gap-[12px] mt-2">
+        <div className="flex flex-col gap-[16px]">
           <button
             type="button"
-            className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors active:bg-[#D9E3F1]"
+            className={`${secondButtonClass} w-full md:w-full`}
             onClick={() => {
               setDevices((prev) => prev.filter((d) => d.name !== deviceToRemove?.name));
               setDeviceToRemove(null);
@@ -679,7 +743,7 @@ export function Modals() {
           </button>
           <button
             type="button"
-            className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full border-none text-[16px] leading-[20px] font-light text-[#8D8D8D] bg-[#F2F5FA] cursor-pointer transition-colors active:bg-[#E5E7EB]"
+            className={`${secondButtonClass} w-full md:w-full`}
             onClick={() => setDeviceToRemove(null)}
           >
             Вернуться назад
@@ -687,51 +751,78 @@ export function Modals() {
         </div>
       </BaseModal>
 
-      {/* [ ] История платежей */}
+      {/* История платежей */}
       <BaseModal
         isOpen={Boolean(historyModalOpen && isLk)}
         onClose={() => setHistoryModalOpen(false)}
         title="История платежей"
         long
-        panelClassName="max-w-[520px]"
+        panelClassName="!max-w-[550px]"
+        titleClassName="mb-[16px] md:mb-[24px] md:text-left"
       >
-        <div className="flex justify-between items-center mb-3 text-sm">
-          <span className="text-gray-500">Вы с нами</span>
-          <span className="font-medium">4 года 2 месяца</span>
-        </div>
-        <div className="max-h-[360px] pr-1 overflow-y-auto flex flex-col gap-2.5">
-          {HISTORY_ITEMS.map((item) => (
-            <div className="bg-gray-50 rounded-2xl p-[14px_16px]" key={item.id}>
-              <div className="flex justify-between items-center mb-1.5">
-                <div className="font-bold">{item.amount}</div>
-                <div className="text-[13px] text-gray-500">{item.date}</div>
-              </div>
-              <div className="flex justify-between gap-4 text-[13px]">
-                <div className="flex flex-col gap-0.5">
-                  <div>{item.line1}</div>
-                  <div className="text-gray-500">{item.line2}</div>
-                </div>
-                <div className="text-right flex flex-col gap-0.5">
-                  <div className="text-gray-500">{getSubscriptionName(item.subscriptionId)}</div>
-                  <div className="text-gray-500 text-xs">{item.methodLabel}</div>
-                </div>
-              </div>
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="shrink-0 flex justify-between items-center mb-[16px]">
+            <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#8D8D8D]`}>Вы с нами</span>
+            <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#1A1A1A]`}>4 года 2 месяца</span>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="flex flex-col gap-[16px] pb-[16px] md:pb-[24px]">
+              {HISTORY_ITEMS.map((item) => {
+                const purchaseTermValue = item.line1.replace(/^Куплено на\s*/u, "");
+                const subscriptionName = getSubscriptionName(item.subscriptionId);
+
+                return (
+                  <div className="rounded-[16px] bg-[#F8F8F8] p-[24px]" key={item.id}>
+                    <div className="flex flex-col gap-[16px]">
+                      <div className="flex items-center justify-between gap-[16px] md:hidden">
+                        <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
+                        <div className="text-right text-[20px] leading-[1.25] font-bold text-[#8D8D8D]">{subscriptionName}</div>
+                      </div>
+                      <div className="hidden md:flex items-start justify-between gap-[16px]">
+                        <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
+                        <div className={`${MODAL_TEXT_FONT} text-right text-[#1A1A1A]`}>{item.date}</div>
+                      </div>
+                      <div className="flex items-start justify-between gap-[16px] md:hidden">
+                        <div className="flex flex-col gap-[4px]">
+                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
+                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
+                        </div>
+                        <div className="flex flex-col items-end gap-[4px] text-right">
+                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Дата покупки</span>
+                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.date}</span>
+                        </div>
+                      </div>
+                      <div className="hidden md:flex items-start justify-between gap-[16px]">
+                        <div className="flex items-start gap-[8px]">
+                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
+                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
+                        </div>
+                        <div className="text-right text-[20px] leading-[1.25] font-light text-[#8D8D8D]">{subscriptionName}</div>
+                      </div>
+                      <div className="flex flex-col gap-[4px] md:flex-row-reverse md:items-start md:justify-between md:gap-[16px]">
+                        <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>{item.methodLabel}</span>
+                        <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.line2}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          </div>
         </div>
       </BaseModal>
             
-      {/* [ ] Выйти */}
+      {/* Выйти */}
       <BaseModal
         isOpen={Boolean(logoutModalOpen)}
         onClose={() => setLogoutModalOpen(false)}
-        title="Вы точно хотите выйти?"
-        panelClassName="w-full max-w-[390px]"
-        titleClassName="text-center"
+        title="Вы уверены, что хотите выйти из аккаунта?"
+        panelClassName="w-full !max-w-[444px]"
+        titleClassName="!mb-[24px]"
       >
-        <div className="flex gap-3 mt-2 flex-col">
-          <button type="button" className="primary-btn flex-1 justify-center" onClick={() => { handleLogout(); setLogoutModalOpen(false); }}>Выйти</button>
-          <button type="button" className="primary-outline-btn flex-1 justify-center" onClick={() => setLogoutModalOpen(false)}>Отмена</button>
+        <div className="flex flex-col gap-[16px]">
+          <button type="button" className={`${primaryModalButtonClass} w-full md:w-full`} onClick={() => { handleLogout(); setLogoutModalOpen(false); }}>Выйти из аккаунта</button>
+          <button type="button" className={`${secondButtonClass} w-full md:w-full`} onClick={() => setLogoutModalOpen(false)}>Вернуться назад</button>
         </div>
       </BaseModal>
     </>

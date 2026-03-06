@@ -17,13 +17,13 @@ export function HomePage() {
     <>
       <section>
         <div className={containerClass}>
-            <h1 className="max-w-[315px] lg:max-w-[min(70.3vw,1350px)] py-[28vh] lg:py-[154px] mx-auto my-0 text-[22px] lg:text-[min(2.92vw,56px)] font-black leading-[1.2] text-center">
+            <h1 className="max-w-[87.5vw] lg:max-w-[min(70.3vw,1350px)] pt-[69.44vw] pb-[97.22vw] lg:py-[154px] mx-auto my-0 text-[6.11vw] lg:text-[min(2.92vw,56px)] font-black leading-[1.2] text-center">
               <span className="text-[#00459D]">Мы сделали</span> сервис, который помогает тренерам <span className="text-[#00459D]">удобно</span> строить тактику, стратегию, готовиться к&nbsp;играм и&nbsp;тренировкам
             </h1>
         </div>
         <div className="md:w-full md:max-w-[1868px] md:px-[24px] md:mx-auto">
           <video
-            className="w-full h-[160px] md:h-[800px] rounded-[16px] lg:rounded-[60px] border-2 lg:border-8 border-solid border-[#FFF] object-cover shadow-[0px_4px_25px_rgba(0,69,157,0.05)]"
+            className="w-full h-[43.89vw] md:h-[800px] rounded-[16px] lg:rounded-[60px] border-2 lg:border-8 border-solid border-[#FFF] object-cover shadow-[0px_4px_25px_rgba(0,69,157,0.05)]"
             autoPlay
             loop
             muted
