@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MOCK_SUBSCRIPTIONS, MOCK_DEVICES } from "../LkPage.mock";
+import { MOCK_DEVICES } from "../LkPage.mock";
 import {
   apiGetDevices,
   apiGetMe,
@@ -8,6 +8,8 @@ import {
   apiLogout,
   apiRegister,
   apiRegisterDevice,
+  apiGetSubscriptions,
+  apiActivateSubscription,
 } from "../api/client";
 
 const AppContext = createContext(null);
@@ -21,7 +23,7 @@ export function useApp() {
 export function AppProvider({ children }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [subscriptions, setSubscriptions] = useState(MOCK_SUBSCRIPTIONS);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [devices, setDevices] = useState(MOCK_DEVICES);
   const [activeModal, setActiveModal] = useState(null);
   const [period, setPeriod] = useState("year");
@@ -48,12 +50,95 @@ export function AppProvider({ children }) {
         setUser(me);
         const devs = await apiGetDevices();
         setDevices(devs);
+        const subs = await apiGetSubscriptions();
+        setSubscriptions(subs);
       } catch {
         // не авторизован — это нормально
       }
     };
     bootstrap();
   }, []);
+
+  // Подписки: бесплатный период с тестовой длительностью (год = 2 минуты, месяц = 1 минута)
+  const enrichSubscription = (sub) => {
+    if (!sub.startedAt || !sub.expiresAt) {
+      return {
+        ...sub,
+        status: "inactive",
+        purchasedStatus: "active",
+        since: "",
+        until: "",
+        details: "Подписка неактивна",
+      };
+    }
+
+    const now = Date.now();
+    const startMs = new Date(sub.startedAt).getTime();
+    const endMs = new Date(sub.expiresAt).getTime();
+    const totalMs = Math.max(endMs - startMs, 0);
+    const remainingMs = Math.max(endMs - now, 0);
+
+    let status = "inactive";
+    let details = "Подписка неактивна";
+
+    if (remainingMs <= 0) {
+      status = "expired";
+      details = "Подписка истекла";
+    } else {
+      const remainingSeconds = Math.floor(remainingMs / 1000);
+      const mm = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
+      const ss = String(remainingSeconds % 60).padStart(2, "0");
+      details = `Осталось ${mm}:${ss}`;
+
+      const halfMs = totalMs / 2;
+      status = remainingMs <= halfMs ? "warning" : "active";
+    }
+
+    const formatter = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Moscow",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const sinceLabel = `Активна с ${formatter.format(startMs)}`;
+    const untilLabel = formatter.format(endMs);
+
+    return {
+      ...sub,
+      status,
+      purchasedStatus: "active",
+      since: sinceLabel,
+      until: untilLabel,
+      details,
+    };
+  };
+
+  // Тик обновления таймера подписок (каждую секунду)
+  useEffect(() => {
+    if (!subscriptions.length) return undefined;
+    const id = setInterval(() => {
+      setSubscriptions((prev) => prev.map(enrichSubscription));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [subscriptions.length]);
+
+  const activateSubscription = async ({ subscriptionId, period, method }) => {
+    try {
+      const subs = await apiActivateSubscription({
+        sportId: subscriptionId,
+        plan: period,
+        method,
+      });
+      // Приводим данные с бэка к тому формату, который ожидает фронт
+      setSubscriptions(subs.map((sub) => enrichSubscription(sub)));
+    } catch (err) {
+      console.error("Failed to activate subscription:", err);
+      throw err;
+    }
+  };
 
   const setLoginModalOpenSafe = (v) => setLoginModalOpen(v);
 
@@ -141,6 +226,7 @@ export function AppProvider({ children }) {
     setCodeModalOpen,
     downloadModalOpen,
     setDownloadModalOpen,
+    activateSubscription,
     setDemoLoggedIn
   };
 

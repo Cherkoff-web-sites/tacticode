@@ -146,3 +146,17 @@ export async function apiDeleteDevice(id) {
   });
 }
 
+export async function apiGetSubscriptions() {
+  const data = await request("/api/subscriptions");
+  return data.subscriptions || [];
+}
+
+export async function apiActivateSubscription({ sportId, plan, method }) {
+  const data = await request("/api/subscriptions/activate", {
+    method: "POST",
+    body: JSON.stringify({ sportId, plan, method }),
+  });
+  return data.subscriptions || [];
+}
+
+

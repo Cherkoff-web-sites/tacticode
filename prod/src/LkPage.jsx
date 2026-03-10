@@ -160,7 +160,7 @@ export function LkPage() {
     return {
       ...item,
       ...currentSubscription,
-      name: currentSubscription?.name ?? item.name,
+      name: (currentSubscription?.name && currentSubscription.name.trim()) ? currentSubscription.name : item.name,
       status: currentSubscription?.status ?? "inactive",
       purchasedStatus: currentSubscription?.purchasedStatus ?? "active",
       since: currentSubscription?.since ?? "",
@@ -227,7 +227,6 @@ export function LkPage() {
                               </div>
                               <div className="flex flex-col gap-[16px] md:flex-row md:items-end md:justify-between">
                                 <div className="flex flex-col gap-[4px]">
-                                  <span className={`${mainText} text-[#8D8D8D]`}>Требует оплаты</span>
                                   <span className={`${mainText} text-[#1A1A1A]`}>Подписка неактивна</span>
                                 </div>
                                 <button
@@ -254,7 +253,6 @@ export function LkPage() {
                               </div>
                               <div className="flex flex-col gap-[16px] md:flex-row md:items-end md:justify-between">
                                 <div className="flex flex-col gap-[4px]">
-                                  <span className={`${mainText} text-[#8D8D8D]`}>Требует оплаты</span>
                                   <span className={`${mainText} text-[#1A1A1A]`}>Подписка истекла</span>
                                 </div>
                                 <button

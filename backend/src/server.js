@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./authRoutes.js";
 import deviceRoutes from "./deviceRoutes.js";
+import subscriptionRoutes from "./subscriptionRoutes.js";
 import { query } from "./db.js";
 import fs from "fs";
 import http from "http";
@@ -86,6 +87,7 @@ if (dbDisabled) {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/devices", deviceRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
 
 // SPA fallback for direct navigation (e.g. /subscription)
 app.get("*", (req, res) => {

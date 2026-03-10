@@ -34,3 +34,23 @@ CREATE TABLE IF NOT EXISTS devices (
 CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_codes_email_purpose ON auth_codes(email, purpose);
 
+-- Subscriptions table
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  sport_id VARCHAR(64) NOT NULL,
+  plan VARCHAR(16) NOT NULL,   -- 'month' | 'year'
+  method VARCHAR(16) NOT NULL, -- 'card' | 'qr'
+  started_at TIMESTAMPTZ NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_user_sport
+  ON subscriptions(user_id, sport_id);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id
+  ON subscriptions(user_id);
+
+

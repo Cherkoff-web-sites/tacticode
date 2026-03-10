@@ -117,7 +117,6 @@ export function Modals() {
     setActiveModal,
     period,
     setPeriod,
-    setSubscriptions,
     deviceToRemove,
     setDeviceToRemove,
     setDevices,
@@ -131,7 +130,8 @@ export function Modals() {
     setCodeModalOpen,
     downloadModalOpen,
     setDownloadModalOpen,
-    handleLogout
+    handleLogout,
+    activateSubscription
   } = useApp();
 
   const [codeDigits, setCodeDigits] = useState(["", "", "", "", "", ""]);
@@ -712,8 +712,30 @@ export function Modals() {
           <div className="">
             <p className="mb-[8px] text-[16px] md:text-[20px] leading-[1.25] font-light text-center md:text-left text-[#8D8D8D]">Выберите способ оплаты</p>
             <div className="flex max-md:flex-col justify-between gap-[8px] md:gap-[24px]">
-              <button type="button" className={secondButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>Банковской картой</button>
-              <button type="button" className={secondButtonClass} onClick={() => { setSubscriptions((prev) => prev.map((s) => (s.id === activeModal?.id ? { ...s, status: s.purchasedStatus } : s))); setActiveModal(null); }}>По QR-коду (СБП)</button>
+              <button
+                type="button"
+                className={secondButtonClass}
+                onClick={() => {
+                  if (activeModal?.id) {
+                    activateSubscription({ subscriptionId: activeModal.id, period, method: "card" });
+                  }
+                  setActiveModal(null);
+                }}
+              >
+                Банковской картой
+              </button>
+              <button
+                type="button"
+                className={secondButtonClass}
+                onClick={() => {
+                  if (activeModal?.id) {
+                    activateSubscription({ subscriptionId: activeModal.id, period, method: "qr" });
+                  }
+                  setActiveModal(null);
+                }}
+              >
+                По QR-коду (СБП)
+              </button>
             </div>
           </div>
         </div>
