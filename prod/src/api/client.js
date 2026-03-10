@@ -6,6 +6,8 @@ const API_BASE_URL =
     ? String(raw).trim()
     : (import.meta.env.DEV ? "http://localhost:4000" : "");
 
+if (typeof window !== "undefined") window.__API_BASE_URL__ = API_BASE_URL;
+
 function getToken() {
   return localStorage.getItem("accessToken") || null;
 }
