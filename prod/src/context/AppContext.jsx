@@ -43,6 +43,10 @@ export function AppProvider({ children }) {
 
   const isLoggedIn = !!user;
 
+  // Бэк отдаёт sportId; для карточек в ЛК нужен id (тот же ключ, что в subscriptionItems)
+  const normalizeSubs = (subs) =>
+    (subs || []).map((s) => ({ ...s, id: s.id ?? s.sportId }));
+
   useEffect(() => {
     const bootstrap = async () => {
       try {
@@ -51,7 +55,7 @@ export function AppProvider({ children }) {
         const devs = await apiGetDevices();
         setDevices(devs);
         const subs = await apiGetSubscriptions();
-        setSubscriptions(subs);
+        setSubscriptions(normalizeSubs(subs).map(enrichSubscription));
       } catch {
         // не авторизован — это нормально
       }
@@ -132,8 +136,7 @@ export function AppProvider({ children }) {
         plan: period,
         method,
       });
-      // Приводим данные с бэка к тому формату, который ожидает фронт
-      setSubscriptions(subs.map((sub) => enrichSubscription(sub)));
+      setSubscriptions(normalizeSubs(subs).map(enrichSubscription));
     } catch (err) {
       console.error("Failed to activate subscription:", err);
       throw err;
