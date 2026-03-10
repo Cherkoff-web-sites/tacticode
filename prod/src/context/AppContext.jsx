@@ -45,7 +45,11 @@ export function AppProvider({ children }) {
 
   // Бэк отдаёт sportId; для карточек в ЛК нужен id (тот же ключ, что в subscriptionItems)
   const normalizeSubs = (subs) =>
-    (subs || []).map((s) => ({ ...s, id: s.id ?? s.sportId }));
+    (subs || []).map((s) => ({
+      ...s,
+      dbId: s.dbId ?? (typeof s.id === "number" ? s.id : undefined),
+      id: s.sportId ?? s.id,
+    }));
 
   useEffect(() => {
     const bootstrap = async () => {

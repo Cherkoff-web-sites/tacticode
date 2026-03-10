@@ -18,7 +18,8 @@ function getNowMoscow() {
 
 function normalizeSubscriptionRow(row) {
   return {
-    id: row.id,
+    dbId: row.id,
+    id: row.sport_id,
     sportId: row.sport_id,
     plan: row.plan,
     method: row.method,
