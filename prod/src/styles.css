@@ -20,13 +20,29 @@
   }
 
   html {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    scrollbar-width: thin;
+    -ms-overflow-style: auto;
     scroll-behavior: smooth;
   }
 
-  html::-webkit-scrollbar {
-    width: 0;
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #D9E3F1 #F2F2F2;
+  }
+
+  *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background-color: #F2F2F2;
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #D9E3F1;
+    border-radius: 9999px;
   }
 
   body {

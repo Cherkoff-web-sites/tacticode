@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { subscriptionItems } from "./data";
 import { useApp } from "./context/AppContext";
 
-function EditFieldSvg() {
+function EditFieldSvg({ active }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" aria-hidden="true">
-      <path d="M12.6323 0.503917C12.3703 0.503917 12.1078 0.602417 11.9108 0.799917L10.7868 1.92392L14.0768 5.21292L15.1998 4.08892C15.3892 3.89644 15.4954 3.63721 15.4954 3.36717C15.4954 3.09712 15.3892 2.8379 15.1998 2.64542L13.3538 0.799917C13.2589 0.70549 13.1464 0.630732 13.0226 0.579935C12.8988 0.529138 12.7661 0.503304 12.6323 0.503917ZM10.0793 2.63092L1.94479 10.7659C1.89013 10.821 1.84875 10.8879 1.82379 10.9614C1.45929 12.0549 0.806287 13.8409 0.523787 14.8629C0.500824 14.9463 0.499905 15.0343 0.521119 15.1182C0.542334 15.2021 0.584955 15.279 0.644817 15.3415C0.704678 15.404 0.77973 15.4499 0.862633 15.4747C0.945537 15.4994 1.03345 15.5023 1.11779 15.4829C2.33379 15.2019 3.96129 14.5349 5.03779 14.1764C5.11114 14.1523 5.17813 14.1119 5.23379 14.0584L13.3683 5.92092L10.0793 2.63092Z" fill="#8D8D8D"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] hover:text-[#00459D]"}`} aria-hidden="true">
+      <path d="M12.6323 0.503917C12.3703 0.503917 12.1078 0.602417 11.9108 0.799917L10.7868 1.92392L14.0768 5.21292L15.1998 4.08892C15.3892 3.89644 15.4954 3.63721 15.4954 3.36717C15.4954 3.09712 15.3892 2.8379 15.1998 2.64542L13.3538 0.799917C13.2589 0.70549 13.1464 0.630732 13.0226 0.579935C12.8988 0.529138 12.7661 0.503304 12.6323 0.503917ZM10.0793 2.63092L1.94479 10.7659C1.89013 10.821 1.84875 10.8879 1.82379 10.9614C1.45929 12.0549 0.806287 13.8409 0.523787 14.8629C0.500824 14.9463 0.499905 15.0343 0.521119 15.1182C0.542334 15.2021 0.584955 15.279 0.644817 15.3415C0.704678 15.404 0.77973 15.4499 0.862633 15.4747C0.945537 15.4994 1.03345 15.5023 1.11779 15.4829C2.33379 15.2019 3.96129 14.5349 5.03779 14.1764C5.11114 14.1523 5.17813 14.1119 5.23379 14.0584L13.3683 5.92092L10.0793 2.63092Z" fill="currentColor"/>
     </svg>
   );
 }
@@ -56,37 +56,55 @@ function DeviceTypeIcon({ deviceName }) {
 function EditableField({
   label,
   value,
+  isReady,
   isEditing,
   onStartEdit,
-  onChange,
+  onFocusValue,
   onConfirm,
   onClear,
   mainText,
   fieldValueClass,
 }) {
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      setDraft(value);
+      inputRef.current?.focus();
+    }
+  }, [isEditing, value]);
+
+  const isActive = isReady || isEditing;
+  const wrapperBgClass = isActive ? "!bg-[#F2F5FA]" : "";
+
   return (
     <div className="field-group">
       <label className={`${mainText} field-label`}>{label}</label>
-      <div className={`${fieldValueClass} gap-[16px]`}>
+      <div className={`${fieldValueClass} gap-[16px] ${wrapperBgClass}`}>
         <input
+          ref={inputRef}
           type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={isEditing ? draft : value}
+          onChange={(e) => setDraft(e.target.value)}
           readOnly={!isEditing}
-          className="w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000]"
+          onFocus={() => {
+            if (isReady && !isEditing) onFocusValue();
+          }}
+          className="w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] cursor-text"
         />
         {isEditing ? (
           <div className="flex items-center gap-[16px] shrink-0">
-            <button type="button" className="border-none bg-transparent p-0 cursor-pointer" onClick={onClear} aria-label={`Очистить поле ${label}`}>
+            <button type="button" className="border-none bg-transparent p-0 cursor-pointer" onClick={onClear} aria-label={`Отменить редактирование ${label}`}>
               <ClearFieldSvg />
             </button>
-            <button type="button" className="border-none bg-transparent p-0 cursor-pointer" onClick={onConfirm} aria-label={`Сохранить поле ${label}`}>
+            <button type="button" className="border-none bg-transparent p-0 cursor-pointer" onClick={() => onConfirm(draft)} aria-label={`Сохранить поле ${label}`}>
               <ConfirmFieldSvg />
             </button>
           </div>
         ) : (
           <button type="button" className="border-none bg-transparent p-0 cursor-pointer shrink-0" onClick={onStartEdit} aria-label={`Редактировать поле ${label}`}>
-            <EditFieldSvg />
+            <EditFieldSvg active={isReady} />
           </button>
         )}
       </div>
@@ -108,6 +126,12 @@ export function LkPage() {
     club: "«Спартак»",
   });
   const [editingField, setEditingField] = useState(null);
+  const [readyField, setReadyField] = useState(null);
+
+  const exitEditMode = () => {
+    setEditingField(null);
+    setReadyField(null);
+  };
   const {
     subscriptions,
     devices,
@@ -274,11 +298,12 @@ export function LkPage() {
               <EditableField
                 label="Почта/Логин"
                 value={editableFields.login}
+                isReady={readyField === "login"}
                 isEditing={editingField === "login"}
-                onStartEdit={() => setEditingField("login")}
-                onChange={(value) => updateEditableField("login", value)}
-                onConfirm={() => setEditingField(null)}
-                onClear={() => updateEditableField("login", "")}
+                onStartEdit={() => { setReadyField("login"); setEditingField(null); }}
+                onFocusValue={() => setEditingField("login")}
+                onConfirm={(val) => { updateEditableField("login", val); exitEditMode(); }}
+                onClear={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -286,11 +311,12 @@ export function LkPage() {
               <EditableField
                 label="Пароль"
                 value={editableFields.password}
+                isReady={readyField === "password"}
                 isEditing={editingField === "password"}
-                onStartEdit={() => setEditingField("password")}
-                onChange={(value) => updateEditableField("password", value)}
-                onConfirm={() => setEditingField(null)}
-                onClear={() => updateEditableField("password", "")}
+                onStartEdit={() => { setReadyField("password"); setEditingField(null); }}
+                onFocusValue={() => setEditingField("password")}
+                onConfirm={(val) => { updateEditableField("password", val); exitEditMode(); }}
+                onClear={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -345,11 +371,12 @@ export function LkPage() {
               <EditableField
                 label="Фамилия"
                 value={editableFields.surname}
+                isReady={readyField === "surname"}
                 isEditing={editingField === "surname"}
-                onStartEdit={() => setEditingField("surname")}
-                onChange={(value) => updateEditableField("surname", value)}
-                onConfirm={() => setEditingField(null)}
-                onClear={() => updateEditableField("surname", "")}
+                onStartEdit={() => { setReadyField("surname"); setEditingField(null); }}
+                onFocusValue={() => setEditingField("surname")}
+                onConfirm={(val) => { updateEditableField("surname", val); exitEditMode(); }}
+                onClear={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -357,11 +384,12 @@ export function LkPage() {
               <EditableField
                 label="Имя"
                 value={editableFields.firstName}
+                isReady={readyField === "firstName"}
                 isEditing={editingField === "firstName"}
-                onStartEdit={() => setEditingField("firstName")}
-                onChange={(value) => updateEditableField("firstName", value)}
-                onConfirm={() => setEditingField(null)}
-                onClear={() => updateEditableField("firstName", "")}
+                onStartEdit={() => { setReadyField("firstName"); setEditingField(null); }}
+                onFocusValue={() => setEditingField("firstName")}
+                onConfirm={(val) => { updateEditableField("firstName", val); exitEditMode(); }}
+                onClear={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -369,11 +397,12 @@ export function LkPage() {
               <EditableField
                 label="Дата рождения"
                 value={editableFields.birthDate}
+                isReady={readyField === "birthDate"}
                 isEditing={editingField === "birthDate"}
-                onStartEdit={() => setEditingField("birthDate")}
-                onChange={(value) => updateEditableField("birthDate", value)}
-                onConfirm={() => setEditingField(null)}
-                onClear={() => updateEditableField("birthDate", "")}
+                onStartEdit={() => { setReadyField("birthDate"); setEditingField(null); }}
+                onFocusValue={() => setEditingField("birthDate")}
+                onConfirm={(val) => { updateEditableField("birthDate", val); exitEditMode(); }}
+                onClear={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -381,11 +410,12 @@ export function LkPage() {
               <EditableField
                 label="Клуб"
                 value={editableFields.club}
+                isReady={readyField === "club"}
                 isEditing={editingField === "club"}
-                onStartEdit={() => setEditingField("club")}
-                onChange={(value) => updateEditableField("club", value)}
-                onConfirm={() => setEditingField(null)}
-                onClear={() => updateEditableField("club", "")}
+                onStartEdit={() => { setReadyField("club"); setEditingField(null); }}
+                onFocusValue={() => setEditingField("club")}
+                onConfirm={(val) => { updateEditableField("club", val); exitEditMode(); }}
+                onClear={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
