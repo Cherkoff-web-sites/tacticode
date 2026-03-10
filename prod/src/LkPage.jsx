@@ -62,11 +62,13 @@ function EditableField({
   onFocusValue,
   onConfirm,
   onClear,
+  onExitReady,
   mainText,
   fieldValueClass,
 }) {
   const [draft, setDraft] = useState(value);
   const inputRef = useRef(null);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     if (isEditing) {
@@ -75,11 +77,22 @@ function EditableField({
     }
   }, [isEditing, value]);
 
+  useEffect(() => {
+    if (!isReady || isEditing || !onExitReady) return;
+    const handleMouseDown = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        onExitReady();
+      }
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [isReady, isEditing, onExitReady]);
+
   const isActive = isReady || isEditing;
   const wrapperBgClass = isActive ? "!bg-[#F2F5FA]" : "";
 
   return (
-    <div className="field-group">
+    <div ref={wrapperRef} className="field-group">
       <label className={`${mainText} field-label`}>{label}</label>
       <div className={`${fieldValueClass} gap-[16px] ${wrapperBgClass}`}>
         <input
@@ -187,19 +200,26 @@ export function LkPage() {
                   <div className="flex flex-col gap-[16px] pb-[16px] md:pb-[24px]">
                     {lkSubscriptions.map((sub, index) => {
                       const previewCardBackgrounds = ["bg-[#CFFFD7]", "bg-[#FFF9CF]", "bg-[#FFE3E3]"];
+                      const previewCardBorders = ["border-[#CFFFD7]", "border-[#FFF9CF]", "border-[#FFE3E3]"];
                       const cardBackgroundClass = {
                         active: index === 0 ? previewCardBackgrounds[0] : "bg-[#CFFFD7]",
                         warning: index === 1 ? previewCardBackgrounds[1] : "bg-[#FFF9CF]",
                         expired: index === 2 ? previewCardBackgrounds[2] : "bg-[#FFE3E3]",
                         inactive: "bg-white",
                       }[sub.status] ?? "bg-white";
+                      const cardBorderClass = {
+                        active: index === 0 ? previewCardBorders[0] : "border-[#CFFFD7]",
+                        warning: index === 1 ? previewCardBorders[1] : "border-[#FFF9CF]",
+                        expired: index === 2 ? previewCardBorders[2] : "border-[#FFE3E3]",
+                        inactive: "border-[#F2F2F2]",
+                      }[sub.status] ?? "border-[#F2F2F2]";
                       const visibilityClass = index === 0 || showAllSports ? "block" : "hidden md:block";
 
                       if (sub.status === "inactive") {
                         return (
                           <article
                             key={sub.id}
-                            className={`${visibilityClass} ${cardBackgroundClass} min-h-[154px] rounded-[16px] p-[24px]`}
+                            className={`${visibilityClass} ${cardBackgroundClass} ${cardBorderClass} border min-h-[154px] rounded-[16px] p-[24px]`}
                           >
                             <div className="flex flex-col gap-[16px]">
                               <div className="flex items-start justify-between gap-[16px]">
@@ -226,7 +246,7 @@ export function LkPage() {
                         return (
                           <article
                             key={sub.id}
-                            className={`${visibilityClass} ${cardBackgroundClass} min-h-[154px] rounded-[16px] p-[24px]`}
+                            className={`${visibilityClass} ${cardBackgroundClass} ${cardBorderClass} border min-h-[154px] rounded-[16px] p-[24px]`}
                           >
                             <div className="flex flex-col gap-[16px]">
                               <div className="flex items-start justify-between gap-[16px]">
@@ -252,7 +272,7 @@ export function LkPage() {
                       return (
                         <article
                           key={sub.id}
-                          className={`${visibilityClass} ${cardBackgroundClass} min-h-[154px] rounded-[16px] p-[24px]`}
+                          className={`${visibilityClass} ${cardBackgroundClass} ${cardBorderClass} border min-h-[154px] rounded-[16px] p-[24px]`}
                         >
                           <div className="flex flex-col gap-[16px]">
                             <div className="flex items-start justify-between gap-[16px]">
@@ -304,6 +324,7 @@ export function LkPage() {
                 onFocusValue={() => setEditingField("login")}
                 onConfirm={(val) => { updateEditableField("login", val); exitEditMode(); }}
                 onClear={exitEditMode}
+                onExitReady={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -317,6 +338,7 @@ export function LkPage() {
                 onFocusValue={() => setEditingField("password")}
                 onConfirm={(val) => { updateEditableField("password", val); exitEditMode(); }}
                 onClear={exitEditMode}
+                onExitReady={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -325,12 +347,26 @@ export function LkPage() {
                 <label className={`${mainText} field-label`}>Привязанные устройства</label>
                 <div className="flex flex-col gap-[16px]">
                   {devices.length === 0 ? (
-                    <div className="devices-empty">
-                      <div className="devices-search-icon" />
-                      <p className={`${mainText} devices-empty-text`}>
-                        Кажется, вы еще не привязали
-                        <br />
-                        ни одно устройство
+                    <div className="devices-empty flex flex-col items-center gap-[16px] rounded-[16px] border border-[#F2F2F2] p-[34px]">
+                      <svg
+                        width="40"
+                        height="40"
+                        viewBox="0 0 40 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M16.3713 30.1643C8.7657 30.1643 2.57812 23.9767 2.57812 16.3713C2.57812 8.7657 8.7657 2.57812 16.3713 2.57812C23.9767 2.57812 30.1643 8.7657 30.1643 16.3713C30.1643 23.9767 23.9767 30.1643 16.3713 30.1643ZM16.3713 5.33672C10.2871 5.33672 5.33672 10.2871 5.33672 16.3713C5.33672 22.4554 10.2871 27.4057 16.3713 27.4057C22.4554 27.4057 27.4057 22.4554 27.4057 16.3713C27.4057 10.2871 22.4567 5.33672 16.3713 5.33672Z"
+                          fill="#D3D3D1"
+                        />
+                        <path
+                          d="M36.0852 37.4644C35.9041 37.4646 35.7247 37.429 35.5573 37.3596C35.39 37.2903 35.238 37.1885 35.1101 37.0603L24.4977 26.4478C24.3696 26.3198 24.268 26.1678 24.1987 26.0005C24.1294 25.8331 24.0937 25.6538 24.0938 25.4727C24.0937 25.2459 24.1496 25.0226 24.2565 24.8225C24.3634 24.6225 24.518 24.4519 24.7066 24.3259C24.8952 24.1999 25.1119 24.1224 25.3377 24.1001C25.5634 24.0779 25.7911 24.1117 26.0006 24.1985C26.168 24.2679 26.32 24.3695 26.448 24.4975L37.0605 35.11C37.2052 35.254 37.316 35.4283 37.3851 35.6204C37.4541 35.8125 37.4796 36.0176 37.4597 36.2208C37.4398 36.4239 37.375 36.6201 37.27 36.7952C37.165 36.9702 37.0224 37.1198 36.8526 37.233C36.6254 37.3845 36.3583 37.465 36.0852 37.4644Z"
+                          fill="#D3D3D1"
+                        />
+                      </svg>
+                      <p className={`${mainText} devices-empty-text max-w-[309px]`}>
+                        Кажется, вы&nbsp;еще не&nbsp;привязали ни&nbsp;одно устройство
                       </p>
                     </div>
                   ) : (
@@ -377,6 +413,7 @@ export function LkPage() {
                 onFocusValue={() => setEditingField("surname")}
                 onConfirm={(val) => { updateEditableField("surname", val); exitEditMode(); }}
                 onClear={exitEditMode}
+                onExitReady={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -390,6 +427,7 @@ export function LkPage() {
                 onFocusValue={() => setEditingField("firstName")}
                 onConfirm={(val) => { updateEditableField("firstName", val); exitEditMode(); }}
                 onClear={exitEditMode}
+                onExitReady={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -403,6 +441,7 @@ export function LkPage() {
                 onFocusValue={() => setEditingField("birthDate")}
                 onConfirm={(val) => { updateEditableField("birthDate", val); exitEditMode(); }}
                 onClear={exitEditMode}
+                onExitReady={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -416,6 +455,7 @@ export function LkPage() {
                 onFocusValue={() => setEditingField("club")}
                 onConfirm={(val) => { updateEditableField("club", val); exitEditMode(); }}
                 onClear={exitEditMode}
+                onExitReady={exitEditMode}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
