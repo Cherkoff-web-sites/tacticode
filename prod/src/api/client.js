@@ -1,5 +1,10 @@
+// Production: пустой VITE_API_BASE_URL → запросы /api/* на тот же хост (tacticode.ru).
+// Dev (npm run dev): по умолчанию http://localhost:4000.
+const raw = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+  raw !== undefined && String(raw).trim() !== ""
+    ? String(raw).trim()
+    : (import.meta.env.DEV ? "http://localhost:4000" : "");
 
 function getToken() {
   return localStorage.getItem("accessToken") || null;
