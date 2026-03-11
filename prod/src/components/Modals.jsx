@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import { subscriptionItems } from "../data";
 import BaseModal from "./BaseModal";
 import {
   apiPasswordRequestReset,
@@ -10,24 +11,6 @@ import {
   apiRegisterRequestCode,
 } from "../api/client";
 
-const HISTORY_ITEMS = [
-  { id: 1, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 2, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
-  { id: 3, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 4, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 5, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 6, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
-  { id: 7, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 8, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 9, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 10, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
-  { id: 11, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 12, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 13, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 14, subscriptionId: "hockey", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "QR-код", methodLabel: "Способ оплаты" },
-  { id: 15, subscriptionId: "hockey", amount: "3990 р", date: "13.10.2025", line1: "Куплено на 1 год", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" },
-  { id: 16, subscriptionId: "football", amount: "490 р", date: "13.10.2025", line1: "Куплено на 1 месяц", line2: "Visa Сберкарта •• 9698", methodLabel: "Способ оплаты" }
-];
 const secondButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
 const primaryModalButtonClass =
@@ -100,6 +83,7 @@ export function Modals() {
   const navigate = useNavigate();
   const isLk = location.pathname === "/lk";
   const {
+    user,
     loginModalOpen,
     setLoginModalOpen,
     authMode,
@@ -112,6 +96,7 @@ export function Modals() {
     isAuthLoading,
     handleLoginSubmit,
     setUser,
+    setPasswordPreview,
     subscriptions,
     activeModal,
     setActiveModal,
@@ -120,6 +105,7 @@ export function Modals() {
     deviceToRemove,
     setDeviceToRemove,
     setDevices,
+    subscriptionHistory,
     historyModalOpen,
     setHistoryModalOpen,
     logoutModalOpen,
@@ -256,8 +242,74 @@ export function Modals() {
     subscriptions.find((s) => s.id === activeModal?.id)?.name ||
     "Подписка";
 
+  const subscriptionNameMap = new Map(subscriptionItems.map((item) => [item.id, item.name]));
   const getSubscriptionName = (id) =>
-    subscriptions.find((s) => s.id === id)?.name || "Подписка";
+    subscriptions.find((s) => s.id === id)?.name || subscriptionNameMap.get(id) || "Подписка";
+
+  const historyDateFormatter = new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "Europe/Moscow",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const getPlanLabel = (plan) => (plan === "year" ? "1 год" : "1 месяц");
+
+  const pluralizeRu = (value, one, few, many) => {
+    const abs = Math.abs(value) % 100;
+    const last = abs % 10;
+    if (abs > 10 && abs < 20) return many;
+    if (last > 1 && last < 5) return few;
+    if (last === 1) return one;
+    return many;
+  };
+
+  const formatMembershipDuration = (registeredAt) => {
+    if (!registeredAt) return "0 дней";
+    const start = new Date(registeredAt);
+    if (Number.isNaN(start.getTime())) return "0 дней";
+
+    const now = new Date();
+    let months =
+      (now.getFullYear() - start.getFullYear()) * 12 +
+      (now.getMonth() - start.getMonth());
+
+    if (now.getDate() < start.getDate()) {
+      months -= 1;
+    }
+
+    if (months < 0) months = 0;
+
+    if (months >= 12) {
+      const years = Math.floor(months / 12);
+      const remainMonths = months % 12;
+      return remainMonths > 0
+        ? `${years} ${pluralizeRu(years, "год", "года", "лет")} ${remainMonths} ${pluralizeRu(remainMonths, "месяц", "месяца", "месяцев")}`
+        : `${years} ${pluralizeRu(years, "год", "года", "лет")}`;
+    }
+
+    if (months >= 1) {
+      const anchor = new Date(start);
+      anchor.setMonth(anchor.getMonth() + months);
+      const diffDays = Math.max(Math.floor((now - anchor) / (1000 * 60 * 60 * 24)), 0);
+      return diffDays > 0
+        ? `${months} ${pluralizeRu(months, "месяц", "месяца", "месяцев")} ${diffDays} ${pluralizeRu(diffDays, "день", "дня", "дней")}`
+        : `${months} ${pluralizeRu(months, "месяц", "месяца", "месяцев")}`;
+    }
+
+    const diffDays = Math.max(Math.floor((now - start) / (1000 * 60 * 60 * 24)), 0);
+    return `${diffDays} ${pluralizeRu(diffDays, "день", "дня", "дней")}`;
+  };
+
+  const historyItems = (subscriptionHistory || []).map((item) => ({
+    id: item.id,
+    subscriptionId: item.sportId,
+    amount: `${item.amountRub ?? 0} р`,
+    date: item.createdAt ? historyDateFormatter.format(new Date(item.createdAt)) : "",
+    line1: `Куплено на ${getPlanLabel(item.plan)}`,
+    line2: "Онлайн",
+    methodLabel: "Способ оплаты",
+  }));
 
   useEffect(() => {
     if (isAnyModalOpen) {
@@ -574,6 +626,7 @@ export function Modals() {
               setNewPasswordLoading(true);
               const user = await apiPasswordReset({ email: resetEmail, code: resetCode, password: newPassword });
               setUser(user);
+              setPasswordPreview(newPassword);
               setNewPasswordModalOpen(false);
               navigate("/lk");
             } catch (err) {
@@ -785,51 +838,69 @@ export function Modals() {
         <div className="flex flex-col flex-1 min-h-0">
           <div className="shrink-0 flex justify-between items-center mb-[16px]">
             <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#8D8D8D]`}>Вы с нами</span>
-            <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#1A1A1A]`}>4 года 2 месяца</span>
+            <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#1A1A1A]`}>{formatMembershipDuration(user?.registeredAt)}</span>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto">
-            <div className="flex flex-col gap-[16px] pb-[16px] md:pb-[24px]">
-              {HISTORY_ITEMS.map((item) => {
-                const purchaseTermValue = item.line1.replace(/^Куплено на\s*/u, "");
-                const subscriptionName = getSubscriptionName(item.subscriptionId);
+            {historyItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-[16px] rounded-[16px] bg-[#F8F8F8] p-[24px] text-center">
+                <p className={`${MODAL_TEXT_FONT} m-0 text-[#8D8D8D]`}>
+                  Вы еще не совершали покупок
+                </p>
+                <button
+                  type="button"
+                  className={secondButtonClass}
+                  onClick={() => {
+                    setHistoryModalOpen(false);
+                    navigate("/subscription");
+                  }}
+                >
+                  Купить подписку
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-[16px] pb-[16px] md:pb-[24px]">
+                {historyItems.map((item) => {
+                  const purchaseTermValue = item.line1.replace(/^Куплено на\s*/u, "");
+                  const subscriptionName = getSubscriptionName(item.subscriptionId);
 
-                return (
-                  <div className="rounded-[16px] bg-[#F8F8F8] p-[24px]" key={item.id}>
-                    <div className="flex flex-col gap-[16px]">
-                      <div className="flex items-center justify-between gap-[16px] md:hidden">
-                        <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
-                        <div className="text-right text-[20px] leading-[1.25] font-bold text-[#8D8D8D]">{subscriptionName}</div>
-                      </div>
-                      <div className="hidden md:flex items-start justify-between gap-[16px]">
-                        <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
-                        <div className={`${MODAL_TEXT_FONT} text-right text-[#1A1A1A]`}>{item.date}</div>
-                      </div>
-                      <div className="flex items-start justify-between gap-[16px] md:hidden">
-                        <div className="flex flex-col gap-[4px]">
-                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
-                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
+                  return (
+                    <div className="rounded-[16px] bg-[#F8F8F8] p-[24px]" key={item.id}>
+                      <div className="flex flex-col gap-[16px]">
+                        <div className="flex items-center justify-between gap-[16px] md:hidden">
+                          <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
+                          <div className="text-right text-[20px] leading-[1.25] font-bold text-[#8D8D8D]">{subscriptionName}</div>
                         </div>
-                        <div className="flex flex-col items-end gap-[4px] text-right">
-                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Дата покупки</span>
-                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.date}</span>
+                        <div className="hidden md:flex items-start justify-between gap-[16px]">
+                          <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
+                          <div className={`${MODAL_TEXT_FONT} text-right text-[#1A1A1A]`}>{item.date}</div>
                         </div>
-                      </div>
-                      <div className="hidden md:flex items-start justify-between gap-[16px]">
-                        <div className="flex items-start gap-[8px]">
-                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
-                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
+                        <div className="flex items-start justify-between gap-[16px] md:hidden">
+                          <div className="flex flex-col gap-[4px]">
+                            <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
+                            <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
+                          </div>
+                          <div className="flex flex-col items-end gap-[4px] text-right">
+                            <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Дата покупки</span>
+                            <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.date}</span>
+                          </div>
                         </div>
-                        <div className="text-right text-[20px] leading-[1.25] font-light text-[#8D8D8D]">{subscriptionName}</div>
-                      </div>
-                      <div className="flex flex-col gap-[4px] md:flex-row-reverse md:items-start md:justify-between md:gap-[16px]">
-                        <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>{item.methodLabel}</span>
-                        <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.line2}</span>
+                        <div className="hidden md:flex items-start justify-between gap-[16px]">
+                          <div className="flex items-start gap-[8px]">
+                            <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
+                            <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
+                          </div>
+                          <div className="text-right text-[20px] leading-[1.25] font-light text-[#8D8D8D]">{subscriptionName}</div>
+                        </div>
+                        <div className="flex flex-col gap-[4px] md:flex-row-reverse md:items-start md:justify-between md:gap-[16px]">
+                          <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>{item.methodLabel}</span>
+                          <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.line2}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </BaseModal>

@@ -131,6 +131,14 @@ export async function apiUpdateMe({ login, email }) {
   return data.user;
 }
 
+export async function apiUpdateMyPassword({ password }) {
+  const data = await request("/api/auth/me/password", {
+    method: "PATCH",
+    body: JSON.stringify({ password }),
+  });
+  return data.user;
+}
+
 export async function apiRegisterDevice({ deviceName, deviceType }) {
   const data = await request("/api/devices/register", {
     method: "POST",
@@ -158,12 +166,16 @@ export async function apiGetSubscriptions() {
   return data.subscriptions || [];
 }
 
+export async function apiGetSubscriptionHistory() {
+  const data = await request("/api/subscriptions/history");
+  return data.history || [];
+}
+
 export async function apiActivateSubscription({ sportId, plan, method }) {
-  const data = await request("/api/subscriptions/activate", {
+  return request("/api/subscriptions/activate", {
     method: "POST",
     body: JSON.stringify({ sportId, plan, method }),
   });
-  return data.subscriptions || [];
 }
 
 

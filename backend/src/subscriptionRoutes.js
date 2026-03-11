@@ -21,19 +21,56 @@ function normalizeSubscriptionRow(row) {
   };
 }
 
+function normalizeHistoryRow(row) {
+  return {
+    id: row.id,
+    sportId: row.sport_id,
+    plan: row.plan,
+    method: row.method,
+    amountRub: row.amount_rub,
+    startedAt: row.started_at,
+    expiresAt: row.expires_at,
+    createdAt: row.created_at,
+  };
+}
+
+async function getSubscriptionsForUser(userId) {
+  const result = await query(
+    "SELECT id, sport_id, plan, method, started_at, expires_at FROM subscriptions WHERE user_id = $1 ORDER BY created_at ASC",
+    [userId]
+  );
+  return result.rows.map(normalizeSubscriptionRow);
+}
+
+async function getHistoryForUser(userId) {
+  const result = await query(
+    `SELECT id, sport_id, plan, method, amount_rub, started_at, expires_at, created_at
+     FROM subscription_history
+     WHERE user_id = $1
+     ORDER BY created_at DESC, id DESC`,
+    [userId]
+  );
+  return result.rows.map(normalizeHistoryRow);
+}
+
 // Получить все подписки текущего пользователя
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const result = await query(
-      "SELECT id, sport_id, plan, method, started_at, expires_at FROM subscriptions WHERE user_id = $1 ORDER BY created_at ASC",
-      [req.user.id]
-    );
-
-    const subscriptions = result.rows.map(normalizeSubscriptionRow);
+    const subscriptions = await getSubscriptionsForUser(req.user.id);
     return res.json({ subscriptions });
   } catch (err) {
     console.error("GET /api/subscriptions error:", err);
     return res.status(500).json({ error: "Ошибка сервера при получении подписок" });
+  }
+});
+
+router.get("/history", authMiddleware, async (req, res) => {
+  try {
+    const history = await getHistoryForUser(req.user.id);
+    return res.json({ history });
+  } catch (err) {
+    console.error("GET /api/subscriptions/history error:", err);
+    return res.status(500).json({ error: "Ошибка сервера при получении истории подписок" });
   }
 });
 
@@ -74,13 +111,18 @@ router.post("/activate", authMiddleware, async (req, res) => {
       [req.user.id, sportId, plan, method, now.toISOString(), expiresAt.toISOString()]
     );
 
-    const result = await query(
-      "SELECT id, sport_id, plan, method, started_at, expires_at FROM subscriptions WHERE user_id = $1 ORDER BY created_at ASC",
-      [req.user.id]
+    await query(
+      `INSERT INTO subscription_history (user_id, sport_id, plan, method, amount_rub, started_at, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [req.user.id, sportId, plan, method, 0, now.toISOString(), expiresAt.toISOString()]
     );
 
-    const subscriptions = result.rows.map(normalizeSubscriptionRow);
-    return res.json({ subscriptions });
+    const [subscriptions, history] = await Promise.all([
+      getSubscriptionsForUser(req.user.id),
+      getHistoryForUser(req.user.id),
+    ]);
+
+    return res.json({ subscriptions, history });
   } catch (err) {
     console.error("POST /api/subscriptions/activate error:", err);
     return res.status(500).json({ error: "Ошибка сервера при активации подписки" });

@@ -4,9 +4,20 @@ CREATE TABLE IF NOT EXISTS users (
   login VARCHAR(64) NOT NULL UNIQUE,
   email VARCHAR(255) UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
+  registered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS registered_at TIMESTAMPTZ;
+
+ALTER TABLE users
+  ALTER COLUMN registered_at SET DEFAULT NOW();
+
+UPDATE users
+SET registered_at = NOW()
+WHERE registered_at IS NULL;
 
 -- Auth codes for registration and password reset
 CREATE TABLE IF NOT EXISTS auth_codes (
@@ -52,5 +63,21 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_user_sport
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id
   ON subscriptions(user_id);
+
+-- Subscription activation history
+CREATE TABLE IF NOT EXISTS subscription_history (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  sport_id VARCHAR(64) NOT NULL,
+  plan VARCHAR(16) NOT NULL,   -- 'month' | 'year'
+  method VARCHAR(16) NOT NULL, -- 'card' | 'qr'
+  amount_rub INTEGER NOT NULL DEFAULT 0,
+  started_at TIMESTAMPTZ NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscription_history_user_id
+  ON subscription_history(user_id);
 
 

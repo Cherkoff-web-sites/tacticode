@@ -8,7 +8,10 @@ import {
   apiLogout,
   apiRegister,
   apiRegisterDevice,
+  apiUpdateMe,
+  apiUpdateMyPassword,
   apiGetSubscriptions,
+  apiGetSubscriptionHistory,
   apiActivateSubscription,
 } from "../api/client";
 
@@ -24,12 +27,14 @@ export function AppProvider({ children }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptionHistory, setSubscriptionHistory] = useState([]);
   const [devices, setDevices] = useState(MOCK_DEVICES);
   const [activeModal, setActiveModal] = useState(null);
   const [period, setPeriod] = useState("year");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordPreview, setPasswordPreview] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [deviceToRemove, setDeviceToRemove] = useState(null);
@@ -58,8 +63,12 @@ export function AppProvider({ children }) {
         setUser(me);
         const devs = await apiGetDevices();
         setDevices(devs);
-        const subs = await apiGetSubscriptions();
+        const [subs, history] = await Promise.all([
+          apiGetSubscriptions(),
+          apiGetSubscriptionHistory(),
+        ]);
         setSubscriptions(normalizeSubs(subs).map(enrichSubscription));
+        setSubscriptionHistory(history);
       } catch {
         // не авторизован — это нормально
       }
@@ -146,12 +155,13 @@ export function AppProvider({ children }) {
 
   const activateSubscription = async ({ subscriptionId, period, method }) => {
     try {
-      const subs = await apiActivateSubscription({
+      const data = await apiActivateSubscription({
         sportId: subscriptionId,
         plan: period,
         method,
       });
-      setSubscriptions(normalizeSubs(subs).map(enrichSubscription));
+      setSubscriptions(normalizeSubs(data?.subscriptions || []).map(enrichSubscription));
+      setSubscriptionHistory(data?.history || []);
     } catch (err) {
       console.error("Failed to activate subscription:", err);
       throw err;
@@ -165,6 +175,7 @@ export function AppProvider({ children }) {
   const handleLogout = () => {
     apiLogout();
     setUser(null);
+    setPasswordPreview("");
     navigate("/");
   };
 
@@ -181,6 +192,7 @@ export function AppProvider({ children }) {
       const identifier = login;
       const loggedUser = await apiLogin({ identifier, password });
       setUser(loggedUser);
+      setPasswordPreview(password);
       setLoginModalOpen(false);
       setPassword("");
 
@@ -205,6 +217,19 @@ export function AppProvider({ children }) {
     }
   };
 
+  const updateProfile = async ({ login: nextLogin, email }) => {
+    const updatedUser = await apiUpdateMe({ login: nextLogin, email });
+    setUser(updatedUser);
+    return updatedUser;
+  };
+
+  const changeMyPassword = async ({ password: nextPassword }) => {
+    const updatedUser = await apiUpdateMyPassword({ password: nextPassword });
+    setUser(updatedUser);
+    setPasswordPreview(nextPassword);
+    return updatedUser;
+  };
+
   const value = {
     user,
     setUser,
@@ -215,6 +240,8 @@ export function AppProvider({ children }) {
     setLogin,
     password,
     setPassword,
+    passwordPreview,
+    setPasswordPreview,
     loginError,
     isAuthLoading,
     authMode,
@@ -224,6 +251,8 @@ export function AppProvider({ children }) {
     handleLogout,
     subscriptions,
     setSubscriptions,
+    subscriptionHistory,
+    setSubscriptionHistory,
     devices,
     setDevices,
     activeModal,
@@ -245,6 +274,8 @@ export function AppProvider({ children }) {
     downloadModalOpen,
     setDownloadModalOpen,
     activateSubscription,
+    updateProfile,
+    changeMyPassword,
     setDemoLoggedIn
   };
 

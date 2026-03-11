@@ -20,6 +20,18 @@ function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+function normalizeUserRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    login: row.login,
+    email: row.email || null,
+    registeredAt: row.registered_at || null,
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null,
+  };
+}
+
 export function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -53,11 +65,11 @@ router.post("/register", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await query(
-      "INSERT INTO users (login, email, password_hash) VALUES ($1, $2, $3) RETURNING id, login, email, created_at",
+      "INSERT INTO users (login, email, password_hash) VALUES ($1, $2, $3) RETURNING id, login, email, registered_at, created_at, updated_at",
       [login, email || null, passwordHash]
     );
 
-    const user = result.rows[0];
+    const user = normalizeUserRow(result.rows[0]);
     const token = signToken(user);
 
     return res.status(201).json({ user, accessToken: token });
@@ -133,7 +145,7 @@ router.post("/register/confirm", async (req, res) => {
     }
 
     const result = await query(
-      "INSERT INTO users (login, email, password_hash) VALUES ($1, $2, $3) RETURNING id, login, email, created_at",
+      "INSERT INTO users (login, email, password_hash) VALUES ($1, $2, $3) RETURNING id, login, email, registered_at, created_at, updated_at",
       [codeRow.login || trimmedEmail, trimmedEmail, codeRow.password_hash]
     );
 
@@ -142,7 +154,7 @@ router.post("/register/confirm", async (req, res) => {
       [codeRow.id]
     );
 
-    const user = result.rows[0];
+    const user = normalizeUserRow(result.rows[0]);
     const token = signToken(user);
 
     return res.status(201).json({ user, accessToken: token });
@@ -161,7 +173,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const result = await query(
-      "SELECT id, login, email, password_hash FROM users WHERE login = $1 OR email = $1",
+      "SELECT id, login, email, password_hash, registered_at, created_at, updated_at FROM users WHERE login = $1 OR email = $1",
       [identifier]
     );
 
@@ -169,14 +181,14 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Неверный логин/почта или пароль" });
     }
 
-    const user = result.rows[0];
-    const ok = await bcrypt.compare(password, user.password_hash);
+    const userRow = result.rows[0];
+    const ok = await bcrypt.compare(password, userRow.password_hash);
     if (!ok) {
       return res.status(401).json({ error: "Неверный логин/почта или пароль" });
     }
 
+    const user = normalizeUserRow(userRow);
     const token = signToken(user);
-    delete user.password_hash;
 
     return res.json({ user, accessToken: token });
   } catch (err) {
@@ -281,7 +293,7 @@ router.post("/password/reset", async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const updatedUser = await query(
-      "UPDATE users SET password_hash = $2, updated_at = NOW() WHERE email = $1 RETURNING id, login, email, created_at, updated_at",
+      "UPDATE users SET password_hash = $2, updated_at = NOW() WHERE email = $1 RETURNING id, login, email, registered_at, created_at, updated_at",
       [trimmedEmail, passwordHash]
     );
 
@@ -290,7 +302,7 @@ router.post("/password/reset", async (req, res) => {
       [codeResult.rows[0].id]
     );
 
-    const user = updatedUser.rows[0];
+    const user = normalizeUserRow(updatedUser.rows[0]);
     const token = signToken(user);
 
     return res.json({ user, accessToken: token });
@@ -303,13 +315,13 @@ router.post("/password/reset", async (req, res) => {
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const result = await query(
-      "SELECT id, login, email, created_at, updated_at FROM users WHERE id = $1",
+      "SELECT id, login, email, registered_at, created_at, updated_at FROM users WHERE id = $1",
       [req.user.id]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Пользователь не найден" });
     }
-    return res.json({ user: result.rows[0] });
+    return res.json({ user: normalizeUserRow(result.rows[0]) });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });
@@ -335,11 +347,36 @@ router.patch("/me", authMiddleware, async (req, res) => {
     }
 
     const result = await query(
-      "UPDATE users SET login = COALESCE($2, login), email = COALESCE($3, email), updated_at = NOW() WHERE id = $1 RETURNING id, login, email, created_at, updated_at",
+      "UPDATE users SET login = COALESCE($2, login), email = COALESCE($3, email), updated_at = NOW() WHERE id = $1 RETURNING id, login, email, registered_at, created_at, updated_at",
       [req.user.id, login || null, email || null]
     );
 
-    return res.json({ user: result.rows[0] });
+    return res.json({ user: normalizeUserRow(result.rows[0]) });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.patch("/me/password", authMiddleware, async (req, res) => {
+  const { password } = req.body || {};
+
+  if (!password || !String(password).trim()) {
+    return res.status(400).json({ error: "Новый пароль обязателен" });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(String(password), 10);
+    const result = await query(
+      "UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1 RETURNING id, login, email, registered_at, created_at, updated_at",
+      [req.user.id, passwordHash]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    return res.json({ user: normalizeUserRow(result.rows[0]) });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });
