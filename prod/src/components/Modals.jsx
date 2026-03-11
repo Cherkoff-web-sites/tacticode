@@ -44,30 +44,47 @@ const ClearFieldSvg = () => (
 
 function ModalFloatingInput({ label, value, onChange, type = "text", error, id, ...inputProps }) {
   const [focused, setFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const str = value != null ? String(value) : "";
   const hasValue = str.length > 0;
   const lifted = focused || hasValue;
   const labelClass = lifted
     ? (error ? MODAL_FLOATING_LABEL_LIFTED_ERROR : MODAL_FLOATING_LABEL_LIFTED)
     : (error ? "absolute left-[24px] pointer-events-none transition-all duration-200 top-1/2 -translate-y-1/2 text-[16px] md:text-[20px] leading-[1.25] font-light text-[#FF383C]" : MODAL_FLOATING_LABEL_PLACEHOLDER);
+  const isPassword = type === "password";
+  const effectiveType = isPassword && showPassword ? "text" : type;
+  const inputPaddingClass = isPassword ? "!pr-[96px]" : "";
+
   return (
     <div className={MODAL_FLOATING_WRAPPER}>
       <span className={labelClass}>{label}</span>
       <input
         id={id}
-        type={type}
+        type={effectiveType}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder={label}
-        className={`${MODAL_INPUT_BASE} ${error ? INPUT_ERROR_CLASS : ""}`}
+        className={`${MODAL_INPUT_BASE} ${inputPaddingClass} ${error ? INPUT_ERROR_CLASS : ""}`}
         {...inputProps}
       />
+      {isPassword && hasValue && (
+        <button
+          type="button"
+          className="absolute right-[56px] top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
+          onClick={() => setShowPassword((prev) => !prev)}
+          aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[18px] h-[18px]" aria-hidden>
+            <path d="M9 3.63525C5.56091 3.63525 2.44216 5.51681 0.140841 8.57296C-0.0469469 8.82335 -0.0469469 9.17315 0.140841 9.42353C2.44216 12.4834 5.56091 14.3649 9 14.3649C12.4391 14.3649 15.5578 12.4834 17.8592 9.42721C18.0469 9.17683 18.0469 8.82703 17.8592 8.57665C15.5578 5.51681 12.4391 3.63525 9 3.63525ZM9.2467 12.7779C6.96379 12.9215 5.07855 11.04 5.22215 8.75339C5.33998 6.86815 6.86806 5.34007 8.7533 5.22224C11.0362 5.07864 12.9214 6.9602 12.7778 9.24679C12.6563 11.1283 11.1283 12.6564 9.2467 12.7779ZM9.13256 11.0326C7.90273 11.1099 6.88647 10.0974 6.96747 8.86753C7.03007 7.85127 7.85486 7.03016 8.87113 6.96388C10.101 6.88656 11.1172 7.89914 11.0362 9.12896C10.9699 10.1489 10.1451 10.97 9.13256 11.0326Z" fill="currentColor"/>
+          </svg>
+        </button>
+      )}
       {hasValue && (
         <button
           type="button"
-          className="absolute right-[24px] top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] hover:opacity-70 active:opacity-90"
+          className="absolute right-[24px] top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] lg:hover:opacity-70 active:opacity-90"
           onClick={() => onChange("")}
           aria-label="Очистить поле"
         >

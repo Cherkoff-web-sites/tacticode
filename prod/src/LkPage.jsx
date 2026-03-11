@@ -4,7 +4,7 @@ import { useApp } from "./context/AppContext";
 
 function EditFieldSvg({ active }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] hover:text-[#00459D]"}`} aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] lg:hover:text-[#00459D]"}`} aria-hidden="true">
       <path d="M12.6323 0.503917C12.3703 0.503917 12.1078 0.602417 11.9108 0.799917L10.7868 1.92392L14.0768 5.21292L15.1998 4.08892C15.3892 3.89644 15.4954 3.63721 15.4954 3.36717C15.4954 3.09712 15.3892 2.8379 15.1998 2.64542L13.3538 0.799917C13.2589 0.70549 13.1464 0.630732 13.0226 0.579935C12.8988 0.529138 12.7661 0.503304 12.6323 0.503917ZM10.0793 2.63092L1.94479 10.7659C1.89013 10.821 1.84875 10.8879 1.82379 10.9614C1.45929 12.0549 0.806287 13.8409 0.523787 14.8629C0.500824 14.9463 0.499905 15.0343 0.521119 15.1182C0.542334 15.2021 0.584955 15.279 0.644817 15.3415C0.704678 15.404 0.77973 15.4499 0.862633 15.4747C0.945537 15.4994 1.03345 15.5023 1.11779 15.4829C2.33379 15.2019 3.96129 14.5349 5.03779 14.1764C5.11114 14.1523 5.17813 14.1119 5.23379 14.0584L13.3683 5.92092L10.0793 2.63092Z" fill="currentColor"/>
     </svg>
   );
@@ -29,7 +29,7 @@ function ConfirmFieldSvg() {
 
 function EyeFieldSvg({ active }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-[18px] h-[18px] shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] group-hover:text-[#00459D]"}`} aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-[18px] h-[18px] shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover:text-[#00459D]"}`} aria-hidden="true">
       <path d="M9 3.63525C5.56091 3.63525 2.44216 5.51681 0.140841 8.57296C-0.0469469 8.82335 -0.0469469 9.17315 0.140841 9.42353C2.44216 12.4834 5.56091 14.3649 9 14.3649C12.4391 14.3649 15.5578 12.4834 17.8592 9.42721C18.0469 9.17683 18.0469 8.82703 17.8592 8.57665C15.5578 5.51681 12.4391 3.63525 9 3.63525ZM9.2467 12.7779C6.96379 12.9215 5.07855 11.04 5.22215 8.75339C5.33998 6.86815 6.86806 5.34007 8.7533 5.22224C11.0362 5.07864 12.9214 6.9602 12.7778 9.24679C12.6563 11.1283 11.1283 12.6564 9.2467 12.7779ZM9.13256 11.0326C7.90273 11.1099 6.88647 10.0974 6.96747 8.86753C7.03007 7.85127 7.85486 7.03016 8.87113 6.96388C10.101 6.88656 11.1172 7.89914 11.0362 9.12896C10.9699 10.1489 10.1451 10.97 9.13256 11.0326Z" fill="currentColor"/>
     </svg>
   );
@@ -259,7 +259,7 @@ export function LkPage() {
             <div className="lk-column w-full lg:max-w-[570px] lg:flex-[0_0_570px] lg:min-w-0 max-md:pb-[24px] max-md:border-b max-md:border-[#F2F2F2] max-md:mb-[24px]">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="overflow-visible lg:flex-1 lg:min-h-0 lg:max-h-[510px] lg:overflow-y-auto lg:pr-4">
-                  <div className="flex flex-col gap-[16px] pb-[16px] md:pb-[24px]">
+                  <div className="flex flex-col gap-[16px]">
                     {lkSubscriptions.map((sub, index) => {
                       const previewCardBackgrounds = ["bg-[#CFFFD7]", "bg-[#FFF9CF]", "bg-[#FFE3E3]"];
                       const previewCardBorders = ["border-[#CFFFD7]", "border-[#FFF9CF]", "border-[#FFE3E3]"];
@@ -399,16 +399,18 @@ export function LkPage() {
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
                 inputType={isPasswordVisible ? "text" : "password"}
-                secondaryControl={(
-                  <button
-                    type="button"
-                    className={`border-none bg-transparent p-0 cursor-pointer shrink-0 ${editingField === "password" || isPasswordVisible ? "text-[#00459D]" : "text-[#8D8D8D] group-hover:text-[#00459D]"}`}
-                    onClick={() => setIsPasswordVisible((prev) => !prev)}
-                    aria-label={isPasswordVisible ? "Скрыть пароль" : "Показать пароль"}
-                  >
-                    <EyeFieldSvg active={editingField === "password" || isPasswordVisible} />
-                  </button>
-                )}
+                secondaryControl={
+                  editingField === "password" ? (
+                    <button
+                      type="button"
+                      className={`border-none bg-transparent p-0 cursor-pointer shrink-0 ${isPasswordVisible ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover:text-[#00459D]"}`}
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      aria-label={isPasswordVisible ? "Скрыть пароль" : "Показать пароль"}
+                    >
+                      <EyeFieldSvg active={isPasswordVisible} />
+                    </button>
+                  ) : null
+                }
               />
 
               <div className="field-group">
