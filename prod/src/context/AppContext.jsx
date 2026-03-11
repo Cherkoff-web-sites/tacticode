@@ -83,7 +83,18 @@ export function AppProvider({ children }) {
     const now = Date.now();
     const startMs = new Date(sub.startedAt).getTime();
     const endMs = new Date(sub.expiresAt).getTime();
-    const totalMs = Math.max(endMs - startMs, 0);
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      return {
+        ...sub,
+        status: "inactive",
+        purchasedStatus: "active",
+        since: "",
+        until: "",
+        details: "Подписка неактивна",
+      };
+    }
+
+    const totalMs = Math.max(endMs - startMs, 1);
     const remainingMs = Math.max(endMs - now, 0);
 
     let status = "inactive";
@@ -98,8 +109,8 @@ export function AppProvider({ children }) {
       const ss = String(remainingSeconds % 60).padStart(2, "0");
       details = `Осталось ${mm}:${ss}`;
 
-      const halfMs = totalMs / 2;
-      status = remainingMs <= halfMs ? "warning" : "active";
+      const warningThresholdMs = totalMs * 0.15;
+      status = remainingMs <= warningThresholdMs ? "warning" : "active";
     }
 
     const formatter = new Intl.DateTimeFormat("ru-RU", {

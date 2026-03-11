@@ -9,13 +9,6 @@ const router = express.Router();
 const TEST_YEAR_MS = 2 * 60 * 1000;
 const TEST_MONTH_MS = 1 * 60 * 1000;
 
-function getNowMoscow() {
-  // Текущее время в часовом поясе Europe/Moscow
-  return new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" })
-  );
-}
-
 function normalizeSubscriptionRow(row) {
   return {
     dbId: row.id,
@@ -61,7 +54,9 @@ router.post("/activate", authMiddleware, async (req, res) => {
   }
 
   try {
-    const now = getNowMoscow();
+    // Храним реальный момент времени в UTC.
+    // На фронте он уже форматируется как Europe/Moscow для отображения.
+    const now = new Date();
     const durationMs = plan === "year" ? TEST_YEAR_MS : TEST_MONTH_MS;
     const expiresAt = new Date(now.getTime() + durationMs);
 
