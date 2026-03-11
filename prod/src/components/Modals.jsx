@@ -842,13 +842,13 @@ export function Modals() {
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto">
             {historyItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-[16px] py-[24px] text-center">
-                <p className={`${MODAL_TEXT_FONT} m-0 text-[#8D8D8D] max-w-[280px]`}>
+              <div className="flex flex-col items-center justify-center gap-[16px] md:gap-[32px] py-[24px] text-center">
+                <p className={`${MODAL_TEXT_FONT} m-0 text-[#8D8D8D] max-w-[290px]`}>
                   Вы еще не совершали покупок
                 </p>
                 <button
                   type="button"
-                  className={primaryModalButtonClass}
+                  className={`${primaryModalButtonClass} md:self-center`}
                   onClick={() => {
                     setHistoryModalOpen(false);
                     navigate("/subscription");
