@@ -41,13 +41,20 @@ function generateCode() {
 
 function normalizeUserRow(row) {
   if (!row) return null;
+  let birthDate = row.birth_date || null;
+  if (birthDate instanceof Date) {
+    const year = birthDate.getFullYear();
+    const month = String(birthDate.getMonth() + 1).padStart(2, "0");
+    const day = String(birthDate.getDate()).padStart(2, "0");
+    birthDate = `${year}-${month}-${day}`;
+  }
   return {
     id: row.id,
     login: row.login,
     email: row.email || null,
     surname: row.surname || "",
     firstName: row.first_name || "",
-    birthDate: row.birth_date || null,
+    birthDate,
     club: row.club || "",
     registeredAt: row.registered_at || null,
     createdAt: row.created_at || null,

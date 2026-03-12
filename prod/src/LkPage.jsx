@@ -82,9 +82,11 @@ function formatBirthDateInput(value) {
 
 function formatBirthDateFromApi(value) {
   if (!value) return "";
-  if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) return value;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [year, month, day] = value.split("-");
+  const stringValue = String(value).trim();
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(stringValue)) return stringValue;
+  const isoDateMatch = stringValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDateMatch) {
+    const [, year, month, day] = isoDateMatch;
     return `${day}.${month}.${year}`;
   }
   return "";
