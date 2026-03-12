@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MOCK_DEVICES } from "../LkPage.mock";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   apiGetDevices,
   apiGetMe,
@@ -24,10 +23,11 @@ export function useApp() {
 
 export function AppProvider({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
   const [subscriptionHistory, setSubscriptionHistory] = useState([]);
-  const [devices, setDevices] = useState(MOCK_DEVICES);
+  const [devices, setDevices] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
   const [period, setPeriod] = useState("year");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -56,25 +56,71 @@ export function AppProvider({ children }) {
       id: s.sportId ?? s.id,
     }));
 
+  const clearAuthorizedData = () => {
+    setSubscriptions([]);
+    setSubscriptionHistory([]);
+    setDevices([]);
+    setActiveModal(null);
+    setDeviceToRemove(null);
+  };
+
+  const loadAuthorizedData = async ({ includeUser = false } = {}) => {
+    const requests = [
+      apiGetDevices(),
+      apiGetSubscriptions(),
+      apiGetSubscriptionHistory(),
+    ];
+
+    if (includeUser) {
+      requests.unshift(apiGetMe());
+    }
+
+    const results = await Promise.all(requests);
+
+    const me = includeUser ? results[0] : null;
+    const devicesResult = includeUser ? results[1] : results[0];
+    const subsResult = includeUser ? results[2] : results[1];
+    const historyResult = includeUser ? results[3] : results[2];
+
+    if (me) {
+      setUser(me);
+    }
+
+    setDevices(devicesResult || []);
+    setSubscriptions(normalizeSubs(subsResult).map(enrichSubscription));
+    setSubscriptionHistory(historyResult || []);
+
+    return {
+      user: me,
+      devices: devicesResult || [],
+      subscriptions: subsResult || [],
+      history: historyResult || [],
+    };
+  };
+
   useEffect(() => {
     const bootstrap = async () => {
       try {
-        const me = await apiGetMe();
-        setUser(me);
-        const devs = await apiGetDevices();
-        setDevices(devs);
-        const [subs, history] = await Promise.all([
-          apiGetSubscriptions(),
-          apiGetSubscriptionHistory(),
-        ]);
-        setSubscriptions(normalizeSubs(subs).map(enrichSubscription));
-        setSubscriptionHistory(history);
+        await loadAuthorizedData({ includeUser: true });
       } catch {
-        // не авторизован — это нормально
+        apiLogout();
+        setUser(null);
+        clearAuthorizedData();
       }
     };
     bootstrap();
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn || location.pathname !== "/lk") return;
+
+    loadAuthorizedData({ includeUser: true }).catch((err) => {
+      console.error("Failed to refresh LK data:", err);
+      apiLogout();
+      setUser(null);
+      clearAuthorizedData();
+    });
+  }, [isLoggedIn, location.pathname]);
 
   // Подписки: бесплатный период с тестовой длительностью (год = 2 минуты, месяц = 1 минута)
   const enrichSubscription = (sub) => {
@@ -175,6 +221,7 @@ export function AppProvider({ children }) {
   const handleLogout = () => {
     apiLogout();
     setUser(null);
+    clearAuthorizedData();
     navigate("/");
   };
 
@@ -201,15 +248,16 @@ export function AppProvider({ children }) {
         const deviceName = ua.slice(0, 120);
         const deviceType = isMobile ? "mobile" : "desktop";
         await apiRegisterDevice({ deviceName, deviceType });
-        const devs = await apiGetDevices();
-        setDevices(devs);
       } catch (err) {
         console.warn("Не удалось зарегистрировать устройство:", err?.message || err);
       }
 
+      await loadAuthorizedData({ includeUser: true });
+
       navigate("/lk");
     } catch (err) {
       setLoginError(err.message || "Ошибка авторизации");
+      clearAuthorizedData();
     } finally {
       setIsAuthLoading(false);
     }
@@ -218,12 +266,14 @@ export function AppProvider({ children }) {
   const saveProfileDetails = async ({ surname, firstName, birthDate, club }) => {
     const updatedUser = await apiUpdateProfileDetails({ surname, firstName, birthDate, club });
     setUser(updatedUser);
+    await loadAuthorizedData();
     return updatedUser;
   };
 
   const changeMyPassword = async ({ password: nextPassword }) => {
     const updatedUser = await apiUpdateMyPassword({ password: nextPassword });
     setUser(updatedUser);
+    await loadAuthorizedData();
     return updatedUser;
   };
 
@@ -273,6 +323,7 @@ export function AppProvider({ children }) {
     downloadModalOpen,
     setDownloadModalOpen,
     activateSubscription,
+    loadAuthorizedData,
     saveProfileDetails,
     changeMyPassword,
     setDemoLoggedIn

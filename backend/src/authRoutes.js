@@ -121,7 +121,7 @@ router.post("/register", async (req, res) => {
     );
 
     const user = normalizeUserRow(result.rows[0]);
-    const token = signToken(user);
+    const token = signToken(result.rows[0]);
 
     return res.status(201).json({ user, accessToken: token });
   } catch (err) {
@@ -208,7 +208,7 @@ router.post("/register/confirm", async (req, res) => {
     );
 
     const user = normalizeUserRow(result.rows[0]);
-    const token = signToken(user);
+    const token = signToken(result.rows[0]);
 
     return res.status(201).json({ user, accessToken: token });
   } catch (err) {
@@ -243,7 +243,7 @@ router.post("/login", async (req, res) => {
     }
 
     const user = normalizeUserRow(userRow);
-    const token = signToken(user);
+    const token = signToken(userRow);
 
     return res.json({ user, accessToken: token });
   } catch (err) {

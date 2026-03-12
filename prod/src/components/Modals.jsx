@@ -898,20 +898,20 @@ export function Modals() {
                         <div className="flex items-center justify-between gap-[16px] md:hidden">
                           <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
                           <div className="text-right text-[20px] leading-[1.25] font-bold text-[#8D8D8D]">{subscriptionName}</div>
-                        </div>
+                </div>
                         <div className="hidden md:flex items-start justify-between gap-[16px]">
                           <div className="text-[20px] leading-[1.25] font-bold text-[#1A1A1A]">{item.amount}</div>
                           <div className={`${MODAL_TEXT_FONT} text-right text-[#1A1A1A]`}>{item.date}</div>
-                        </div>
+                </div>
                         <div className="flex items-start justify-between gap-[16px] md:hidden">
                           <div className="flex flex-col gap-[4px]">
                             <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Куплено на</span>
                             <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{purchaseTermValue}</span>
-                          </div>
+              </div>
                           <div className="flex flex-col items-end gap-[4px] text-right">
                             <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>Дата покупки</span>
                             <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.date}</span>
-                          </div>
+            </div>
                         </div>
                         <div className="hidden md:flex items-start justify-between gap-[16px]">
                           <div className="flex items-start gap-[8px]">
