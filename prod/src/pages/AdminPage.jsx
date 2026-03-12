@@ -271,16 +271,6 @@ export function AdminPage() {
   return (
     <section className="w-full">
       <div className="mx-auto flex w-full max-w-[1868px] flex-col gap-[24px] px-[24px]">
-        <div className="flex flex-col gap-[8px]">
-          <h1 className="m-0 text-[32px] leading-[1.1] font-bold text-[#1A1A1A] md:text-[48px]">
-            Супер-админ
-          </h1>
-          <p className={`${mainText} m-0 text-[#8D8D8D]`}>
-            Здесь отображаются текущие аккаунты, метрики, история подписок, коды и связанные
-            данные из базы.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 gap-[16px] md:grid-cols-2 xl:grid-cols-5">
           <div className="rounded-[16px] bg-white p-[24px]">
             <p className={`${mainText} m-0 text-[#8D8D8D]`}>Пользователей</p>
@@ -369,7 +359,7 @@ export function AdminPage() {
             </thead>
             <tbody>
               {adminUsers.map((item, index) => {
-                const rowBg = index % 2 === 0 ? "bg-white" : "bg-[#F2F5FA]";
+                const rowBg = index % 2 === 0 ? "bg-white" : "bg-[#F8F8F8]";
                 const isBusy = activeActionUserId === item.id;
                 return (
                   <tr key={item.id}>
@@ -476,10 +466,13 @@ export function AdminPage() {
             </div>
           ) : (
             adminUsers.map((item, index) => {
-              const bg = index % 2 === 0 ? "bg-white" : "bg-[#F2F5FA]";
+              const bg = index % 2 === 0 ? "bg-white" : "bg-[#F8F8F8]";
               const isBusy = activeActionUserId === item.id;
               return (
-                <article key={item.id} className={`${bg} rounded-[16px] p-[24px]`}>
+                <article
+                  key={item.id}
+                  className={`${bg} rounded-[16px] p-[24px] shadow-[0px_4px_25px_rgba(0,69,157,0.05)]`}
+                >
                   <div className="flex flex-col gap-[16px]">
                     <div className="flex items-start justify-between gap-[16px]">
                       <div className="flex flex-col gap-[4px]">
