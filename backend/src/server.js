@@ -1,13 +1,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import authRoutes from "./authRoutes.js";
+import adminRoutes from "./adminRoutes.js";
 import deviceRoutes from "./deviceRoutes.js";
 import subscriptionRoutes from "./subscriptionRoutes.js";
 import { query } from "./db.js";
 import fs from "fs";
 import http from "http";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 
 dotenv.config();
@@ -33,6 +36,7 @@ app.use((req, res, next) => {
 });
 
 const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
+const DEFAULT_SUPER_ADMIN_EMAIL = "danilcherkov44@gmail.com";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +90,7 @@ if (dbDisabled) {
 }
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/devices", deviceRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 
@@ -107,6 +112,47 @@ async function ensureSchema() {
   }
 }
 
+async function ensureSuperAdmin() {
+  const superAdminEmail = String(process.env.SUPER_ADMIN_EMAIL || DEFAULT_SUPER_ADMIN_EMAIL)
+    .trim()
+    .toLowerCase();
+
+  if (!superAdminEmail) {
+    return;
+  }
+
+  try {
+    const existing = await query(
+      "SELECT id, login, email, role FROM users WHERE email = $1 OR login = $1 LIMIT 1",
+      [superAdminEmail]
+    );
+
+    if (existing.rowCount > 0) {
+      await query(
+        `UPDATE users
+         SET role = 'super_admin',
+             email = COALESCE(email, $2),
+             updated_at = NOW()
+         WHERE id = $1`,
+        [existing.rows[0].id, superAdminEmail]
+      );
+      console.log(`Super admin ensured for ${superAdminEmail}`);
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10);
+    await query(
+      `INSERT INTO users (login, email, password_hash, role)
+       VALUES ($1, $2, $3, 'super_admin')
+       ON CONFLICT (login) DO NOTHING`,
+      [superAdminEmail, superAdminEmail, passwordHash]
+    );
+    console.log(`Super admin bootstrapped for ${superAdminEmail}`);
+  } catch (err) {
+    console.error("Failed to ensure super admin:", err.message);
+  }
+}
+
 const port = Number(process.env.PORT) || 4000;
 
 app.listen(port, "0.0.0.0", () => {
@@ -116,6 +162,10 @@ app.listen(port, "0.0.0.0", () => {
 
 // Не блокируем запуск сервера, даже если БД временно недоступна
 if (!dbDisabled) {
-  ensureSchema();
+  ensureSchema()
+    .then(() => ensureSuperAdmin())
+    .catch((err) => {
+      console.error("Database bootstrap failed:", err.message);
+    });
 }
 

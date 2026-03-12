@@ -8,6 +8,7 @@ export function Layout() {
   const path = location.pathname;
   const isHome = path === "/";
   const isLk = path === "/lk";
+  const isAdmin = path === "/admin";
   const isContacts = path === "/contacts";
   const isDocuments = path === "/privacy" || path === "/terms";
 
@@ -17,7 +18,7 @@ export function Layout() {
 
   const mainClass = isHome
     ? "flex-1 flex flex-col items-stretch pt-0 pb-[80px] md:pb-[160px]"
-    : isLk
+    : isLk || isAdmin
       ? "flex-1 pt-[40px] md:pt-[70px] pb-[80px] md:pb-[48px]"
       : isContacts
         ? "flex-1 pt-[40px] md:pt-[70px] pb-[40px] md:pb-[160px]"

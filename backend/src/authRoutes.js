@@ -9,10 +9,12 @@ const router = express.Router();
 const TOKEN_TTL_HOURS = 24;
 const CODE_TTL_MINUTES = 10;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const SUPER_ADMIN_ROLE = "super_admin";
 const USER_SELECT_FIELDS = `
   id,
   login,
   email,
+  role,
   surname,
   first_name,
   birth_date,
@@ -28,6 +30,7 @@ function signToken(user) {
     id: user.id,
     login: user.login,
     email: user.email || null,
+    role: user.role || "user",
     sessionVersion: Number(user.sessionVersion ?? user.session_version ?? 1),
   };
   return jwt.sign(payload, process.env.JWT_SECRET || "dev_secret", {
@@ -52,6 +55,7 @@ function normalizeUserRow(row) {
     id: row.id,
     login: row.login,
     email: row.email || null,
+    role: row.role || "user",
     surname: row.surname || "",
     firstName: row.first_name || "",
     birthDate,
@@ -85,7 +89,7 @@ export async function authMiddleware(req, res, next) {
   const token = authHeader.slice("Bearer ".length);
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_secret");
-    const result = await query("SELECT id, session_version FROM users WHERE id = $1", [
+    const result = await query("SELECT id, session_version, role FROM users WHERE id = $1", [
       payload.id
     ]);
     if (result.rowCount === 0) {
@@ -95,12 +99,25 @@ export async function authMiddleware(req, res, next) {
     if (Number(payload.sessionVersion ?? 1) !== currentSessionVersion) {
       return res.status(401).json({ error: "Сессия устарела. Войдите снова" });
     }
-    req.user = payload;
+    req.user = {
+      ...payload,
+      role: result.rows[0].role || "user",
+      sessionVersion: currentSessionVersion,
+    };
     next();
   } catch (err) {
     console.error(err);
     return res.status(401).json({ error: "Невалидный или истёкший токен" });
   }
+}
+
+export async function adminMiddleware(req, res, next) {
+  return authMiddleware(req, res, () => {
+    if (req.user?.role !== SUPER_ADMIN_ROLE) {
+      return res.status(403).json({ error: "Недостаточно прав" });
+    }
+    return next();
+  });
 }
 
 router.post("/register", async (req, res) => {
@@ -244,6 +261,9 @@ router.post("/login", async (req, res) => {
     }
 
     const userRow = result.rows[0];
+    if (userRow.role === SUPER_ADMIN_ROLE) {
+      return res.status(403).json({ error: "Для супер-админа используйте вход по коду" });
+    }
     const ok = await bcrypt.compare(password, userRow.password_hash);
     if (!ok) {
       return res.status(401).json({ error: "Неверный логин/почта или пароль" });
@@ -253,6 +273,88 @@ router.post("/login", async (req, res) => {
     const token = signToken(userRow);
 
     return res.json({ user, accessToken: token });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.post("/admin/request-code", async (req, res) => {
+  const rawEmail = String(req.body?.email || "").trim().toLowerCase();
+
+  if (!rawEmail || !EMAIL_RE.test(rawEmail)) {
+    return res.status(400).json({ error: "Укажите корректную почту супер-админа" });
+  }
+
+  try {
+    const result = await query(
+      `SELECT ${USER_SELECT_FIELDS}
+       FROM users
+       WHERE (email = $1 OR login = $1)
+       LIMIT 1`,
+      [rawEmail]
+    );
+
+    if (result.rowCount === 0 || result.rows[0].role !== SUPER_ADMIN_ROLE) {
+      return res.status(403).json({ error: "Супер-админ с такой почтой не найден" });
+    }
+
+    const userRow = result.rows[0];
+    const code = generateCode();
+
+    await query(
+      "INSERT INTO auth_codes (email, code, purpose, user_id, expires_at) VALUES ($1, $2, 'admin_login', $3, NOW() + ($4 || ' minutes')::INTERVAL)",
+      [rawEmail, code, userRow.id, CODE_TTL_MINUTES]
+    );
+
+    await sendCodeEmail(rawEmail, "Код входа супер-админа Tacticode", code);
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.post("/admin/confirm-code", async (req, res) => {
+  const rawEmail = String(req.body?.email || "").trim().toLowerCase();
+  const rawCode = String(req.body?.code || "").trim();
+
+  if (!rawEmail || !rawCode) {
+    return res.status(400).json({ error: "Почта и код обязательны" });
+  }
+
+  try {
+    const codeResult = await query(
+      "SELECT id, user_id FROM auth_codes WHERE email = $1 AND code = $2 AND purpose = 'admin_login' AND expires_at > NOW() AND used_at IS NULL ORDER BY created_at DESC LIMIT 1",
+      [rawEmail, rawCode]
+    );
+
+    if (codeResult.rowCount === 0) {
+      return res.status(400).json({ error: "Неверный код" });
+    }
+
+    const userResult = await query(
+      `SELECT ${USER_SELECT_FIELDS}
+       FROM users
+       WHERE id = $1
+       LIMIT 1`,
+      [codeResult.rows[0].user_id]
+    );
+
+    if (userResult.rowCount === 0 || userResult.rows[0].role !== SUPER_ADMIN_ROLE) {
+      return res.status(403).json({ error: "Супер-админ не найден" });
+    }
+
+    await query(
+      "UPDATE auth_codes SET used_at = NOW() WHERE id = $1",
+      [codeResult.rows[0].id]
+    );
+
+    return res.json({
+      user: normalizeUserRow(userResult.rows[0]),
+      accessToken: signToken(userResult.rows[0]),
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });
@@ -269,7 +371,7 @@ router.post("/password/request-reset", async (req, res) => {
 
   try {
     const userResult = await query(
-      "SELECT id, email FROM users WHERE email = $1 OR login = $1 LIMIT 1",
+      "SELECT id, email, role FROM users WHERE email = $1 OR login = $1 LIMIT 1",
       [rawIdentifier]
     );
 
@@ -277,6 +379,10 @@ router.post("/password/request-reset", async (req, res) => {
       return res.status(404).json({
         error: "К указанной почте не привязан ни один аккаунт. Проверьте правильность написания"
       });
+    }
+
+    if (userResult.rows[0].role === SUPER_ADMIN_ROLE) {
+      return res.status(403).json({ error: "Для супер-админа используйте вход по коду" });
     }
 
     const targetEmail = String(userResult.rows[0].email || "").trim().toLowerCase();

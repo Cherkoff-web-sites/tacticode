@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  apiAdminRequestCode,
   apiGetDevices,
+  apiGetAdminUserDetails,
+  apiGetAdminUsers,
   apiGetMe,
   apiLogin,
   apiLogout,
   apiRegisterDevice,
+  apiDeleteAdminUser,
   apiUpdateProfileDetails,
   apiUpdateMyPassword,
   apiGetSubscriptions,
@@ -14,6 +18,9 @@ import {
 } from "../api/client";
 
 const AppContext = createContext(null);
+const SUPER_ADMIN_EMAIL = String(
+  import.meta.env.VITE_SUPER_ADMIN_EMAIL || "danilcherkov44@gmail.com"
+).trim().toLowerCase();
 
 export function useApp() {
   const ctx = useContext(AppContext);
@@ -46,6 +53,8 @@ export function AppProvider({ children }) {
   const [codeEmail, setCodeEmail] = useState("");
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [isAdminUsersLoading, setIsAdminUsersLoading] = useState(false);
 
   const isLoggedIn = !!user;
 
@@ -61,6 +70,7 @@ export function AppProvider({ children }) {
     setSubscriptions([]);
     setSubscriptionHistory([]);
     setDevices([]);
+    setAdminUsers([]);
     setActiveModal(null);
     setDeviceToRemove(null);
   };
@@ -115,7 +125,7 @@ export function AppProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!isLoggedIn || location.pathname !== "/lk") return;
+    if (!isLoggedIn || !["/lk", "/admin"].includes(location.pathname)) return;
 
     loadAuthorizedData({ includeUser: true }).catch((err) => {
       console.error("Failed to refresh LK data:", err);
@@ -221,6 +231,14 @@ export function AppProvider({ children }) {
 
   const handleDownloadClick = () => setDownloadModalOpen(true);
 
+  const registerCurrentDevice = async () => {
+    const ua = navigator.userAgent || "";
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+    const deviceName = ua.slice(0, 120);
+    const deviceType = isMobile ? "mobile" : "desktop";
+    await apiRegisterDevice({ deviceName, deviceType });
+  };
+
   const handleLogout = () => {
     apiLogout();
     setUser(null);
@@ -238,7 +256,18 @@ export function AppProvider({ children }) {
     setLoginError("");
     setIsAuthLoading(true);
     try {
-      const identifier = login;
+      const identifier = String(login || "").trim();
+      const normalizedIdentifier = identifier.toLowerCase();
+      if (normalizedIdentifier === SUPER_ADMIN_EMAIL) {
+        await apiAdminRequestCode({ email: normalizedIdentifier });
+        setCodePurpose("admin_login");
+        setCodeEmail(normalizedIdentifier);
+        setCodeModalOpen(true);
+        setLoginModalOpen(false);
+        setPassword("");
+        return;
+      }
+
       const loggedUser = await apiLogin({ identifier, password });
       setUser(loggedUser);
       setLoginModalOpen(false);
@@ -246,11 +275,7 @@ export function AppProvider({ children }) {
 
       // регистрируем устройство
       try {
-        const ua = navigator.userAgent || "";
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
-        const deviceName = ua.slice(0, 120);
-        const deviceType = isMobile ? "mobile" : "desktop";
-        await apiRegisterDevice({ deviceName, deviceType });
+        await registerCurrentDevice();
       } catch (err) {
         console.warn("Не удалось зарегистрировать устройство:", err?.message || err);
       }
@@ -264,6 +289,29 @@ export function AppProvider({ children }) {
     } finally {
       setIsAuthLoading(false);
     }
+  };
+
+  const loadAdminUsers = async () => {
+    if (user?.role !== "super_admin") {
+      setAdminUsers([]);
+      return [];
+    }
+
+    setIsAdminUsersLoading(true);
+    try {
+      const users = await apiGetAdminUsers();
+      setAdminUsers(users);
+      return users;
+    } finally {
+      setIsAdminUsersLoading(false);
+    }
+  };
+
+  const getAdminUserDetails = async (id) => apiGetAdminUserDetails(id);
+
+  const removeAdminUser = async (id) => {
+    await apiDeleteAdminUser(id);
+    setAdminUsers((prev) => prev.filter((item) => item.id !== id));
   };
 
   const saveProfileDetails = async ({ surname, firstName, birthDate, club }) => {
@@ -285,6 +333,8 @@ export function AppProvider({ children }) {
     setUser,
     isLoggedIn,
     isAuthResolved,
+    adminUsers,
+    isAdminUsersLoading,
     loginModalOpen,
     setLoginModalOpen: setLoginModalOpenSafe,
     login,
@@ -328,6 +378,10 @@ export function AppProvider({ children }) {
     setDownloadModalOpen,
     activateSubscription,
     loadAuthorizedData,
+    loadAdminUsers,
+    getAdminUserDetails,
+    removeAdminUser,
+    registerCurrentDevice,
     saveProfileDetails,
     changeMyPassword,
     setDemoLoggedIn

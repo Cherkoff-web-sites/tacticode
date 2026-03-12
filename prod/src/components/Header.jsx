@@ -7,10 +7,11 @@ import downloadIcon from "../assets/icons/download.svg";
 import burgerIcon from "../assets/icons/burger.svg";
 
 export function Header() {
-  const { isLoggedIn, setLoginModalOpen, setLogoutModalOpen, handleDownloadClick } = useApp();
+  const { user, isLoggedIn, setLoginModalOpen, setLogoutModalOpen, handleDownloadClick } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const isOnLk = location.pathname === "/lk";
+  const isSuperAdmin = user?.role === "super_admin";
 
   const handleProfileClick = () => {
     if (!isLoggedIn) {
@@ -95,6 +96,9 @@ export function Header() {
               <NavLink to="/news" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Новости</NavLink>
               <NavLink to="/subscription" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Подписка</NavLink>
               <NavLink to="/contacts" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Контакты</NavLink>
+              {isSuperAdmin && (
+                <NavLink to="/admin" className={({ isActive }) => `${navLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}>Админ</NavLink>
+              )}
             </nav>
 
             <div className="hidden md:flex items-center gap-[40px]">
@@ -165,6 +169,11 @@ export function Header() {
                   <li>
                     <NavLink to="/lk" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Личный кабинет</NavLink>
                   </li>
+                  {isSuperAdmin && (
+                    <li>
+                      <NavLink to="/admin" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Админ</NavLink>
+                    </li>
+                  )}
                 </ul>
               </nav>
               <button type="button" className="w-full inline-flex items-center justify-center gap-[12px] p-3 rounded-full border-none text-base leading-5 font-light text-white bg-[#00459D] cursor-pointer transition-colors active:bg-[#003982]" onClick={() => { handleDownloadClick(); closeMobileMenu(); }}>

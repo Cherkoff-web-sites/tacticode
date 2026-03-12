@@ -91,6 +91,22 @@ export async function apiLogin({ identifier, password }) {
   return data.user;
 }
 
+export async function apiAdminRequestCode({ email }) {
+  return request("/api/auth/admin/request-code", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function apiAdminConfirmCode({ email, code }) {
+  const data = await request("/api/auth/admin/confirm-code", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+  setToken(data.accessToken);
+  return data.user;
+}
+
 export async function apiRegisterRequestCode({ email, password }) {
   return request("/api/auth/register/request-code", {
     method: "POST",
@@ -235,6 +251,21 @@ export async function apiActivateSubscription({ sportId, plan, method }) {
   return request("/api/subscriptions/activate", {
     method: "POST",
     body: JSON.stringify({ sportId, plan, method }),
+  });
+}
+
+export async function apiGetAdminUsers() {
+  const data = await request("/api/admin/users");
+  return data.users || [];
+}
+
+export async function apiGetAdminUserDetails(id) {
+  return request(`/api/admin/users/${id}`);
+}
+
+export async function apiDeleteAdminUser(id) {
+  return request(`/api/admin/users/${id}`, {
+    method: "DELETE",
   });
 }
 

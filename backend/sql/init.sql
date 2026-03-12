@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   login VARCHAR(64) NOT NULL UNIQUE,
   email VARCHAR(255) UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(32) NOT NULL DEFAULT 'user',
   surname VARCHAR(128),
   first_name VARCHAR(128),
   birth_date DATE,
@@ -13,6 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS role VARCHAR(32) NOT NULL DEFAULT 'user';
 
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS registered_at TIMESTAMPTZ;
@@ -39,12 +43,16 @@ UPDATE users
 SET registered_at = NOW()
 WHERE registered_at IS NULL;
 
+UPDATE users
+SET role = 'user'
+WHERE role IS NULL;
+
 -- Auth codes for registration and password reset
 CREATE TABLE IF NOT EXISTS auth_codes (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   code VARCHAR(10) NOT NULL,
-  purpose VARCHAR(32) NOT NULL, -- 'register' | 'reset' | 'change_login'
+  purpose VARCHAR(32) NOT NULL, -- 'register' | 'reset' | 'change_login' | 'admin_login'
   login VARCHAR(64),
   password_hash VARCHAR(255),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -67,6 +75,7 @@ CREATE TABLE IF NOT EXISTS devices (
 
 CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_codes_email_purpose ON auth_codes(email, purpose);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
 -- Subscriptions table
 CREATE TABLE IF NOT EXISTS subscriptions (

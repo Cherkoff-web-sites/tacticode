@@ -9,6 +9,7 @@ import { SubscriptionPage } from "./pages/SubscriptionPage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { UserAgreementPage } from "./pages/UserAgreementPage";
+import { AdminPage } from "./pages/AdminPage";
 import { LkPage } from "./LkPage";
 
 export function App() {
@@ -24,6 +25,7 @@ export function App() {
             <Route path="privacy" element={<PrivacyPolicyPage />} />
             <Route path="terms" element={<UserAgreementPage />} />
             <Route path="lk" element={<LkPage />} />
+            <Route path="admin" element={<AdminPage />} />
           </Route>
         </Routes>
         <Modals />
