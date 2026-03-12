@@ -150,6 +150,8 @@ function EditableField({
   formatDraftValue,
   onDraftChange,
   hideEditButtonWhileEditing = false,
+  hideEditButtonWhenIdle = false,
+  startEditOnFieldClick = false,
   secondaryControl = null,
 }) {
   const normalizedValue = value ?? "";
@@ -206,7 +208,14 @@ function EditableField({
   return (
     <div ref={wrapperRef} className="field-group">
       <label className={`${mainText} field-label`}>{label}</label>
-      <div className={`${fieldValueClass} gap-[16px] ${wrapperBgClass} cursor-default`}>
+      <div
+        className={`${fieldValueClass} gap-[16px] ${wrapperBgClass} ${startEditOnFieldClick && !isEditing ? "cursor-text" : "cursor-default"}`}
+        onClick={() => {
+          if (!isEditing && startEditOnFieldClick) {
+            onStartEdit?.();
+          }
+        }}
+      >
         <input
           ref={inputRef}
           type={inputType}
@@ -253,14 +262,16 @@ function EditableField({
         ) : (
           <div className="flex items-center gap-[16px] shrink-0">
             {resolvedSecondaryControl}
-            <button
-              type="button"
-              className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
-              onClick={onStartEdit}
-              aria-label={`Редактировать поле ${label}`}
-            >
-              <EditFieldSvg active={false} />
-            </button>
+            {!hideEditButtonWhenIdle && (
+              <button
+                type="button"
+                className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
+                onClick={onStartEdit}
+                aria-label={`Редактировать поле ${label}`}
+              >
+                <EditFieldSvg active={false} />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -357,9 +368,55 @@ export function LkPage() {
   );
   const isProfileComplete = profileFieldKeys.every((key) => String(persistedProfileFields[key] || "").trim());
   const shouldShowFillProfileButton = !isProfileComplete || hasUnsavedProfileChanges;
+  const hasPersistedProfileValue = (field) => String(persistedProfileFields[field] || "").trim().length > 0;
+  const isProfileFieldEditing = (field) => editingField === field;
 
-  const isProfileFieldEditing = (field) =>
-    editingField === field || !String(persistedProfileFields[field] || "").trim();
+  const resetProfileFieldDraft = (field) => {
+    updateEditableField(field, persistedProfileFields[field] || "");
+    if (field === "birthDate") {
+      setIsBirthDateCalendarOpen(false);
+    }
+    setEditingField(null);
+  };
+
+  const commitProfileField = async (field, nextValue) => {
+    const normalizedNextValue = field === "birthDate" ? formatBirthDateInput(nextValue) : nextValue;
+    const nextFields = {
+      ...editableFields,
+      [field]: normalizedNextValue,
+    };
+
+    setProfileSaveError("");
+    updateEditableField(field, normalizedNextValue);
+
+    if (field === "birthDate" && normalizedNextValue && !formatBirthDateToApi(normalizedNextValue)) {
+      setProfileSaveError("Дата рождения должна быть в формате ДД.ММ.ГГГГ");
+      return;
+    }
+
+    if (!hasPersistedProfileValue(field)) {
+      if (field === "birthDate") {
+        setIsBirthDateCalendarOpen(false);
+      }
+      setEditingField(null);
+      return;
+    }
+
+    try {
+      await saveProfileDetails({
+        surname: nextFields.surname.trim() || null,
+        firstName: nextFields.firstName.trim() || null,
+        birthDate: formatBirthDateToApi(nextFields.birthDate),
+        club: nextFields.club.trim() || null,
+      });
+      if (field === "birthDate") {
+        setIsBirthDateCalendarOpen(false);
+      }
+      setEditingField(null);
+    } catch (err) {
+      setProfileSaveError(err?.message || "Не удалось сохранить профиль");
+    }
+  };
 
   const handleLoginConfirm = async (nextValue) => {
     const trimmed = String(nextValue || "").trim();
@@ -678,11 +735,13 @@ export function LkPage() {
                 editingValue={editableFields.surname}
                 isEditing={isProfileFieldEditing("surname")}
                 onStartEdit={() => { setEditingField("surname"); setProfileSaveError(""); }}
-                onConfirm={(val) => { updateEditableField("surname", val); setEditingField(null); }}
-                onClear={() => setEditingField(null)}
-                onExitWithoutSave={() => setEditingField(null)}
+                onConfirm={(val) => commitProfileField("surname", val)}
+                onClear={() => resetProfileFieldDraft("surname")}
+                onExitWithoutSave={() => resetProfileFieldDraft("surname")}
                 onDraftChange={(val) => updateEditableField("surname", val)}
-                hideEditButtonWhileEditing={!String(persistedProfileFields.surname || "").trim()}
+                hideEditButtonWhileEditing={!hasPersistedProfileValue("surname")}
+                hideEditButtonWhenIdle={!hasPersistedProfileValue("surname")}
+                startEditOnFieldClick={!hasPersistedProfileValue("surname")}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -693,11 +752,13 @@ export function LkPage() {
                 editingValue={editableFields.firstName}
                 isEditing={isProfileFieldEditing("firstName")}
                 onStartEdit={() => { setEditingField("firstName"); setProfileSaveError(""); }}
-                onConfirm={(val) => { updateEditableField("firstName", val); setEditingField(null); }}
-                onClear={() => setEditingField(null)}
-                onExitWithoutSave={() => setEditingField(null)}
+                onConfirm={(val) => commitProfileField("firstName", val)}
+                onClear={() => resetProfileFieldDraft("firstName")}
+                onExitWithoutSave={() => resetProfileFieldDraft("firstName")}
                 onDraftChange={(val) => updateEditableField("firstName", val)}
-                hideEditButtonWhileEditing={!String(persistedProfileFields.firstName || "").trim()}
+                hideEditButtonWhileEditing={!hasPersistedProfileValue("firstName")}
+                hideEditButtonWhenIdle={!hasPersistedProfileValue("firstName")}
+                startEditOnFieldClick={!hasPersistedProfileValue("firstName")}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -712,15 +773,13 @@ export function LkPage() {
                   setProfileSaveError("");
                   setIsBirthDateCalendarOpen(false);
                 }}
-                onConfirm={(val) => {
-                  updateEditableField("birthDate", formatBirthDateInput(val));
-                  setIsBirthDateCalendarOpen(false);
-                  setEditingField(null);
-                }}
-                onClear={() => { setEditingField(null); setIsBirthDateCalendarOpen(false); }}
-                onExitWithoutSave={() => { setEditingField(null); setIsBirthDateCalendarOpen(false); }}
+                onConfirm={(val) => commitProfileField("birthDate", val)}
+                onClear={() => resetProfileFieldDraft("birthDate")}
+                onExitWithoutSave={() => resetProfileFieldDraft("birthDate")}
                 onDraftChange={(val) => updateEditableField("birthDate", val)}
-                hideEditButtonWhileEditing={!String(persistedProfileFields.birthDate || "").trim()}
+                hideEditButtonWhileEditing={!hasPersistedProfileValue("birthDate")}
+                hideEditButtonWhenIdle={!hasPersistedProfileValue("birthDate")}
+                startEditOnFieldClick={!hasPersistedProfileValue("birthDate")}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
                 inputMode="numeric"
@@ -737,7 +796,9 @@ export function LkPage() {
                         onFocus={() => setIsBirthDateCalendarOpen(true)}
                         onBlur={() => setIsBirthDateCalendarOpen(false)}
                         onChange={(e) => {
-                          setDraft(formatBirthDateFromApi(e.target.value));
+                          const nextValue = formatBirthDateFromApi(e.target.value);
+                          setDraft(nextValue);
+                          updateEditableField("birthDate", nextValue);
                           setIsBirthDateCalendarOpen(false);
                         }}
                         className="sr-only"
@@ -769,11 +830,13 @@ export function LkPage() {
                 editingValue={editableFields.club}
                 isEditing={isProfileFieldEditing("club")}
                 onStartEdit={() => { setEditingField("club"); setProfileSaveError(""); }}
-                onConfirm={(val) => { updateEditableField("club", val); setEditingField(null); }}
-                onClear={() => setEditingField(null)}
-                onExitWithoutSave={() => setEditingField(null)}
+                onConfirm={(val) => commitProfileField("club", val)}
+                onClear={() => resetProfileFieldDraft("club")}
+                onExitWithoutSave={() => resetProfileFieldDraft("club")}
                 onDraftChange={(val) => updateEditableField("club", val)}
-                hideEditButtonWhileEditing={!String(persistedProfileFields.club || "").trim()}
+                hideEditButtonWhileEditing={!hasPersistedProfileValue("club")}
+                hideEditButtonWhenIdle={!hasPersistedProfileValue("club")}
+                startEditOnFieldClick={!hasPersistedProfileValue("club")}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
