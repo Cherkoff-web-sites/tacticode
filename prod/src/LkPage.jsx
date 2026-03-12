@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { subscriptionItems } from "./data";
 import { useApp } from "./context/AppContext";
 import { apiRequestLoginChange } from "./api/client";
@@ -72,13 +73,11 @@ function EyeFieldSvg({ active, inheritColor }) {
 
 function formatBirthDateInput(value) {
   const digits = String(value || "").replace(/\D/g, "").slice(0, 8);
-  if (!digits) return "";
-  const chars = "__.__.____".split("");
-  for (let i = 0; i < digits.length; i += 1) {
-    const charIndex = i < 2 ? i : i < 4 ? i + 1 : i + 2;
-    chars[charIndex] = digits[i];
-  }
-  return chars.join("");
+  const parts = [];
+  if (digits.slice(0, 2)) parts.push(digits.slice(0, 2));
+  if (digits.slice(2, 4)) parts.push(digits.slice(2, 4));
+  if (digits.slice(4, 8)) parts.push(digits.slice(4, 8));
+  return parts.join(".");
 }
 
 function formatBirthDateFromApi(value) {
@@ -149,6 +148,8 @@ function EditableField({
   inputMode,
   placeholder = "",
   formatDraftValue,
+  onDraftChange,
+  hideEditButtonWhileEditing = false,
   secondaryControl = null,
 }) {
   const normalizedValue = value ?? "";
@@ -214,7 +215,9 @@ function EditableField({
           value={isEditing ? draft : normalizedValue}
           onChange={(e) => {
             const nextValue = e.target.value;
-            setDraft(formatDraftValue ? formatDraftValue(nextValue) : nextValue);
+            const nextDraft = formatDraftValue ? formatDraftValue(nextValue) : nextValue;
+            setDraft(nextDraft);
+            onDraftChange?.(nextDraft);
           }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -235,14 +238,16 @@ function EditableField({
           ) : (
             <div className="flex items-center gap-[16px] shrink-0">
               {resolvedSecondaryControl}
-              <button
-                type="button"
-                className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#00459D]"
-                onClick={onStartEdit}
-                aria-label={`Редактировать поле ${label}`}
-              >
-                <EditFieldSvg active />
-              </button>
+              {!hideEditButtonWhileEditing && (
+                <button
+                  type="button"
+                  className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#00459D]"
+                  onClick={onStartEdit}
+                  aria-label={`Редактировать поле ${label}`}
+                >
+                  <EditFieldSvg active />
+                </button>
+              )}
             </div>
           )
         ) : (
@@ -264,6 +269,7 @@ function EditableField({
 }
 
 export function LkPage() {
+  const navigate = useNavigate();
   const PASSWORD_PLACEHOLDER = "********";
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
   const mainText = "text-[16px] md:text-[20px] leading-[1.25] font-light";
@@ -286,6 +292,8 @@ export function LkPage() {
   const birthDatePickerRef = useRef(null);
   const {
     user,
+    isLoggedIn,
+    isAuthResolved,
     subscriptions,
     devices,
     setHistoryModalOpen,
@@ -326,6 +334,12 @@ export function LkPage() {
   }), [user?.surname, user?.firstName, user?.birthDate, user?.club]);
 
   useEffect(() => {
+    if (isAuthResolved && !isLoggedIn) {
+      navigate("/");
+    }
+  }, [isAuthResolved, isLoggedIn, navigate]);
+
+  useEffect(() => {
     setEditableFields({
       login: user?.login || "",
       surname: persistedProfileFields.surname,
@@ -343,6 +357,9 @@ export function LkPage() {
   );
   const isProfileComplete = profileFieldKeys.every((key) => String(persistedProfileFields[key] || "").trim());
   const shouldShowFillProfileButton = !isProfileComplete || hasUnsavedProfileChanges;
+
+  const isProfileFieldEditing = (field) =>
+    editingField === field || !String(persistedProfileFields[field] || "").trim();
 
   const handleLoginConfirm = async (nextValue) => {
     const trimmed = String(nextValue || "").trim();
@@ -393,12 +410,17 @@ export function LkPage() {
         club: editableFields.club.trim() || null,
       });
       setEditingField(null);
+      setIsBirthDateCalendarOpen(false);
     } catch (err) {
       setProfileSaveError(err?.message || "Не удалось сохранить профиль");
     } finally {
       setIsProfileSaving(false);
     }
   };
+
+  if (!isAuthResolved || !isLoggedIn) {
+    return null;
+  }
 
   return (
     <>
@@ -653,11 +675,14 @@ export function LkPage() {
               <EditableField
                 label="Фамилия"
                 value={editableFields.surname}
-                isEditing={editingField === "surname"}
+                editingValue={editableFields.surname}
+                isEditing={isProfileFieldEditing("surname")}
                 onStartEdit={() => { setEditingField("surname"); setProfileSaveError(""); }}
                 onConfirm={(val) => { updateEditableField("surname", val); setEditingField(null); }}
                 onClear={() => setEditingField(null)}
                 onExitWithoutSave={() => setEditingField(null)}
+                onDraftChange={(val) => updateEditableField("surname", val)}
+                hideEditButtonWhileEditing={!String(persistedProfileFields.surname || "").trim()}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -665,11 +690,14 @@ export function LkPage() {
               <EditableField
                 label="Имя"
                 value={editableFields.firstName}
-                isEditing={editingField === "firstName"}
+                editingValue={editableFields.firstName}
+                isEditing={isProfileFieldEditing("firstName")}
                 onStartEdit={() => { setEditingField("firstName"); setProfileSaveError(""); }}
                 onConfirm={(val) => { updateEditableField("firstName", val); setEditingField(null); }}
                 onClear={() => setEditingField(null)}
                 onExitWithoutSave={() => setEditingField(null)}
+                onDraftChange={(val) => updateEditableField("firstName", val)}
+                hideEditButtonWhileEditing={!String(persistedProfileFields.firstName || "").trim()}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -677,7 +705,8 @@ export function LkPage() {
               <EditableField
                 label="Дата рождения"
                 value={editableFields.birthDate}
-                isEditing={editingField === "birthDate"}
+                editingValue={editableFields.birthDate}
+                isEditing={isProfileFieldEditing("birthDate")}
                 onStartEdit={() => {
                   setEditingField("birthDate");
                   setProfileSaveError("");
@@ -690,6 +719,8 @@ export function LkPage() {
                 }}
                 onClear={() => { setEditingField(null); setIsBirthDateCalendarOpen(false); }}
                 onExitWithoutSave={() => { setEditingField(null); setIsBirthDateCalendarOpen(false); }}
+                onDraftChange={(val) => updateEditableField("birthDate", val)}
+                hideEditButtonWhileEditing={!String(persistedProfileFields.birthDate || "").trim()}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
                 inputMode="numeric"
@@ -735,11 +766,14 @@ export function LkPage() {
               <EditableField
                 label="Клуб"
                 value={editableFields.club}
-                isEditing={editingField === "club"}
+                editingValue={editableFields.club}
+                isEditing={isProfileFieldEditing("club")}
                 onStartEdit={() => { setEditingField("club"); setProfileSaveError(""); }}
                 onConfirm={(val) => { updateEditableField("club", val); setEditingField(null); }}
                 onClear={() => setEditingField(null)}
                 onExitWithoutSave={() => setEditingField(null)}
+                onDraftChange={(val) => updateEditableField("club", val)}
+                hideEditButtonWhileEditing={!String(persistedProfileFields.club || "").trim()}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -748,7 +782,7 @@ export function LkPage() {
                 <div className="mt-[16px] flex flex-col gap-[8px]">
                   <button
                     type="button"
-                    className={secondaryButtonClass}
+                    className={`${secondaryButtonClass} !w-full`}
                     onClick={handleProfileSave}
                     disabled={isProfileSaving || !hasAnyProfileValue}
                   >

@@ -45,6 +45,7 @@ export function AppProvider({ children }) {
   const [codePurpose, setCodePurpose] = useState(null); // 'register' | 'reset' | 'change_login'
   const [codeEmail, setCodeEmail] = useState("");
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
+  const [isAuthResolved, setIsAuthResolved] = useState(false);
 
   const isLoggedIn = !!user;
 
@@ -106,6 +107,8 @@ export function AppProvider({ children }) {
         apiLogout();
         setUser(null);
         clearAuthorizedData();
+      } finally {
+        setIsAuthResolved(true);
       }
     };
     bootstrap();
@@ -281,6 +284,7 @@ export function AppProvider({ children }) {
     user,
     setUser,
     isLoggedIn,
+    isAuthResolved,
     loginModalOpen,
     setLoginModalOpen: setLoginModalOpenSafe,
     login,

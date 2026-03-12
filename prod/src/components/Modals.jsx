@@ -226,10 +226,10 @@ export function Modals() {
 
     try {
       setRestoreLoading(true);
-      await apiPasswordRequestReset({ email });
-      setResetEmail(email);
+      const data = await apiPasswordRequestReset({ identifier: email });
+      setResetEmail(data?.email || email);
       setCodePurpose("reset");
-      setCodeEmail(email);
+      setCodeEmail(data?.email || email);
       setCodeDigits(["", "", "", "", "", ""]);
       setCodeError("");
       setRestoreModalOpen(false);
@@ -588,7 +588,7 @@ export function Modals() {
           }}
         >
           <div className="mb-[24px] md:mb-[32px]">
-            <ModalFloatingInput label="Логин/Почта" value={restoreEmail} onChange={(v) => { setRestoreEmail(v); if (restoreEmailError) setRestoreEmailError(""); }} type="email" error={!!restoreEmailError} />
+            <ModalFloatingInput label="Логин/Почта" value={restoreEmail} onChange={(v) => { setRestoreEmail(v); if (restoreEmailError) setRestoreEmailError(""); }} type="text" error={!!restoreEmailError} />
           {restoreEmailError && (
               <p className={`m-0 mt-[8px] md:mt-[16px] text-center text-[#FF383C] ${MODAL_TEXT_FONT}`}>
               {restoreEmailError}

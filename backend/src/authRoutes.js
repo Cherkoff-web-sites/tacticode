@@ -253,18 +253,17 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/password/request-reset", async (req, res) => {
-  const { email } = req.body || {};
+  const { email, identifier } = req.body || {};
+  const rawIdentifier = String(identifier || email || "").trim().toLowerCase();
 
-  if (!email) {
-    return res.status(400).json({ error: "Почта обязательна" });
+  if (!rawIdentifier) {
+    return res.status(400).json({ error: "Логин или почта обязательны" });
   }
-
-  const trimmedEmail = String(email).trim().toLowerCase();
 
   try {
     const userResult = await query(
-      "SELECT id FROM users WHERE email = $1",
-      [trimmedEmail]
+      "SELECT id, email FROM users WHERE email = $1 OR login = $1 LIMIT 1",
+      [rawIdentifier]
     );
 
     if (userResult.rowCount === 0) {
@@ -273,16 +272,21 @@ router.post("/password/request-reset", async (req, res) => {
       });
     }
 
+    const targetEmail = String(userResult.rows[0].email || "").trim().toLowerCase();
+    if (!targetEmail) {
+      return res.status(400).json({ error: "К аккаунту не привязана почта для восстановления" });
+    }
+
     const code = generateCode();
 
     await query(
       "INSERT INTO auth_codes (email, code, purpose, expires_at) VALUES ($1, $2, 'reset', NOW() + ($3 || ' minutes')::INTERVAL)",
-      [trimmedEmail, code, CODE_TTL_MINUTES]
+      [targetEmail, code, CODE_TTL_MINUTES]
     );
 
-    await sendCodeEmail(trimmedEmail, "Код для восстановления доступа Tacticode", code);
+    await sendCodeEmail(targetEmail, "Код для восстановления доступа Tacticode", code);
 
-    return res.json({ ok: true });
+    return res.json({ ok: true, email: targetEmail });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });
@@ -409,6 +413,13 @@ router.patch("/me", authMiddleware, async (req, res) => {
   }
 
   try {
+    const hasLogin = Object.prototype.hasOwnProperty.call(body, "login");
+    const hasEmail = Object.prototype.hasOwnProperty.call(body, "email");
+    const hasSurname = Object.prototype.hasOwnProperty.call(body, "surname");
+    const hasFirstName = Object.prototype.hasOwnProperty.call(body, "firstName");
+    const hasBirthDate = Object.prototype.hasOwnProperty.call(body, "birthDate");
+    const hasClub = Object.prototype.hasOwnProperty.call(body, "club");
+
     const nextLogin = Object.prototype.hasOwnProperty.call(body, "login")
       ? (body.login ? String(body.login).trim() : null)
       : undefined;
@@ -444,22 +455,28 @@ router.patch("/me", authMiddleware, async (req, res) => {
 
     const result = await query(
       `UPDATE users
-       SET login = COALESCE($2, login),
-           email = COALESCE($3, email),
-           surname = COALESCE($4, surname),
-           first_name = COALESCE($5, first_name),
-           birth_date = COALESCE($6::date, birth_date),
-           club = COALESCE($7, club),
+       SET login = CASE WHEN $2 THEN $3 ELSE login END,
+           email = CASE WHEN $4 THEN $5 ELSE email END,
+           surname = CASE WHEN $6 THEN $7 ELSE surname END,
+           first_name = CASE WHEN $8 THEN $9 ELSE first_name END,
+           birth_date = CASE WHEN $10 THEN $11::date ELSE birth_date END,
+           club = CASE WHEN $12 THEN $13 ELSE club END,
            updated_at = NOW()
        WHERE id = $1
        RETURNING ${USER_SELECT_FIELDS}`,
       [
         req.user.id,
+        hasLogin,
         nextLogin ?? null,
+        hasEmail,
         nextEmail ?? null,
+        hasSurname,
         nextSurname ?? null,
+        hasFirstName,
         nextFirstName ?? null,
+        hasBirthDate,
         nextBirthDate ?? null,
+        hasClub,
         nextClub ?? null,
       ]
     );
@@ -563,6 +580,7 @@ router.post("/me/confirm-login-change", authMiddleware, async (req, res) => {
     const result = await query(
       `UPDATE users
        SET login = $2,
+           email = $2,
            session_version = session_version + 1,
            updated_at = NOW()
        WHERE id = $1

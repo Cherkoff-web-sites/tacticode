@@ -107,10 +107,10 @@ export async function apiRegisterConfirm({ email, code }) {
   return data.user;
 }
 
-export async function apiPasswordRequestReset({ email }) {
+export async function apiPasswordRequestReset({ email, identifier }) {
   return request("/api/auth/password/request-reset", {
     method: "POST",
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, identifier }),
   });
 }
 
