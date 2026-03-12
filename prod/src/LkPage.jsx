@@ -95,12 +95,12 @@ function formatBirthDateToApi(value) {
   if (digits.length !== 8) return null;
   const normalized = formatBirthDateInput(value);
   const [day, month, year] = normalized.split(".");
-  const parsed = new Date(`${year}-${month}-${day}T00:00:00`);
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
   if (
     Number.isNaN(parsed.getTime()) ||
-    parsed.getUTCFullYear() !== Number(year) ||
-    parsed.getUTCMonth() + 1 !== Number(month) ||
-    parsed.getUTCDate() !== Number(day)
+    parsed.getFullYear() !== Number(year) ||
+    parsed.getMonth() + 1 !== Number(month) ||
+    parsed.getDate() !== Number(day)
   ) {
     return null;
   }
@@ -152,6 +152,7 @@ function EditableField({
   hideEditButtonWhileEditing = false,
   hideEditButtonWhenIdle = false,
   startEditOnFieldClick = false,
+  errorMessage = "",
   secondaryControl = null,
 }) {
   const normalizedValue = value ?? "";
@@ -275,6 +276,9 @@ function EditableField({
           </div>
         )}
       </div>
+      {errorMessage && (
+        <p className={`${mainText} mt-[8px] text-[#FF383C]`}>{errorMessage}</p>
+      )}
     </div>
   );
 }
@@ -298,6 +302,7 @@ export function LkPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isBirthDateCalendarOpen, setIsBirthDateCalendarOpen] = useState(false);
   const [loginChangeError, setLoginChangeError] = useState("");
+  const [birthDateError, setBirthDateError] = useState("");
   const [profileSaveError, setProfileSaveError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const birthDatePickerRef = useRef(null);
@@ -375,6 +380,7 @@ export function LkPage() {
     updateEditableField(field, persistedProfileFields[field] || "");
     if (field === "birthDate") {
       setIsBirthDateCalendarOpen(false);
+      setBirthDateError("");
     }
     setEditingField(null);
   };
@@ -387,10 +393,13 @@ export function LkPage() {
     };
 
     setProfileSaveError("");
+    if (field === "birthDate") {
+      setBirthDateError("");
+    }
     updateEditableField(field, normalizedNextValue);
 
     if (field === "birthDate" && normalizedNextValue && !formatBirthDateToApi(normalizedNextValue)) {
-      setProfileSaveError("Дата рождения должна быть в формате ДД.ММ.ГГГГ");
+      setBirthDateError("Дата рождения должна быть в формате ДД.ММ.ГГГГ");
       return;
     }
 
@@ -447,6 +456,7 @@ export function LkPage() {
 
   const handleProfileSave = async () => {
     setProfileSaveError("");
+    setBirthDateError("");
 
     if (!hasAnyProfileValue) {
       setProfileSaveError("Заполните хотя бы одно поле");
@@ -454,7 +464,7 @@ export function LkPage() {
     }
 
     if (editableFields.birthDate && !formatBirthDateToApi(editableFields.birthDate)) {
-      setProfileSaveError("Дата рождения должна быть в формате ДД.ММ.ГГГГ");
+      setBirthDateError("Дата рождения должна быть в формате ДД.ММ.ГГГГ");
       return;
     }
 
@@ -633,10 +643,8 @@ export function LkPage() {
                   onExitWithoutSave={() => setEditingField(null)}
                   mainText={mainText}
                   fieldValueClass={fieldValueClass}
+                errorMessage={loginChangeError}
                 />
-                {loginChangeError && (
-                  <p className={`${mainText} mt-1 text-[#FF383C]`}>{loginChangeError}</p>
-                )}
               </div>
 
               <EditableField
@@ -771,12 +779,16 @@ export function LkPage() {
                 onStartEdit={() => {
                   setEditingField("birthDate");
                   setProfileSaveError("");
+                  setBirthDateError("");
                   setIsBirthDateCalendarOpen(false);
                 }}
                 onConfirm={(val) => commitProfileField("birthDate", val)}
                 onClear={() => resetProfileFieldDraft("birthDate")}
                 onExitWithoutSave={() => resetProfileFieldDraft("birthDate")}
-                onDraftChange={(val) => updateEditableField("birthDate", val)}
+                onDraftChange={(val) => {
+                  updateEditableField("birthDate", val);
+                  if (birthDateError) setBirthDateError("");
+                }}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("birthDate")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("birthDate")}
                 startEditOnFieldClick={!hasPersistedProfileValue("birthDate")}
@@ -785,6 +797,7 @@ export function LkPage() {
                 inputMode="numeric"
                 placeholder="__.__.____"
                 formatDraftValue={formatBirthDateInput}
+                errorMessage={birthDateError}
                 secondaryControl={({ draft, isEditing, isFocused, setDraft }) => (
                   isEditing && isFocused ? (
                     <>
@@ -799,6 +812,7 @@ export function LkPage() {
                           const nextValue = formatBirthDateFromApi(e.target.value);
                           setDraft(nextValue);
                           updateEditableField("birthDate", nextValue);
+                          setBirthDateError("");
                           setIsBirthDateCalendarOpen(false);
                         }}
                         className="sr-only"
