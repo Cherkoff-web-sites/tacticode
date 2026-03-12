@@ -6,9 +6,8 @@ import {
   apiGetMe,
   apiLogin,
   apiLogout,
-  apiRegister,
   apiRegisterDevice,
-  apiUpdateMe,
+  apiUpdateProfileDetails,
   apiUpdateMyPassword,
   apiGetSubscriptions,
   apiGetSubscriptionHistory,
@@ -34,7 +33,6 @@ export function AppProvider({ children }) {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordPreview, setPasswordPreview] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [deviceToRemove, setDeviceToRemove] = useState(null);
@@ -44,6 +42,8 @@ export function AppProvider({ children }) {
   const [newsModalItem, setNewsModalItem] = useState(null);
   const [authMode, setAuthMode] = useState("login"); // "login" | "register"
   const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [codePurpose, setCodePurpose] = useState(null); // 'register' | 'reset' | 'change_login'
+  const [codeEmail, setCodeEmail] = useState("");
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
 
   const isLoggedIn = !!user;
@@ -175,7 +175,6 @@ export function AppProvider({ children }) {
   const handleLogout = () => {
     apiLogout();
     setUser(null);
-    setPasswordPreview("");
     navigate("/");
   };
 
@@ -192,7 +191,6 @@ export function AppProvider({ children }) {
       const identifier = login;
       const loggedUser = await apiLogin({ identifier, password });
       setUser(loggedUser);
-      setPasswordPreview(password);
       setLoginModalOpen(false);
       setPassword("");
 
@@ -217,8 +215,8 @@ export function AppProvider({ children }) {
     }
   };
 
-  const updateProfile = async ({ login: nextLogin, email }) => {
-    const updatedUser = await apiUpdateMe({ login: nextLogin, email });
+  const saveProfileDetails = async ({ surname, firstName, birthDate, club }) => {
+    const updatedUser = await apiUpdateProfileDetails({ surname, firstName, birthDate, club });
     setUser(updatedUser);
     return updatedUser;
   };
@@ -226,7 +224,6 @@ export function AppProvider({ children }) {
   const changeMyPassword = async ({ password: nextPassword }) => {
     const updatedUser = await apiUpdateMyPassword({ password: nextPassword });
     setUser(updatedUser);
-    setPasswordPreview(nextPassword);
     return updatedUser;
   };
 
@@ -240,8 +237,6 @@ export function AppProvider({ children }) {
     setLogin,
     password,
     setPassword,
-    passwordPreview,
-    setPasswordPreview,
     loginError,
     isAuthLoading,
     authMode,
@@ -271,10 +266,14 @@ export function AppProvider({ children }) {
     setNewsModalItem,
     codeModalOpen,
     setCodeModalOpen,
+    codePurpose,
+    setCodePurpose,
+    codeEmail,
+    setCodeEmail,
     downloadModalOpen,
     setDownloadModalOpen,
     activateSubscription,
-    updateProfile,
+    saveProfileDetails,
     changeMyPassword,
     setDemoLoggedIn
   };

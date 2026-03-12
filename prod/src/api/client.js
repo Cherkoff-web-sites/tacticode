@@ -12,11 +12,23 @@ function getToken() {
   return localStorage.getItem("accessToken") || null;
 }
 
+function getCurrentDeviceId() {
+  return localStorage.getItem("currentDeviceId") || null;
+}
+
 function setToken(token) {
   if (token) {
     localStorage.setItem("accessToken", token);
   } else {
     localStorage.removeItem("accessToken");
+  }
+}
+
+function setCurrentDeviceId(deviceId) {
+  if (deviceId) {
+    localStorage.setItem("currentDeviceId", String(deviceId));
+  } else {
+    localStorage.removeItem("currentDeviceId");
   }
 }
 
@@ -29,6 +41,10 @@ async function request(path, options = {}) {
   const token = getToken();
   if (token) {
     headers.Authorization = `Bearer ${token}`;
+  }
+  const currentDeviceId = getCurrentDeviceId();
+  if (currentDeviceId) {
+    headers["X-Device-Id"] = currentDeviceId;
   }
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -114,6 +130,14 @@ export async function apiPasswordReset({ email, code, password }) {
   return data.user;
 }
 
+export async function apiUpdateProfileDetails({ surname, firstName, birthDate, club }) {
+  const data = await request("/api/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify({ surname, firstName, birthDate, club }),
+  });
+  return data.user;
+}
+
 export async function apiGetMe() {
   const data = await request("/api/auth/me");
   return data.user;
@@ -121,6 +145,7 @@ export async function apiGetMe() {
 
 export function apiLogout() {
   setToken(null);
+  setCurrentDeviceId(null);
 }
 
 export async function apiUpdateMe({ login, email }) {
@@ -136,6 +161,23 @@ export async function apiUpdateMyPassword({ password }) {
     method: "PATCH",
     body: JSON.stringify({ password }),
   });
+  setToken(data.accessToken);
+  return data.user;
+}
+
+export async function apiRequestLoginChange(login) {
+  return request("/api/auth/me/request-login-change", {
+    method: "POST",
+    body: JSON.stringify({ login: String(login).trim() }),
+  });
+}
+
+export async function apiConfirmLoginChange({ login, code }) {
+  const data = await request("/api/auth/me/confirm-login-change", {
+    method: "POST",
+    body: JSON.stringify({ login: String(login).trim(), code: String(code).trim() }),
+  });
+  setToken(data.accessToken);
   return data.user;
 }
 
@@ -147,18 +189,36 @@ export async function apiRegisterDevice({ deviceName, deviceType }) {
       device_type: deviceType,
     }),
   });
+  setCurrentDeviceId(data.device?.id || null);
   return data.device;
 }
 
 export async function apiGetDevices() {
   const data = await request("/api/devices");
-  return data.devices;
+  return (data.devices || []).map((device) => ({
+    id: device.id,
+    name: device.device_name,
+    location: device.last_active_at
+      ? new Intl.DateTimeFormat("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(device.last_active_at))
+      : "",
+    createdAt: device.created_at,
+    lastActiveAt: device.last_active_at,
+    deviceType: device.device_type,
+  }));
 }
 
 export async function apiDeleteDevice(id) {
   await request(`/api/devices/${id}`, {
     method: "DELETE",
   });
+  if (String(getCurrentDeviceId()) === String(id)) {
+    setCurrentDeviceId(null);
+  }
 }
 
 export async function apiGetSubscriptions() {

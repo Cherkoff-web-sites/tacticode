@@ -4,6 +4,11 @@ CREATE TABLE IF NOT EXISTS users (
   login VARCHAR(64) NOT NULL UNIQUE,
   email VARCHAR(255) UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
+  surname VARCHAR(128),
+  first_name VARCHAR(128),
+  birth_date DATE,
+  club VARCHAR(255),
+  session_version INTEGER NOT NULL DEFAULT 1,
   registered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -11,6 +16,21 @@ CREATE TABLE IF NOT EXISTS users (
 
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS registered_at TIMESTAMPTZ;
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS surname VARCHAR(128);
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS first_name VARCHAR(128);
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS birth_date DATE;
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS club VARCHAR(255);
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 1;
 
 ALTER TABLE users
   ALTER COLUMN registered_at SET DEFAULT NOW();
@@ -24,13 +44,16 @@ CREATE TABLE IF NOT EXISTS auth_codes (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   code VARCHAR(10) NOT NULL,
-  purpose VARCHAR(32) NOT NULL, -- 'register' | 'reset'
+  purpose VARCHAR(32) NOT NULL, -- 'register' | 'reset' | 'change_login'
   login VARCHAR(64),
   password_hash VARCHAR(255),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at TIMESTAMPTZ NOT NULL,
   used_at TIMESTAMPTZ
 );
+
+ALTER TABLE auth_codes
+  ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);
 
 -- Devices table
 CREATE TABLE IF NOT EXISTS devices (

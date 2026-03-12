@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { subscriptionItems } from "./data";
 import { useApp } from "./context/AppContext";
+import { apiRequestLoginChange } from "./api/client";
 
 function EditFieldSvg({ active }) {
   return (
@@ -27,12 +28,84 @@ function ConfirmFieldSvg() {
   );
 }
 
-function EyeFieldSvg({ active }) {
+function CalendarFieldSvg({ active, inheritColor }) {
+  const colorClass = inheritColor
+    ? "shrink-0"
+    : active
+      ? "text-[#00459D] shrink-0"
+      : "text-[#8D8D8D] shrink-0";
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-[18px] h-[18px] shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover:text-[#00459D]"}`} aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`w-4 h-4 ${colorClass}`}
+      aria-hidden="true"
+    >
+      <g clipPath="url(#calendar-field-clip)">
+        <path d="M15 3.46508V5.50008H1V3.46508C1.00514 3.07206 1.16594 2.69712 1.44714 2.42248C1.72833 2.14785 2.10696 1.99594 2.5 2.00008H3.5V3.00008C3.5 3.39791 3.65804 3.77944 3.93934 4.06074C4.22064 4.34205 4.60218 4.50008 5 4.50008C5.39782 4.50008 5.77936 4.34205 6.06066 4.06074C6.34196 3.77944 6.5 3.39791 6.5 3.00008V2.00008H9.5V3.00008C9.5 3.39791 9.65804 3.77944 9.93934 4.06074C10.2206 4.34205 10.6022 4.50008 11 4.50008C11.3978 4.50008 11.7794 4.34205 12.0607 4.06074C12.342 3.77944 12.5 3.39791 12.5 3.00008V2.00008H13.5C13.893 1.99594 14.2717 2.14785 14.5529 2.42248C14.8341 2.69712 14.9949 3.07206 15 3.46508ZM1 6.50008V14.5351C1.00514 14.9281 1.16594 15.303 1.44714 15.5777C1.72833 15.8523 2.10696 16.0042 2.5 16.0001H13.5C13.893 16.0042 14.2717 15.8523 14.5529 15.5777C14.8341 15.303 14.9949 14.9281 15 14.5351V6.50008H1ZM5.5 13.5001C5.4996 13.6326 5.4468 13.7595 5.35312 13.8532C5.25943 13.9469 5.13249 13.9997 5 14.0001H4C3.86751 13.9997 3.74057 13.9469 3.64688 13.8532C3.5532 13.7595 3.5004 13.6326 3.5 13.5001V12.5001C3.5004 12.3676 3.5532 12.2406 3.64688 12.147C3.74057 12.0533 3.86751 12.0005 4 12.0001H5C5.13249 12.0005 5.25943 12.0533 5.35312 12.147C5.4468 12.2406 5.4996 12.3676 5.5 12.5001V13.5001ZM5.5 10.0001C5.4996 10.1326 5.4468 10.2595 5.35312 10.3532C5.25943 10.4469 5.13249 10.4997 5 10.5001H4C3.86751 10.4997 3.74057 10.4469 3.64688 10.3532C3.5532 10.2595 3.5004 10.1326 3.5 10.0001V9.00008C3.5004 8.8676 3.5532 8.74065 3.64688 8.64697C3.74057 8.55328 3.86751 8.50048 4 8.50008H5C5.13249 8.50048 5.25943 8.55328 5.35312 8.64697C5.4468 8.74065 5.4996 8.8676 5.5 9.00008V10.0001ZM9 13.5001C8.9996 13.6326 8.9468 13.7595 8.85312 13.8532C8.75943 13.9469 8.63249 13.9997 8.5 14.0001H7.5C7.36751 13.9997 7.24057 13.9469 7.14688 13.8532C7.0532 13.7595 7.0004 13.6326 7 13.5001V12.5001C7.0004 12.3676 7.0532 12.2406 7.14688 12.147C7.24057 12.0533 7.36751 12.0005 7.5 12.0001H8.5C8.63249 12.0005 8.75943 12.0533 8.85312 12.147C8.9468 12.2406 8.9996 12.3676 9 12.5001V13.5001ZM9 10.0001C8.9996 10.1326 8.9468 10.2595 8.85312 10.3532C8.75943 10.4469 8.63249 10.4997 8.5 10.5001H7.5C7.36751 10.4997 7.24057 10.4469 7.14688 10.3532C7.0532 10.2595 7.0004 10.1326 7 10.0001V9.00008C7.0004 8.8676 7.0532 8.74065 7.14688 8.64697C7.24057 8.55328 7.36751 8.50048 7.5 8.50008H8.5C8.63249 8.50048 8.75943 8.55328 8.85312 8.64697C8.9468 8.74065 8.9996 8.8676 9 9.00008V10.0001ZM12.5 10.0001C12.4996 10.1326 12.4468 10.2595 12.3531 10.3532C12.2594 10.4469 12.1325 10.4997 12 10.5001H11C10.8675 10.4997 10.7406 10.4469 10.6469 10.3532C10.5532 10.2595 10.5004 10.1326 10.5 10.0001V9.00008C10.5004 8.8676 10.5532 8.74065 10.6469 8.64697C10.7406 8.55328 10.8675 8.50048 11 8.50008H12C12.1325 8.50048 12.2594 8.55328 12.3531 8.64697C12.4468 8.74065 12.4996 8.8676 12.5 9.00008V10.0001Z" fill="currentColor"/>
+        <path d="M5.5 2V3C5.5 3.13261 5.44732 3.25979 5.35355 3.35355C5.25979 3.44732 5.13261 3.5 5 3.5C4.86739 3.5 4.74021 3.44732 4.64645 3.35355C4.55268 3.25979 4.5 3.13261 4.5 3V2C4.5 1.86739 4.55268 1.74021 4.64645 1.64645C4.74021 1.55268 4.86739 1.5 5 1.5C5.13261 1.5 5.25979 1.55268 5.35355 1.64645C5.44732 1.74021 5.5 1.86739 5.5 2ZM11.5 2V3C11.5 3.13261 11.4473 3.25979 11.3536 3.35355C11.2598 3.44732 11.1326 3.5 11 3.5C10.8674 3.5 10.7402 3.44732 10.6464 3.35355C10.5527 3.25979 10.5 3.13261 10.5 3V2C10.5 1.86739 10.5527 1.74021 10.6464 1.64645C10.7402 1.55268 10.8674 1.5 11 1.5C11.1326 1.5 11.2598 1.55268 11.3536 1.64645C11.4473 1.74021 11.5 1.86739 11.5 2Z" fill="currentColor"/>
+      </g>
+      <defs>
+        <clipPath id="calendar-field-clip">
+          <rect width="16" height="16" fill="white"/>
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+function EyeFieldSvg({ active, inheritColor }) {
+  const colorClass = inheritColor
+    ? "shrink-0"
+    : active
+      ? "text-[#00459D] shrink-0"
+      : "text-[#8D8D8D] lg:group-hover:text-[#00459D] shrink-0";
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-[18px] h-[18px] ${colorClass}`} aria-hidden="true">
       <path d="M9 3.63525C5.56091 3.63525 2.44216 5.51681 0.140841 8.57296C-0.0469469 8.82335 -0.0469469 9.17315 0.140841 9.42353C2.44216 12.4834 5.56091 14.3649 9 14.3649C12.4391 14.3649 15.5578 12.4834 17.8592 9.42721C18.0469 9.17683 18.0469 8.82703 17.8592 8.57665C15.5578 5.51681 12.4391 3.63525 9 3.63525ZM9.2467 12.7779C6.96379 12.9215 5.07855 11.04 5.22215 8.75339C5.33998 6.86815 6.86806 5.34007 8.7533 5.22224C11.0362 5.07864 12.9214 6.9602 12.7778 9.24679C12.6563 11.1283 11.1283 12.6564 9.2467 12.7779ZM9.13256 11.0326C7.90273 11.1099 6.88647 10.0974 6.96747 8.86753C7.03007 7.85127 7.85486 7.03016 8.87113 6.96388C10.101 6.88656 11.1172 7.89914 11.0362 9.12896C10.9699 10.1489 10.1451 10.97 9.13256 11.0326Z" fill="currentColor"/>
     </svg>
   );
+}
+
+function formatBirthDateInput(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 8);
+  if (!digits) return "";
+  const chars = "__.__.____".split("");
+  for (let i = 0; i < digits.length; i += 1) {
+    const charIndex = i < 2 ? i : i < 4 ? i + 1 : i + 2;
+    chars[charIndex] = digits[i];
+  }
+  return chars.join("");
+}
+
+function formatBirthDateFromApi(value) {
+  if (!value) return "";
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split("-");
+    return `${day}.${month}.${year}`;
+  }
+  return "";
+}
+
+function formatBirthDateToApi(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 8) return null;
+  const normalized = formatBirthDateInput(value);
+  const [day, month, year] = normalized.split(".");
+  const parsed = new Date(`${year}-${month}-${day}T00:00:00`);
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== Number(year) ||
+    parsed.getUTCMonth() + 1 !== Number(month) ||
+    parsed.getUTCDate() !== Number(day)
+  ) {
+    return null;
+  }
+  return `${year}-${month}-${day}`;
 }
 
 function DeviceTypeIcon({ deviceName }) {
@@ -73,27 +146,35 @@ function EditableField({
   mainText,
   fieldValueClass,
   inputType = "text",
+  inputMode,
+  placeholder = "",
+  formatDraftValue,
   secondaryControl = null,
 }) {
-  const [draft, setDraft] = useState(value);
-  const [hovered, setHovered] = useState(false);
+  const normalizedValue = value ?? "";
+  const normalizedEditingValue = editingValue ?? "";
+  const [draft, setDraft] = useState(normalizedValue);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
   const wrapperRef = useRef(null);
-  const initialValueRef = useRef(value);
+  const initialValueRef = useRef(normalizedValue);
   const wasEditingRef = useRef(false);
 
   useEffect(() => {
     if (isEditing) {
       if (!wasEditingRef.current) {
         wasEditingRef.current = true;
-        setDraft(editingValue);
-        initialValueRef.current = editingValue;
+        setDraft(normalizedEditingValue);
+        initialValueRef.current = normalizedEditingValue;
       }
       inputRef.current?.focus();
     } else {
       wasEditingRef.current = false;
+      setIsFocused(false);
+      setDraft(normalizedValue);
+      initialValueRef.current = normalizedValue;
     }
-  }, [editingValue, isEditing]);
+  }, [isEditing, normalizedEditingValue, normalizedValue]);
 
   const hasChanges = isEditing && draft !== initialValueRef.current;
 
@@ -108,29 +189,42 @@ function EditableField({
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, [isEditing, hasChanges, onExitWithoutSave]);
 
-  const showActiveStyle = isEditing || hovered;
-  const wrapperBgClass = showActiveStyle ? "!bg-[#F2F5FA]" : "";
+  const wrapperBgClass = isEditing ? "!bg-[#F2F5FA]" : "lg:hover:!bg-[#F2F5FA]";
+  const resolvedSecondaryControl =
+    typeof secondaryControl === "function"
+      ? secondaryControl({
+          draft,
+          hasChanges,
+          inputRef,
+          isEditing,
+          isFocused,
+          setDraft,
+        })
+      : secondaryControl;
 
   return (
     <div ref={wrapperRef} className="field-group">
       <label className={`${mainText} field-label`}>{label}</label>
-      <div
-        className={`${fieldValueClass} group gap-[16px] ${wrapperBgClass} cursor-default`}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
+      <div className={`${fieldValueClass} gap-[16px] ${wrapperBgClass} cursor-default`}>
         <input
           ref={inputRef}
           type={inputType}
-          value={isEditing ? draft : value}
-          onChange={(e) => setDraft(e.target.value)}
+          inputMode={inputMode}
+          placeholder={placeholder}
+          value={isEditing ? draft : normalizedValue}
+          onChange={(e) => {
+            const nextValue = e.target.value;
+            setDraft(formatDraftValue ? formatDraftValue(nextValue) : nextValue);
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           readOnly={!isEditing}
-          className={`w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] ${isEditing ? "cursor-text" : "cursor-default"}`}
+          className={`w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] placeholder:text-[#8D8D8D] ${isEditing ? "cursor-text" : "cursor-default"}`}
         />
         {isEditing ? (
           hasChanges ? (
             <div className="flex items-center gap-[16px] shrink-0">
-              {secondaryControl}
+              {resolvedSecondaryControl}
               <button type="button" className="border-none bg-transparent p-0 cursor-pointer" onClick={onClear} aria-label={`Отменить редактирование ${label}`}>
                 <ClearFieldSvg />
               </button>
@@ -140,17 +234,27 @@ function EditableField({
             </div>
           ) : (
             <div className="flex items-center gap-[16px] shrink-0">
-              {secondaryControl}
-              <button type="button" className="border-none bg-transparent p-0 cursor-pointer shrink-0" onClick={onStartEdit} aria-label={`Редактировать поле ${label}`}>
+              {resolvedSecondaryControl}
+              <button
+                type="button"
+                className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#00459D]"
+                onClick={onStartEdit}
+                aria-label={`Редактировать поле ${label}`}
+              >
                 <EditFieldSvg active />
               </button>
             </div>
           )
         ) : (
           <div className="flex items-center gap-[16px] shrink-0">
-            {secondaryControl}
-            <button type="button" className="border-none bg-transparent p-0 cursor-pointer shrink-0" onClick={onStartEdit} aria-label={`Редактировать поле ${label}`}>
-              <EditFieldSvg active={hovered} />
+            {resolvedSecondaryControl}
+            <button
+              type="button"
+              className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
+              onClick={onStartEdit}
+              aria-label={`Редактировать поле ${label}`}
+            >
+              <EditFieldSvg active={false} />
             </button>
           </div>
         )}
@@ -164,27 +268,35 @@ export function LkPage() {
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
   const mainText = "text-[16px] md:text-[20px] leading-[1.25] font-light";
   const fieldValueClass = "flex items-center justify-between w-full rounded-full bg-[#F8F8F8] pl-[24px] pr-[24px] py-[16px] text-[20px] leading-[1.25] font-light text-[#000]";
+  const secondaryButtonClass = "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white disabled:cursor-not-allowed disabled:opacity-70";
   const [showAllSports, setShowAllSports] = useState(false);
   const [editableFields, setEditableFields] = useState({
     login: "",
-    surname: "Константинопольский",
-    firstName: "Константин",
-    birthDate: "02.06.2000",
-    club: "«Спартак»",
+    surname: "",
+    firstName: "",
+    birthDate: "",
+    club: "",
   });
   const [editingField, setEditingField] = useState(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isBirthDateCalendarOpen, setIsBirthDateCalendarOpen] = useState(false);
+  const [loginChangeError, setLoginChangeError] = useState("");
+  const [profileSaveError, setProfileSaveError] = useState("");
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const birthDatePickerRef = useRef(null);
   const {
     user,
-    passwordPreview,
     subscriptions,
     devices,
     setHistoryModalOpen,
     setLogoutModalOpen,
     setActiveModal,
     setDeviceToRemove,
-    updateProfile,
     changeMyPassword,
+    saveProfileDetails,
+    setCodePurpose,
+    setCodeEmail,
+    setCodeModalOpen,
   } = useApp();
   const subscriptionMap = new Map(subscriptions.map((item) => [item.id, item]));
   const lkSubscriptions = subscriptionItems.map((item) => {
@@ -206,22 +318,45 @@ export function LkPage() {
     setEditableFields((prev) => ({ ...prev, [field]: nextValue }));
   };
 
-  useEffect(() => {
-    if (!user?.login) return;
-    setEditableFields((prev) => ({ ...prev, login: user.login }));
-  }, [user?.login]);
+  const persistedProfileFields = useMemo(() => ({
+    surname: user?.surname || "",
+    firstName: user?.firstName || "",
+    birthDate: formatBirthDateFromApi(user?.birthDate),
+    club: user?.club || "",
+  }), [user?.surname, user?.firstName, user?.birthDate, user?.club]);
 
-  const passwordFieldValue = passwordPreview || PASSWORD_PLACEHOLDER;
+  useEffect(() => {
+    setEditableFields({
+      login: user?.login || "",
+      surname: persistedProfileFields.surname,
+      firstName: persistedProfileFields.firstName,
+      birthDate: persistedProfileFields.birthDate,
+      club: persistedProfileFields.club,
+    });
+  }, [persistedProfileFields, user?.login]);
+
+  const passwordFieldValue = PASSWORD_PLACEHOLDER;
+  const profileFieldKeys = ["surname", "firstName", "birthDate", "club"];
+  const hasAnyProfileValue = profileFieldKeys.some((key) => String(editableFields[key] || "").trim());
+  const hasUnsavedProfileChanges = profileFieldKeys.some(
+    (key) => String(editableFields[key] || "") !== String(persistedProfileFields[key] || "")
+  );
+  const isProfileComplete = profileFieldKeys.every((key) => String(persistedProfileFields[key] || "").trim());
+  const shouldShowFillProfileButton = !isProfileComplete || hasUnsavedProfileChanges;
 
   const handleLoginConfirm = async (nextValue) => {
     const trimmed = String(nextValue || "").trim();
     if (!trimmed) return;
+    setLoginChangeError("");
     try {
-      const updatedUser = await updateProfile({ login: trimmed });
-      updateEditableField("login", updatedUser?.login || trimmed);
+      await apiRequestLoginChange(trimmed);
+      setCodePurpose("change_login");
+      setCodeEmail(trimmed);
+      setCodeModalOpen(true);
       setEditingField(null);
     } catch (err) {
-      console.error("Failed to update login:", err);
+      setLoginChangeError(err?.message || "Не удалось отправить код");
+      console.error("Failed to request login change:", err);
     }
   };
 
@@ -229,9 +364,39 @@ export function LkPage() {
     if (!String(nextValue || "").trim()) return;
     try {
       await changeMyPassword({ password: nextValue });
+      setIsPasswordVisible(false);
       setEditingField(null);
     } catch (err) {
       console.error("Failed to update password:", err);
+    }
+  };
+
+  const handleProfileSave = async () => {
+    setProfileSaveError("");
+
+    if (!hasAnyProfileValue) {
+      setProfileSaveError("Заполните хотя бы одно поле");
+      return;
+    }
+
+    if (editableFields.birthDate && !formatBirthDateToApi(editableFields.birthDate)) {
+      setProfileSaveError("Дата рождения должна быть в формате ДД.ММ.ГГГГ");
+      return;
+    }
+
+    try {
+      setIsProfileSaving(true);
+      await saveProfileDetails({
+        surname: editableFields.surname.trim() || null,
+        firstName: editableFields.firstName.trim() || null,
+        birthDate: formatBirthDateToApi(editableFields.birthDate),
+        club: editableFields.club.trim() || null,
+      });
+      setEditingField(null);
+    } catch (err) {
+      setProfileSaveError(err?.message || "Не удалось сохранить профиль");
+    } finally {
+      setIsProfileSaving(false);
     }
   };
 
@@ -375,24 +540,35 @@ export function LkPage() {
             <div className="lk-column w-full lg:max-w-[425px] lg:flex-[0_0_425px] max-md:pb-[24px] max-md:border-b max-md:border-[#F2F2F2] max-md:mb-[24px]">
               {/* <h2 className="">Основные данные</h2> */}
 
-              <EditableField
-                label="Почта/Логин"
-                value={editableFields.login}
-                isEditing={editingField === "login"}
-                onStartEdit={() => setEditingField("login")}
-                onConfirm={handleLoginConfirm}
-                onClear={() => setEditingField(null)}
-                onExitWithoutSave={() => setEditingField(null)}
-                mainText={mainText}
-                fieldValueClass={fieldValueClass}
-              />
+              <div>
+                <EditableField
+                  label="Почта/Логин"
+                  value={editableFields.login}
+                  isEditing={editingField === "login"}
+                  onStartEdit={() => { setEditingField("login"); setLoginChangeError(""); }}
+                  onConfirm={handleLoginConfirm}
+                  onClear={() => {
+                    setEditingField(null);
+                    setLoginChangeError("");
+                  }}
+                  onExitWithoutSave={() => setEditingField(null)}
+                  mainText={mainText}
+                  fieldValueClass={fieldValueClass}
+                />
+                {loginChangeError && (
+                  <p className={`${mainText} mt-1 text-[#FF383C]`}>{loginChangeError}</p>
+                )}
+              </div>
 
               <EditableField
                 label="Пароль"
                 value={passwordFieldValue}
-                editingValue={passwordPreview || ""}
+                editingValue=""
                 isEditing={editingField === "password"}
-                onStartEdit={() => setEditingField("password")}
+                onStartEdit={() => {
+                  setEditingField("password");
+                  setIsPasswordVisible(false);
+                }}
                 onConfirm={handlePasswordConfirm}
                 onClear={() => { setEditingField(null); setIsPasswordVisible(false); }}
                 onExitWithoutSave={() => { setEditingField(null); setIsPasswordVisible(false); }}
@@ -403,11 +579,11 @@ export function LkPage() {
                   editingField === "password" ? (
                     <button
                       type="button"
-                      className={`border-none bg-transparent p-0 cursor-pointer shrink-0 ${isPasswordVisible ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover:text-[#00459D]"}`}
+                      className={`group/eye border-none bg-transparent p-0 cursor-pointer shrink-0 ${isPasswordVisible ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover/eye:text-[#00459D] active:text-[#00459D]"}`}
                       onClick={() => setIsPasswordVisible((prev) => !prev)}
                       aria-label={isPasswordVisible ? "Скрыть пароль" : "Показать пароль"}
                     >
-                      <EyeFieldSvg active={isPasswordVisible} />
+                      <EyeFieldSvg active={isPasswordVisible} inheritColor />
                     </button>
                   ) : null
                 }
@@ -478,7 +654,7 @@ export function LkPage() {
                 label="Фамилия"
                 value={editableFields.surname}
                 isEditing={editingField === "surname"}
-                onStartEdit={() => setEditingField("surname")}
+                onStartEdit={() => { setEditingField("surname"); setProfileSaveError(""); }}
                 onConfirm={(val) => { updateEditableField("surname", val); setEditingField(null); }}
                 onClear={() => setEditingField(null)}
                 onExitWithoutSave={() => setEditingField(null)}
@@ -490,7 +666,7 @@ export function LkPage() {
                 label="Имя"
                 value={editableFields.firstName}
                 isEditing={editingField === "firstName"}
-                onStartEdit={() => setEditingField("firstName")}
+                onStartEdit={() => { setEditingField("firstName"); setProfileSaveError(""); }}
                 onConfirm={(val) => { updateEditableField("firstName", val); setEditingField(null); }}
                 onClear={() => setEditingField(null)}
                 onExitWithoutSave={() => setEditingField(null)}
@@ -502,25 +678,87 @@ export function LkPage() {
                 label="Дата рождения"
                 value={editableFields.birthDate}
                 isEditing={editingField === "birthDate"}
-                onStartEdit={() => setEditingField("birthDate")}
-                onConfirm={(val) => { updateEditableField("birthDate", val); setEditingField(null); }}
-                onClear={() => setEditingField(null)}
-                onExitWithoutSave={() => setEditingField(null)}
+                onStartEdit={() => {
+                  setEditingField("birthDate");
+                  setProfileSaveError("");
+                  setIsBirthDateCalendarOpen(false);
+                }}
+                onConfirm={(val) => {
+                  updateEditableField("birthDate", formatBirthDateInput(val));
+                  setIsBirthDateCalendarOpen(false);
+                  setEditingField(null);
+                }}
+                onClear={() => { setEditingField(null); setIsBirthDateCalendarOpen(false); }}
+                onExitWithoutSave={() => { setEditingField(null); setIsBirthDateCalendarOpen(false); }}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
+                inputMode="numeric"
+                placeholder="__.__.____"
+                formatDraftValue={formatBirthDateInput}
+                secondaryControl={({ draft, isEditing, isFocused, setDraft }) => (
+                  isEditing && isFocused ? (
+                    <>
+                      <input
+                        ref={birthDatePickerRef}
+                        type="date"
+                        tabIndex={-1}
+                        value={formatBirthDateToApi(draft) || ""}
+                        onFocus={() => setIsBirthDateCalendarOpen(true)}
+                        onBlur={() => setIsBirthDateCalendarOpen(false)}
+                        onChange={(e) => {
+                          setDraft(formatBirthDateFromApi(e.target.value));
+                          setIsBirthDateCalendarOpen(false);
+                        }}
+                        className="sr-only"
+                      />
+                      <button
+                        type="button"
+                        className={`group/eye border-none bg-transparent p-0 cursor-pointer shrink-0 ${isBirthDateCalendarOpen ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover/eye:text-[#00459D] active:text-[#00459D]"}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setIsBirthDateCalendarOpen(true);
+                          if (birthDatePickerRef.current?.showPicker) {
+                            birthDatePickerRef.current.showPicker();
+                            return;
+                          }
+                          birthDatePickerRef.current?.click();
+                        }}
+                        aria-label="Открыть календарь"
+                      >
+                        <CalendarFieldSvg active={isBirthDateCalendarOpen} inheritColor />
+                      </button>
+                    </>
+                  ) : null
+                )}
               />
 
               <EditableField
                 label="Клуб"
                 value={editableFields.club}
                 isEditing={editingField === "club"}
-                onStartEdit={() => setEditingField("club")}
+                onStartEdit={() => { setEditingField("club"); setProfileSaveError(""); }}
                 onConfirm={(val) => { updateEditableField("club", val); setEditingField(null); }}
                 onClear={() => setEditingField(null)}
                 onExitWithoutSave={() => setEditingField(null)}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
+
+              {shouldShowFillProfileButton && (
+                <div className="mt-[16px] flex flex-col gap-[8px]">
+                  <button
+                    type="button"
+                    className={secondaryButtonClass}
+                    onClick={handleProfileSave}
+                    disabled={isProfileSaving || !hasAnyProfileValue}
+                  >
+                    {isProfileSaving ? "Сохраняем..." : "Заполнить профиль"}
+                  </button>
+                  {profileSaveError && (
+                    <p className={`${mainText} text-[#FF383C]`}>{profileSaveError}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

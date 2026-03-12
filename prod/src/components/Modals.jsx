@@ -4,6 +4,7 @@ import { useApp } from "../context/AppContext";
 import { subscriptionItems } from "../data";
 import BaseModal from "./BaseModal";
 import {
+  apiConfirmLoginChange,
   apiPasswordRequestReset,
   apiPasswordReset,
   apiPasswordVerifyCode,
@@ -72,7 +73,7 @@ function ModalFloatingInput({ label, value, onChange, type = "text", error, id, 
       {isPassword && hasValue && (
         <button
           type="button"
-          className="absolute right-[56px] top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
+          className={`group/eye absolute right-[56px] top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 p-0 border-none bg-transparent cursor-pointer ${showPassword ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover/eye:text-[#00459D] active:text-[#00459D]"}`}
           onClick={() => setShowPassword((prev) => !prev)}
           aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
         >
@@ -113,7 +114,6 @@ export function Modals() {
     isAuthLoading,
     handleLoginSubmit,
     setUser,
-    setPasswordPreview,
     subscriptions,
     activeModal,
     setActiveModal,
@@ -131,6 +131,10 @@ export function Modals() {
     setNewsModalItem,
     codeModalOpen,
     setCodeModalOpen,
+    codePurpose,
+    setCodePurpose,
+    codeEmail,
+    setCodeEmail,
     downloadModalOpen,
     setDownloadModalOpen,
     handleLogout,
@@ -139,8 +143,6 @@ export function Modals() {
 
   const [codeDigits, setCodeDigits] = useState(["", "", "", "", "", ""]);
   const codeInputsRef = useRef([]);
-  const [codePurpose, setCodePurpose] = useState(null); // 'register' | 'reset'
-  const [codeEmail, setCodeEmail] = useState("");
   const [codeError, setCodeError] = useState("");
   const [codeLoading, setCodeLoading] = useState(false);
 
@@ -337,6 +339,13 @@ export function Modals() {
     return () => { document.body.style.overflow = ""; };
   }, [isAnyModalOpen]);
 
+  useEffect(() => {
+    if (codeModalOpen) {
+      setCodeDigits(["", "", "", "", "", ""]);
+      setCodeError("");
+    }
+  }, [codeModalOpen]);
+
   return (
     <>
       {/* Вход / Регистрация */}
@@ -492,30 +501,30 @@ export function Modals() {
         </p>
         <div className="mb-[24px]">
           <div className="flex flex-row justify-between gap-2 md:gap-[2px]">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <input
-                key={i}
-                ref={(el) => {
-                  codeInputsRef.current[i] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                pattern="\d*"
-                maxLength={1}
-                value={codeDigits[i]}
-                onChange={(e) => handleCodeChange(i, e.target.value)}
-                onKeyDown={(e) => handleCodeKeyDown(i, e)}
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <input
+              key={i}
+              ref={(el) => {
+                codeInputsRef.current[i] = el;
+              }}
+              type="text"
+              inputMode="numeric"
+              pattern="\d*"
+              maxLength={1}
+              value={codeDigits[i]}
+              onChange={(e) => handleCodeChange(i, e.target.value)}
+              onKeyDown={(e) => handleCodeKeyDown(i, e)}
                 className={`flex-1 min-w-0 aspect-square md:flex-none md:w-[57px] md:h-[57px] rounded-full border-none outline-none px-0 text-center text-[20px] leading-[1.25] font-light ${
-                  codeError ? "bg-[#FFE3E3] text-[#FF383C]" : "bg-[#F2F5FA]"
-                }`}
-              />
-            ))}
-          </div>
-          {codeError && (
+                codeError ? "bg-[#FFE3E3] text-[#FF383C]" : "bg-[#F2F5FA]"
+              }`}
+            />
+          ))}
+        </div>
+        {codeError && (
             <p className={`m-0 mt-2 text-[#FF383C] text-center text-[20px] leading-[1.25] font-light`}>
-              {codeError}
-            </p>
-          )}
+            {codeError}
+          </p>
+        )}
         </div>
         <button
           type="button"
@@ -540,6 +549,10 @@ export function Modals() {
                 setResetCode(code);
                 setCodeModalOpen(false);
                 setNewPasswordModalOpen(true);
+              } else if (codePurpose === "change_login") {
+                const user = await apiConfirmLoginChange({ login: codeEmail, code });
+                setUser(user);
+                setCodeModalOpen(false);
               } else {
                 setCodeError("Неизвестный тип кода");
               }
@@ -550,7 +563,7 @@ export function Modals() {
             }
           }}
         >
-          {codeLoading ? "Проверяем..." : codePurpose === "reset" ? "Продолжить" : "Зарегистрироваться"}
+          {codeLoading ? "Проверяем..." : codePurpose === "reset" ? "Продолжить" : codePurpose === "change_login" ? "Подтвердить" : "Зарегистрироваться"}
         </button>
         <button type="button" className={`${MODAL_LINK_CLASS} ${MODAL_TEXT_FONT} mx-auto block mt-4`}>
           Отправить код еще раз
@@ -576,11 +589,11 @@ export function Modals() {
         >
           <div className="mb-[24px] md:mb-[32px]">
             <ModalFloatingInput label="Логин/Почта" value={restoreEmail} onChange={(v) => { setRestoreEmail(v); if (restoreEmailError) setRestoreEmailError(""); }} type="email" error={!!restoreEmailError} />
-            {restoreEmailError && (
+          {restoreEmailError && (
               <p className={`m-0 mt-[8px] md:mt-[16px] text-center text-[#FF383C] ${MODAL_TEXT_FONT}`}>
-                {restoreEmailError}
-              </p>
-            )}
+              {restoreEmailError}
+            </p>
+          )}
           </div>
           <button
             type="submit"
@@ -616,15 +629,15 @@ export function Modals() {
         <div className="mb-[24px] md:mb-[40px]">
           <div className="mb-[16px] md:mb-[24px]">
             <ModalFloatingInput label="Новый пароль" value={newPassword} onChange={(v) => { setNewPassword(v); if (newPasswordError) setNewPasswordError(""); }} type="password" error={!!newPasswordError} />
-          </div>
+        </div>
           <div>
             <ModalFloatingInput label="Повторите пароль" value={newPassword2} onChange={(v) => { setNewPassword2(v); if (newPasswordError) setNewPasswordError(""); }} type="password" error={!!newPasswordError} />
-          </div>
-          {newPasswordError && (
+        </div>
+        {newPasswordError && (
             <p className={`m-0 mt-[8px] md:mt-[16px] text-[#FF383C] ${MODAL_TEXT_FONT}`}>
-              {newPasswordError}
-            </p>
-          )}
+            {newPasswordError}
+          </p>
+        )}
         </div>
         <button
           type="button"
@@ -643,7 +656,6 @@ export function Modals() {
               setNewPasswordLoading(true);
               const user = await apiPasswordReset({ email: resetEmail, code: resetCode, password: newPassword });
               setUser(user);
-              setPasswordPreview(newPassword);
               setNewPasswordModalOpen(false);
               navigate("/lk");
             } catch (err) {
@@ -856,7 +868,7 @@ export function Modals() {
           <div className="shrink-0 flex justify-between items-center mb-[16px]">
             <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#8D8D8D]`}>Вы с нами</span>
             <span className={`${MODAL_TEXT_FONT} lg:text-[24px] text-[#1A1A1A]`}>{formatMembershipDuration(user?.registeredAt)}</span>
-          </div>
+        </div>
           <div className="flex-1 min-h-0 overflow-y-auto">
             {historyItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-[16px] md:gap-[32px] py-[24px] text-center">
@@ -912,13 +924,13 @@ export function Modals() {
                           <span className={`${MODAL_TEXT_FONT} text-[#8D8D8D]`}>{item.methodLabel}</span>
                           <span className={`${MODAL_TEXT_FONT} text-[#1A1A1A]`}>{item.line2}</span>
                         </div>
-                      </div>
-                    </div>
+                </div>
+                </div>
                   );
                 })}
               </div>
             )}
-          </div>
+            </div>
         </div>
       </BaseModal>
             
