@@ -67,7 +67,12 @@ async function request(path, options = {}) {
       (data && data.error) ||
       data?.message ||
       `Ошибка запроса (${res.status})`;
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = res.status;
+    error.code = data?.code || null;
+    error.payload = data;
+    error.email = data?.email || null;
+    throw error;
   }
 
   return data;

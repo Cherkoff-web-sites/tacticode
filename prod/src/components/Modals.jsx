@@ -12,7 +12,6 @@ import {
   apiRegisterConfirm,
   apiRegisterRequestCode,
 } from "../api/client";
-import { isSuperAdminEmail } from "../superAdminEmails";
 
 const secondButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
@@ -333,9 +332,6 @@ export function Modals() {
     line2: "Онлайн",
     methodLabel: "Способ оплаты",
   }));
-  const normalizedLogin = String(login || "").trim().toLowerCase();
-  const isAdminLoginFlow = isSuperAdminEmail(normalizedLogin);
-
   useEffect(() => {
     if (isAnyModalOpen) {
       document.body.style.overflow = "hidden";
@@ -395,7 +391,7 @@ export function Modals() {
               </label>
               <button
                 type="button"
-                className={`${MODAL_LINK_CLASS} !text-[#8D8D8D] ${isAdminLoginFlow ? "pointer-events-none opacity-50" : ""}`}
+                className={`${MODAL_LINK_CLASS} !text-[#8D8D8D]`}
                 onClick={() => {
                   setRestoreEmail(login || "");
                   setRestoreEmailError("");
@@ -407,30 +403,46 @@ export function Modals() {
                 Я забыл пароль
               </button>
             </div>
-            {isAdminLoginFlow && (
-              <p className={`${MODAL_TEXT_FONT} m-0 text-center md:text-left text-[#8D8D8D]`}>
-                Для супер-админа пароль не используется. После нажатия мы отправим код на почту.
-              </p>
-            )}
             {loginError && (
               <p className={`${MODAL_TEXT_FONT} text-center md:text-left`}>
-                Неверный логин или пароль. Если не можете войти,{" "}
-                <button
-                  type="button"
-                  className={`${MODAL_LINK_CLASS}`}
-                  onClick={() => {
-                    setRestoreEmail(login || "");
-                    setRestoreEmailError("");
-                    setLoginModalOpen(false);
-                    setAuthMode("login");
-                    setRestoreModalOpen(true);
-                  }}
-                >
-                  восстановите доступ
-                </button>
+                {loginError}
+                {loginError === "Аккаунт с таким логином или почтой не найден. Зарегистрируйтесь." && (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      className={`${MODAL_LINK_CLASS}`}
+                      onClick={() => {
+                        setLoginError("");
+                        setPassword("");
+                        setAuthMode("register");
+                      }}
+                    >
+                      Перейти к регистрации
+                    </button>
+                  </>
+                )}
+                {(loginError === "Неверный пароль" || loginError === "Ошибка авторизации") && (
+                  <>
+                    {" "}Если не можете войти,{" "}
+                    <button
+                      type="button"
+                      className={`${MODAL_LINK_CLASS}`}
+                      onClick={() => {
+                        setRestoreEmail(login || "");
+                        setRestoreEmailError("");
+                        setLoginModalOpen(false);
+                        setAuthMode("login");
+                        setRestoreModalOpen(true);
+                      }}
+                    >
+                      восстановите доступ
+                    </button>
+                  </>
+                )}
               </p>
             )}
-            <button type="submit" className={`${secondButtonClass} w-full md:w-full mt-[8px] md:mt-[16px] justify-center disabled:cursor-not-allowed disabled:opacity-70`} disabled={isAuthLoading}>{isAuthLoading ? (isAdminLoginFlow ? "Отправляем..." : "Вход...") : (isAdminLoginFlow ? "Отправить код" : "Войти")}</button>
+            <button type="submit" className={`${secondButtonClass} w-full md:w-full mt-[8px] md:mt-[16px] justify-center disabled:cursor-not-allowed disabled:opacity-70`} disabled={isAuthLoading}>{isAuthLoading ? "Вход..." : "Войти"}</button>
           </form>
         ) : (
           <div className="flex flex-col gap-[16px] md:gap-[24px]">

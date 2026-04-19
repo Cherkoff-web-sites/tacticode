@@ -3,6 +3,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { query } from "./db.js";
 import { sendCodeEmail } from "./mailer.js";
+import {
+  hasConfiguredSuperAdminEmails,
+  isConfiguredSuperAdminIdentity,
+  isConfiguredSuperAdminUser,
+} from "./superAdminConfig.js";
 
 const router = express.Router();
 
@@ -89,7 +94,7 @@ export async function authMiddleware(req, res, next) {
   const token = authHeader.slice("Bearer ".length);
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_secret");
-    const result = await query("SELECT id, session_version, role FROM users WHERE id = $1", [
+    const result = await query("SELECT id, session_version, role, email, login FROM users WHERE id = $1", [
       payload.id
     ]);
     if (result.rowCount === 0) {
@@ -101,6 +106,8 @@ export async function authMiddleware(req, res, next) {
     }
     req.user = {
       ...payload,
+      email: result.rows[0].email || payload.email || null,
+      login: result.rows[0].login || payload.login,
       role: result.rows[0].role || "user",
       sessionVersion: currentSessionVersion,
     };
@@ -113,8 +120,14 @@ export async function authMiddleware(req, res, next) {
 
 export async function adminMiddleware(req, res, next) {
   return authMiddleware(req, res, () => {
+    if (!hasConfiguredSuperAdminEmails()) {
+      return res.status(403).json({ error: "Вход супер-админа не настроен" });
+    }
     if (req.user?.role !== SUPER_ADMIN_ROLE) {
       return res.status(403).json({ error: "Недостаточно прав" });
+    }
+    if (!isConfiguredSuperAdminUser(req.user)) {
+      return res.status(403).json({ error: "Почта супер-админа не разрешена" });
     }
     return next();
   });
@@ -244,8 +257,11 @@ router.post("/register/confirm", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { identifier, password } = req.body || {};
 
-  if (!identifier || !password) {
-    return res.status(400).json({ error: "Логин/почта и пароль обязательны" });
+  const rawIdentifier = String(identifier || "").trim();
+  const rawPassword = String(password || "");
+
+  if (!rawIdentifier) {
+    return res.status(400).json({ error: "Логин/почта обязательны" });
   }
 
   try {
@@ -253,20 +269,34 @@ router.post("/login", async (req, res) => {
       `SELECT ${USER_SELECT_FIELDS}, password_hash
        FROM users
        WHERE login = $1 OR email = $1`,
-      [identifier]
+      [rawIdentifier]
     );
 
     if (result.rowCount === 0) {
-      return res.status(401).json({ error: "Неверный логин/почта или пароль" });
+      return res.status(404).json({
+        error: "Аккаунт с таким логином или почтой не найден. Зарегистрируйтесь."
+      });
     }
 
     const userRow = result.rows[0];
     if (userRow.role === SUPER_ADMIN_ROLE) {
-      return res.status(403).json({ error: "Для супер-админа используйте вход по коду" });
+      if (!hasConfiguredSuperAdminEmails() || !isConfiguredSuperAdminUser(userRow)) {
+        return res.status(403).json({ error: "Вход супер-админа не настроен" });
+      }
+      return res.status(403).json({
+        error: "Для супер-админа используйте вход по коду",
+        code: "SUPER_ADMIN_CODE_REQUIRED",
+        email: String(userRow.email || userRow.login || rawIdentifier).trim().toLowerCase(),
+      });
     }
-    const ok = await bcrypt.compare(password, userRow.password_hash);
+
+    if (!rawPassword.trim()) {
+      return res.status(400).json({ error: "Введите пароль" });
+    }
+
+    const ok = await bcrypt.compare(rawPassword, userRow.password_hash);
     if (!ok) {
-      return res.status(401).json({ error: "Неверный логин/почта или пароль" });
+      return res.status(401).json({ error: "Неверный пароль" });
     }
 
     const user = normalizeUserRow(userRow);
@@ -285,6 +315,12 @@ router.post("/admin/request-code", async (req, res) => {
   if (!rawEmail || !EMAIL_RE.test(rawEmail)) {
     return res.status(400).json({ error: "Укажите корректную почту супер-админа" });
   }
+  if (!hasConfiguredSuperAdminEmails()) {
+    return res.status(403).json({ error: "Вход супер-админа не настроен" });
+  }
+  if (!isConfiguredSuperAdminIdentity(rawEmail)) {
+    return res.status(403).json({ error: "Почта супер-админа не разрешена" });
+  }
 
   try {
     const result = await query(
@@ -295,7 +331,11 @@ router.post("/admin/request-code", async (req, res) => {
       [rawEmail]
     );
 
-    if (result.rowCount === 0 || result.rows[0].role !== SUPER_ADMIN_ROLE) {
+    if (
+      result.rowCount === 0 ||
+      result.rows[0].role !== SUPER_ADMIN_ROLE ||
+      !isConfiguredSuperAdminUser(result.rows[0])
+    ) {
       return res.status(403).json({ error: "Супер-админ с такой почтой не найден" });
     }
 
@@ -323,6 +363,12 @@ router.post("/admin/confirm-code", async (req, res) => {
   if (!rawEmail || !rawCode) {
     return res.status(400).json({ error: "Почта и код обязательны" });
   }
+  if (!hasConfiguredSuperAdminEmails()) {
+    return res.status(403).json({ error: "Вход супер-админа не настроен" });
+  }
+  if (!isConfiguredSuperAdminIdentity(rawEmail)) {
+    return res.status(403).json({ error: "Почта супер-админа не разрешена" });
+  }
 
   try {
     const codeResult = await query(
@@ -342,7 +388,11 @@ router.post("/admin/confirm-code", async (req, res) => {
       [codeResult.rows[0].user_id]
     );
 
-    if (userResult.rowCount === 0 || userResult.rows[0].role !== SUPER_ADMIN_ROLE) {
+    if (
+      userResult.rowCount === 0 ||
+      userResult.rows[0].role !== SUPER_ADMIN_ROLE ||
+      !isConfiguredSuperAdminUser(userResult.rows[0])
+    ) {
       return res.status(403).json({ error: "Супер-админ не найден" });
     }
 

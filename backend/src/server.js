@@ -7,6 +7,7 @@ import adminRoutes from "./adminRoutes.js";
 import deviceRoutes from "./deviceRoutes.js";
 import subscriptionRoutes from "./subscriptionRoutes.js";
 import { query } from "./db.js";
+import { getConfiguredSuperAdminEmails } from "./superAdminConfig.js";
 import fs from "fs";
 import http from "http";
 import path from "path";
@@ -34,22 +35,7 @@ app.use((req, res, next) => {
   });
   next();
 });
-
 const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
-const DEFAULT_SUPER_ADMIN_EMAIL = "danilcherkov44@gmail.com";
-
-function parseSuperAdminEmails() {
-  const rawEmails = String(process.env.SUPER_ADMIN_EMAILS || "").trim();
-  const candidates = rawEmails
-    ? rawEmails.split(",")
-    : [process.env.SUPER_ADMIN_EMAIL || DEFAULT_SUPER_ADMIN_EMAIL];
-
-  return [...new Set(
-    candidates
-      .map((value) => String(value || "").trim().toLowerCase())
-      .filter(Boolean)
-  )];
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -165,10 +151,10 @@ async function ensureSuperAdmin(superAdminEmail) {
 }
 
 async function ensureSuperAdmins() {
-  const superAdminEmails = parseSuperAdminEmails();
+  const superAdminEmails = getConfiguredSuperAdminEmails();
 
   if (superAdminEmails.length === 0) {
-    console.warn("No super admin emails configured");
+    console.warn("No super admin emails configured. Super admin bootstrap skipped.");
     return;
   }
 

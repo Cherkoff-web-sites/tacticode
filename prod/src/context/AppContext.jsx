@@ -16,7 +16,6 @@ import {
   apiGetSubscriptionHistory,
   apiActivateSubscription,
 } from "../api/client";
-import { isSuperAdminEmail } from "../superAdminEmails";
 
 const AppContext = createContext(null);
 
@@ -255,17 +254,6 @@ export function AppProvider({ children }) {
     setIsAuthLoading(true);
     try {
       const identifier = String(login || "").trim();
-      const normalizedIdentifier = identifier.toLowerCase();
-      if (isSuperAdminEmail(normalizedIdentifier)) {
-        await apiAdminRequestCode({ email: normalizedIdentifier });
-        setCodePurpose("admin_login");
-        setCodeEmail(normalizedIdentifier);
-        setCodeModalOpen(true);
-        setLoginModalOpen(false);
-        setPassword("");
-        return;
-      }
-
       const loggedUser = await apiLogin({ identifier, password });
       setUser(loggedUser);
       setLoginModalOpen(false);
@@ -282,6 +270,24 @@ export function AppProvider({ children }) {
 
       navigate("/lk");
     } catch (err) {
+      if (err?.code === "SUPER_ADMIN_CODE_REQUIRED") {
+        const adminEmail = String(err.email || login || "").trim().toLowerCase();
+
+        try {
+          await apiAdminRequestCode({ email: adminEmail });
+          setCodePurpose("admin_login");
+          setCodeEmail(adminEmail);
+          setCodeModalOpen(true);
+          setLoginModalOpen(false);
+          setPassword("");
+          return;
+        } catch (requestCodeErr) {
+          setLoginError(requestCodeErr.message || "Не удалось отправить код");
+          clearAuthorizedData();
+          return;
+        }
+      }
+
       setLoginError(err.message || "Ошибка авторизации");
       clearAuthorizedData();
     } finally {
