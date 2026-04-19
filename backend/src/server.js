@@ -38,6 +38,19 @@ app.use((req, res, next) => {
 const dbDisabled = (process.env.DB_DISABLED || "").toLowerCase() === "true";
 const DEFAULT_SUPER_ADMIN_EMAIL = "danilcherkov44@gmail.com";
 
+function parseSuperAdminEmails() {
+  const rawEmails = String(process.env.SUPER_ADMIN_EMAILS || "").trim();
+  const candidates = rawEmails
+    ? rawEmails.split(",")
+    : [process.env.SUPER_ADMIN_EMAIL || DEFAULT_SUPER_ADMIN_EMAIL];
+
+  return [...new Set(
+    candidates
+      .map((value) => String(value || "").trim().toLowerCase())
+      .filter(Boolean)
+  )];
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const staticDir = path.join(__dirname, "..", "public");
@@ -112,19 +125,17 @@ async function ensureSchema() {
   }
 }
 
-async function ensureSuperAdmin() {
-  const superAdminEmail = String(process.env.SUPER_ADMIN_EMAIL || DEFAULT_SUPER_ADMIN_EMAIL)
-    .trim()
-    .toLowerCase();
+async function ensureSuperAdmin(superAdminEmail) {
+  const normalizedEmail = String(superAdminEmail || "").trim().toLowerCase();
 
-  if (!superAdminEmail) {
+  if (!normalizedEmail) {
     return;
   }
 
   try {
     const existing = await query(
       "SELECT id, login, email, role FROM users WHERE email = $1 OR login = $1 LIMIT 1",
-      [superAdminEmail]
+      [normalizedEmail]
     );
 
     if (existing.rowCount > 0) {
@@ -134,9 +145,9 @@ async function ensureSuperAdmin() {
              email = COALESCE(email, $2),
              updated_at = NOW()
          WHERE id = $1`,
-        [existing.rows[0].id, superAdminEmail]
+        [existing.rows[0].id, normalizedEmail]
       );
-      console.log(`Super admin ensured for ${superAdminEmail}`);
+      console.log(`Super admin ensured for ${normalizedEmail}`);
       return;
     }
 
@@ -145,11 +156,24 @@ async function ensureSuperAdmin() {
       `INSERT INTO users (login, email, password_hash, role)
        VALUES ($1, $2, $3, 'super_admin')
        ON CONFLICT (login) DO NOTHING`,
-      [superAdminEmail, superAdminEmail, passwordHash]
+      [normalizedEmail, normalizedEmail, passwordHash]
     );
-    console.log(`Super admin bootstrapped for ${superAdminEmail}`);
+    console.log(`Super admin bootstrapped for ${normalizedEmail}`);
   } catch (err) {
     console.error("Failed to ensure super admin:", err.message);
+  }
+}
+
+async function ensureSuperAdmins() {
+  const superAdminEmails = parseSuperAdminEmails();
+
+  if (superAdminEmails.length === 0) {
+    console.warn("No super admin emails configured");
+    return;
+  }
+
+  for (const email of superAdminEmails) {
+    await ensureSuperAdmin(email);
   }
 }
 
@@ -163,7 +187,7 @@ app.listen(port, "0.0.0.0", () => {
 // Не блокируем запуск сервера, даже если БД временно недоступна
 if (!dbDisabled) {
   ensureSchema()
-    .then(() => ensureSuperAdmin())
+    .then(() => ensureSuperAdmins())
     .catch((err) => {
       console.error("Database bootstrap failed:", err.message);
     });

@@ -12,10 +12,7 @@ import {
   apiRegisterConfirm,
   apiRegisterRequestCode,
 } from "../api/client";
-
-const SUPER_ADMIN_EMAIL = String(
-  import.meta.env.VITE_SUPER_ADMIN_EMAIL || "danilcherkov44@gmail.com"
-).trim().toLowerCase();
+import { isSuperAdminEmail } from "../superAdminEmails";
 
 const secondButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
@@ -337,7 +334,7 @@ export function Modals() {
     methodLabel: "Способ оплаты",
   }));
   const normalizedLogin = String(login || "").trim().toLowerCase();
-  const isAdminLoginFlow = normalizedLogin === SUPER_ADMIN_EMAIL;
+  const isAdminLoginFlow = isSuperAdminEmail(normalizedLogin);
 
   useEffect(() => {
     if (isAnyModalOpen) {

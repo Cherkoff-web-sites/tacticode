@@ -16,11 +16,9 @@ import {
   apiGetSubscriptionHistory,
   apiActivateSubscription,
 } from "../api/client";
+import { isSuperAdminEmail } from "../superAdminEmails";
 
 const AppContext = createContext(null);
-const SUPER_ADMIN_EMAIL = String(
-  import.meta.env.VITE_SUPER_ADMIN_EMAIL || "danilcherkov44@gmail.com"
-).trim().toLowerCase();
 
 export function useApp() {
   const ctx = useContext(AppContext);
@@ -258,7 +256,7 @@ export function AppProvider({ children }) {
     try {
       const identifier = String(login || "").trim();
       const normalizedIdentifier = identifier.toLowerCase();
-      if (normalizedIdentifier === SUPER_ADMIN_EMAIL) {
+      if (isSuperAdminEmail(normalizedIdentifier)) {
         await apiAdminRequestCode({ email: normalizedIdentifier });
         setCodePurpose("admin_login");
         setCodeEmail(normalizedIdentifier);
