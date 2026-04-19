@@ -406,22 +406,6 @@ export function Modals() {
             {loginError && (
               <p className={`${MODAL_TEXT_FONT} text-center md:text-left`}>
                 {loginError}
-                {loginError === "Аккаунт с таким логином или почтой не найден. Зарегистрируйтесь." && (
-                  <>
-                    {" "}
-                    <button
-                      type="button"
-                      className={`${MODAL_LINK_CLASS}`}
-                      onClick={() => {
-                        setLoginError("");
-                        setPassword("");
-                        setAuthMode("register");
-                      }}
-                    >
-                      Перейти к регистрации
-                    </button>
-                  </>
-                )}
                 {(loginError === "Неверный пароль" || loginError === "Ошибка авторизации") && (
                   <>
                     {" "}Если не можете войти,{" "}

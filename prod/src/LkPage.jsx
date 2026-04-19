@@ -308,6 +308,27 @@ export function LkPage() {
   const [profileSaveError, setProfileSaveError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const birthDatePickerRef = useRef(null);
+
+  /** iOS Safari: нативный date picker надёжнее открывается при прямом тапе по input[type=date] + showPicker/focus+click fallback (как в DateFieldComposite). */
+  const openBirthDateNativePicker = () => {
+    const el = birthDatePickerRef.current;
+    if (!el) return;
+    try {
+      if (typeof el.showPicker === "function") {
+        el.showPicker();
+        return;
+      }
+    } catch {
+      /* unsupported / security */
+    }
+    try {
+      el.focus();
+      el.click();
+    } catch {
+      /* noop */
+    }
+  };
+
   const {
     user,
     isLoggedIn,
@@ -800,14 +821,25 @@ export function LkPage() {
                 placeholder="__.__.____"
                 formatDraftValue={formatBirthDateInput}
                 errorMessage={birthDateError}
-                secondaryControl={({ draft, isEditing, isFocused, setDraft }) => (
+                secondaryControl={({ draft, isEditing, isFocused, setDraft }) =>
                   isEditing && isFocused ? (
-                    <>
+                    <span
+                      className={`relative group/eye inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 ${
+                        isBirthDateCalendarOpen
+                          ? "text-[#00459D]"
+                          : "text-[#8D8D8D] lg:group-hover/eye:text-[#00459D] active:text-[#00459D]"
+                      }`}
+                    >
+                      <CalendarFieldSvg active={isBirthDateCalendarOpen} inheritColor />
                       <input
                         ref={birthDatePickerRef}
                         type="date"
-                        tabIndex={-1}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                         value={formatBirthDateToApi(draft) || ""}
+                        aria-label="Открыть календарь"
+                        onClick={() => {
+                          openBirthDateNativePicker();
+                        }}
                         onFocus={() => setIsBirthDateCalendarOpen(true)}
                         onBlur={() => setIsBirthDateCalendarOpen(false)}
                         onChange={(e) => {
@@ -817,27 +849,10 @@ export function LkPage() {
                           setBirthDateError("");
                           setIsBirthDateCalendarOpen(false);
                         }}
-                        className="sr-only"
                       />
-                      <button
-                        type="button"
-                        className={`group/eye border-none bg-transparent p-0 cursor-pointer shrink-0 ${isBirthDateCalendarOpen ? "text-[#00459D]" : "text-[#8D8D8D] lg:group-hover/eye:text-[#00459D] active:text-[#00459D]"}`}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setIsBirthDateCalendarOpen(true);
-                          if (birthDatePickerRef.current?.showPicker) {
-                            birthDatePickerRef.current.showPicker();
-                            return;
-                          }
-                          birthDatePickerRef.current?.click();
-                        }}
-                        aria-label="Открыть календарь"
-                      >
-                        <CalendarFieldSvg active={isBirthDateCalendarOpen} inheritColor />
-                      </button>
-                    </>
+                    </span>
                   ) : null
-                )}
+                }
               />
 
               <EditableField
