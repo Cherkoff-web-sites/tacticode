@@ -307,27 +307,6 @@ export function LkPage() {
   const [birthDateError, setBirthDateError] = useState("");
   const [profileSaveError, setProfileSaveError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
-  const birthDatePickerRef = useRef(null);
-
-  /** iOS Safari: нативный date picker надёжнее открывается при прямом тапе по input[type=date] + showPicker/focus+click fallback (как в DateFieldComposite). */
-  const openBirthDateNativePicker = () => {
-    const el = birthDatePickerRef.current;
-    if (!el) return;
-    try {
-      if (typeof el.showPicker === "function") {
-        el.showPicker();
-        return;
-      }
-    } catch {
-      /* unsupported / security */
-    }
-    try {
-      el.focus();
-      el.click();
-    } catch {
-      /* noop */
-    }
-  };
 
   const {
     user,
@@ -832,14 +811,10 @@ export function LkPage() {
                     >
                       <CalendarFieldSvg active={isBirthDateCalendarOpen} inheritColor />
                       <input
-                        ref={birthDatePickerRef}
                         type="date"
                         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                         value={formatBirthDateToApi(draft) || ""}
                         aria-label="Открыть календарь"
-                        onClick={() => {
-                          openBirthDateNativePicker();
-                        }}
                         onFocus={() => setIsBirthDateCalendarOpen(true)}
                         onBlur={() => setIsBirthDateCalendarOpen(false)}
                         onChange={(e) => {

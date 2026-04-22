@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { newsItems, subscriptionItems } from "../data";
 import heroVideo from "../assets/video/hero.mp4";
 import heroPoster from "../assets/images/hero-poster.svg";
