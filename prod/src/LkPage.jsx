@@ -175,8 +175,9 @@ function EditableField({
         wasEditingRef.current = true;
         setDraft(normalizedEditingValue);
         initialValueRef.current = normalizedEditingValue;
+        // Только при входе в режим: иначе на iOS повторный focus при смене value закрывает календарь.
+        inputRef.current?.focus();
       }
-      inputRef.current?.focus();
     } else {
       wasEditingRef.current = false;
       setIsFocused(false);
