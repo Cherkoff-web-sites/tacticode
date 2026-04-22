@@ -265,7 +265,7 @@ export function AdminPage() {
     purchaseTerm: getPlanLabel(item.plan),
     subscriptionName: getSubscriptionName(item.sportId),
     methodLabel: "Способ оплаты",
-    method: "Онлайн",
+    method: getMethodLabel(item.method),
   }));
 
   return (

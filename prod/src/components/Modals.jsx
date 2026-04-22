@@ -277,6 +277,13 @@ export function Modals() {
 
   const getPlanLabel = (plan) => (plan === "year" ? "1 год" : "1 месяц");
 
+  /** Как в модалке покупки подписки: «Банковской картой» / «По QR-коду (СБП)». */
+  const getHistoryPaymentMethodLabel = (method) => {
+    if (method === "card") return "Банковской картой";
+    if (method === "qr") return "По QR-коду (СБП)";
+    return "Онлайн";
+  };
+
   const pluralizeRu = (value, one, few, many) => {
     const abs = Math.abs(value) % 100;
     const last = abs % 10;
@@ -329,7 +336,7 @@ export function Modals() {
     amount: `${item.amountRub ?? 0} р`,
     date: item.createdAt ? historyDateFormatter.format(new Date(item.createdAt)) : "",
     line1: `Куплено на ${getPlanLabel(item.plan)}`,
-    line2: "Онлайн",
+    line2: getHistoryPaymentMethodLabel(item.method),
     methodLabel: "Способ оплаты",
   }));
   useEffect(() => {
