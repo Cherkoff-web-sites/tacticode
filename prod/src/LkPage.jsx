@@ -537,7 +537,7 @@ export function LkPage() {
       <section className="lk-content">
         <div className={containerClass}>
           <div className="lk-content-grid">
-            <div className="lk-column w-full lg:max-w-[570px] lg:flex-[0_0_570px] lg:min-w-0 max-md:pb-[24px] max-md:border-b max-md:border-[#F2F2F2] max-md:mb-[24px]">
+            <div className="lk-column w-full lg:max-w-[570px] lg:flex-[1_1_570px] max-md:pb-[24px] max-md:border-b max-md:border-[#F2F2F2] max-md:mb-[24px]">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="overflow-visible lg:flex-1 lg:min-h-0 lg:max-h-[510px] lg:overflow-y-auto lg:pr-4">
                   <div className="flex flex-col gap-[16px]">
@@ -653,7 +653,7 @@ export function LkPage() {
               </div>
             </div>
 
-            <div className="lk-column w-full lg:max-w-[425px] lg:flex-[0_0_425px] max-md:pb-[24px] max-md:border-b max-md:border-[#F2F2F2] max-md:mb-[24px]">
+            <div className="lk-column w-full lg:max-w-[425px] lg:flex-[1_1_425px] max-md:pb-[24px] max-md:border-b max-md:border-[#F2F2F2] max-md:mb-[24px]">
               {/* <h2 className="">Основные данные</h2> */}
 
               <div>
@@ -761,7 +761,7 @@ export function LkPage() {
               </div>
             </div>
 
-            <div className="lk-column w-full lg:max-w-[425px] lg:flex-[0_0_425px]">
+            <div className="lk-column w-full lg:max-w-[425px] lg:flex-[1_1_425px]">
               {/* <h2 className="">Опциональная информация</h2> */}
 
               <EditableField

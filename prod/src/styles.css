@@ -145,11 +145,11 @@
   }
 
   .lk-content-grid {
-    @apply flex flex-col gap-[24px] lg:flex-row lg:items-stretch lg:justify-between;
+    @apply flex w-full min-w-0 flex-col gap-[24px] lg:flex-row lg:items-stretch lg:justify-between;
   }
 
   .lk-column {
-    @apply flex flex-col min-h-0;
+    @apply flex min-h-0 min-w-0 flex-col;
   }
 
   .cards-column {
