@@ -832,7 +832,7 @@ export function LkPage() {
                 secondaryControl={({ draft, isEditing, setDraft }) =>
                   isEditing ? (
                     <span
-                      className={`relative group/eye inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 ${
+                      className={`group/eye relative inline-flex size-4 max-h-4 max-w-4 shrink-0 cursor-pointer items-center justify-center overflow-hidden border-none bg-transparent p-0 [contain:strict] ${
                         DEBUG_NATIVE_BIRTH_DATE_INPUT_BOUNDS ? "ring-2 ring-[#00459D] ring-offset-1" : ""
                       } ${
                         isBirthDateCalendarOpen
@@ -844,11 +844,11 @@ export function LkPage() {
                       <input
                         ref={birthDateNativePickerRef}
                         type="date"
-                        className={
+                        className={`absolute left-0 top-0 z-[1] m-0 box-border h-full max-h-4 w-full max-w-4 min-h-0 min-w-0 cursor-pointer p-0 ${
                           DEBUG_NATIVE_BIRTH_DATE_INPUT_BOUNDS
-                            ? "absolute inset-0 z-[2] box-border h-full min-h-[16px] w-full min-w-[16px] cursor-pointer border-2 border-[#FF383C] bg-[#FF383C]/35 opacity-100"
-                            : "absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                        }
+                            ? "border-2 border-[#FF383C] bg-[#FF383C]/35 opacity-100"
+                            : "opacity-0"
+                        }`}
                         value={formatBirthDateToApi(draft) || ""}
                         aria-label="Открыть календарь"
                         onFocus={() => setIsBirthDateCalendarOpen(true)}
