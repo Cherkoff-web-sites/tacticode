@@ -156,6 +156,8 @@ function EditableField({
   startEditOnFieldClick = false,
   errorMessage = "",
   secondaryControl = null,
+  /** Нативный date-picker: клик по UI календаря вне DOM-обёртки; фокус может оставаться на этом input */
+  nativeDatePickerRef = null,
 }) {
   const normalizedValue = value ?? "";
   const normalizedEditingValue = editingValue ?? "";
@@ -163,6 +165,7 @@ function EditableField({
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
   const wrapperRef = useRef(null);
+  const outsideDismissTimeoutRef = useRef(null);
   const initialValueRef = useRef(normalizedValue);
   const wasEditingRef = useRef(false);
 
@@ -186,14 +189,34 @@ function EditableField({
 
   useEffect(() => {
     if (!isEditing || hasChanges || !onExitWithoutSave) return;
-    const handleMouseDown = (e) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+    const isFocusInsideField = () => {
+      const ae = document.activeElement;
+      return Boolean(ae && wrapperRef.current?.contains(ae));
+    };
+    const handlePointerDown = (e) => {
+      if (wrapperRef.current?.contains(e.target)) return;
+      // Нативный календарь date отрисован вне нашего DOM: клик по датам не попадает в wrapper,
+      // но фокус обычно остаётся на input[type=date] внутри поля — проверяем после короткой задержки.
+      if (outsideDismissTimeoutRef.current) {
+        window.clearTimeout(outsideDismissTimeoutRef.current);
+      }
+      outsideDismissTimeoutRef.current = window.setTimeout(() => {
+        outsideDismissTimeoutRef.current = null;
+        const ae = document.activeElement;
+        if (nativeDatePickerRef?.current && ae === nativeDatePickerRef.current) return;
+        if (isFocusInsideField()) return;
         onExitWithoutSave();
+      }, 80);
+    };
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      if (outsideDismissTimeoutRef.current) {
+        window.clearTimeout(outsideDismissTimeoutRef.current);
+        outsideDismissTimeoutRef.current = null;
       }
     };
-    document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
-  }, [isEditing, hasChanges, onExitWithoutSave]);
+  }, [isEditing, hasChanges, onExitWithoutSave, nativeDatePickerRef]);
 
   const wrapperBgClass = isEditing ? "!bg-[#F2F5FA]" : "lg:hover:!bg-[#F2F5FA]";
   const resolvedSecondaryControl =
@@ -307,6 +330,7 @@ export function LkPage() {
   const [birthDateError, setBirthDateError] = useState("");
   const [profileSaveError, setProfileSaveError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const birthDateNativePickerRef = useRef(null);
 
   const {
     user,
@@ -800,8 +824,9 @@ export function LkPage() {
                 placeholder="__.__.____"
                 formatDraftValue={formatBirthDateInput}
                 errorMessage={birthDateError}
-                secondaryControl={({ draft, isEditing, isFocused, setDraft }) =>
-                  isEditing && isFocused ? (
+                nativeDatePickerRef={birthDateNativePickerRef}
+                secondaryControl={({ draft, isEditing, setDraft }) =>
+                  isEditing ? (
                     <span
                       className={`relative group/eye inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 ${
                         isBirthDateCalendarOpen
@@ -811,6 +836,7 @@ export function LkPage() {
                     >
                       <CalendarFieldSvg active={isBirthDateCalendarOpen} inheritColor />
                       <input
+                        ref={birthDateNativePickerRef}
                         type="date"
                         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                         value={formatBirthDateToApi(draft) || ""}
