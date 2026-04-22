@@ -4,6 +4,9 @@ import { subscriptionItems } from "./data";
 import { useApp } from "./context/AppContext";
 import { apiRequestLoginChange } from "./api/client";
 
+/** Включите на iPhone/iPad: видна область нативного `input[type=date]` (красная) и оболочка иконки (синяя). Потом выключите. */
+const DEBUG_NATIVE_BIRTH_DATE_INPUT_BOUNDS = true;
+
 function EditFieldSvg({ active }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 shrink-0 ${active ? "text-[#00459D]" : "text-[#8D8D8D] lg:hover:text-[#00459D]"}`} aria-hidden="true">
@@ -830,6 +833,8 @@ export function LkPage() {
                   isEditing ? (
                     <span
                       className={`relative group/eye inline-flex shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 ${
+                        DEBUG_NATIVE_BIRTH_DATE_INPUT_BOUNDS ? "ring-2 ring-[#00459D] ring-offset-1" : ""
+                      } ${
                         isBirthDateCalendarOpen
                           ? "text-[#00459D]"
                           : "text-[#8D8D8D] lg:group-hover/eye:text-[#00459D] active:text-[#00459D]"
@@ -839,7 +844,11 @@ export function LkPage() {
                       <input
                         ref={birthDateNativePickerRef}
                         type="date"
-                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        className={
+                          DEBUG_NATIVE_BIRTH_DATE_INPUT_BOUNDS
+                            ? "absolute inset-0 z-[2] box-border h-full min-h-[16px] w-full min-w-[16px] cursor-pointer border-2 border-[#FF383C] bg-[#FF383C]/35 opacity-100"
+                            : "absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        }
                         value={formatBirthDateToApi(draft) || ""}
                         aria-label="Открыть календарь"
                         onFocus={() => setIsBirthDateCalendarOpen(true)}
