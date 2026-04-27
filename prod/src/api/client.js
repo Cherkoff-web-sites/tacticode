@@ -44,6 +44,61 @@ function setCurrentDeviceId(deviceId) {
   }
 }
 
+function getBrowserName(ua) {
+  if (/Edg\//i.test(ua)) return "Microsoft Edge";
+  if (/OPR\//i.test(ua)) return "Opera";
+  if (/YaBrowser\//i.test(ua)) return "Яндекс Браузер";
+  if (/Firefox\//i.test(ua)) return "Firefox";
+  if (/CriOS\//i.test(ua)) return "Chrome";
+  if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) return "Chrome";
+  if (/Safari\//i.test(ua) && /Version\//i.test(ua)) return "Safari";
+  return "Браузер";
+}
+
+function getDeviceModel(ua) {
+  if (/iPhone/i.test(ua)) return "iPhone";
+  if (/iPad/i.test(ua) || (/Macintosh/i.test(ua) && /Mobile\//i.test(ua))) return "iPad";
+  if (/Android/i.test(ua)) {
+    const match = ua.match(/Android[^;)]*;\s*([^;)]+)/i);
+    const rawModel = match?.[1]?.replace(/\s+Build\/.*/i, "").trim();
+    return rawModel && !/wv|mobile/i.test(rawModel) ? rawModel : "Android";
+  }
+  if (/Windows NT/i.test(ua)) return "Windows PC";
+  if (/Mac OS X|Macintosh/i.test(ua)) return "Mac";
+  if (/Linux/i.test(ua)) return "Linux PC";
+  return "Устройство";
+}
+
+function getReadableDeviceName(ua) {
+  return `${getBrowserName(ua)} · ${getDeviceModel(ua)}`;
+}
+
+function normalizeStoredDeviceName(deviceName) {
+  const value = String(deviceName || "").trim();
+  return /Mozilla\/|AppleWebKit\//i.test(value) ? getReadableDeviceName(value) : value;
+}
+
+function mapDevice(device) {
+  const defaultName = normalizeStoredDeviceName(device.device_name);
+  return {
+    id: device.id,
+    name: device.display_name || defaultName,
+    defaultName,
+    displayName: device.display_name || "",
+    location: device.last_active_at
+      ? new Intl.DateTimeFormat("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(device.last_active_at))
+      : "",
+    createdAt: device.created_at,
+    lastActiveAt: device.last_active_at,
+    deviceType: device.device_type,
+  };
+}
+
 async function request(path, options = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -215,11 +270,12 @@ export async function apiConfirmLoginChange({ login, code }) {
 }
 
 export async function apiRegisterDevice({ deviceName, deviceType }) {
+  const readableDeviceName = getReadableDeviceName(deviceName);
   const data = await request("/api/devices/register", {
     method: "POST",
     body: JSON.stringify({
       device_key: getDeviceKey(),
-      device_name: deviceName,
+      device_name: readableDeviceName,
       device_type: deviceType,
     }),
   });
@@ -227,26 +283,20 @@ export async function apiRegisterDevice({ deviceName, deviceType }) {
     setToken(data.accessToken);
   }
   setCurrentDeviceId(data.device?.id || null);
-  return data.device;
+  return mapDevice(data.device);
 }
 
 export async function apiGetDevices() {
   const data = await request("/api/devices");
-  return (data.devices || []).map((device) => ({
-    id: device.id,
-    name: device.device_name,
-    location: device.last_active_at
-      ? new Intl.DateTimeFormat("ru-RU", {
-          day: "2-digit",
-          month: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date(device.last_active_at))
-      : "",
-    createdAt: device.created_at,
-    lastActiveAt: device.last_active_at,
-    deviceType: device.device_type,
-  }));
+  return (data.devices || []).map(mapDevice);
+}
+
+export async function apiRenameDevice(id, displayName) {
+  const data = await request(`/api/devices/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ display_name: String(displayName || "").trim() }),
+  });
+  return mapDevice(data.device);
 }
 
 export async function apiDeleteDevice(id) {

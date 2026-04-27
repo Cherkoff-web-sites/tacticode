@@ -595,6 +595,11 @@ export function AdminPage() {
                         <p className={`${mainText} m-0 text-[#1A1A1A]`}>
                           {device.name || "Без названия"}
                         </p>
+                        {!!device.displayName && device.defaultName && (
+                          <p className={`${mainText} mt-[8px] mb-0 text-[#8D8D8D]`}>
+                            Автоназвание: {device.defaultName}
+                          </p>
+                        )}
                         <p className={`${mainText} mt-[8px] mb-0 text-[#8D8D8D]`}>
                           Тип: {device.deviceType || "—"} | Добавлено: {formatDateTime(device.createdAt)} |
                           Активность: {formatDateTime(device.lastActiveAt)}

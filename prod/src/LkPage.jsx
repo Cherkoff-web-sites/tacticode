@@ -331,6 +331,10 @@ export function LkPage() {
   const [birthDateError, setBirthDateError] = useState("");
   const [profileSaveError, setProfileSaveError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [editingDeviceId, setEditingDeviceId] = useState(null);
+  const [deviceNameDraft, setDeviceNameDraft] = useState("");
+  const [deviceNameError, setDeviceNameError] = useState("");
+  const [isDeviceNameSaving, setIsDeviceNameSaving] = useState(false);
   const birthDateNativePickerRef = useRef(null);
 
   const {
@@ -343,6 +347,7 @@ export function LkPage() {
     setLogoutModalOpen,
     setActiveModal,
     setDeviceToRemove,
+    renameDevice,
     changeMyPassword,
     saveProfileDetails,
     setCodePurpose,
@@ -367,6 +372,38 @@ export function LkPage() {
 
   const updateEditableField = (field, nextValue) => {
     setEditableFields((prev) => ({ ...prev, [field]: nextValue }));
+  };
+
+  const startRenameDevice = (device) => {
+    setEditingDeviceId(device.id);
+    setDeviceNameDraft(device.name || device.defaultName || "");
+    setDeviceNameError("");
+  };
+
+  const cancelRenameDevice = () => {
+    setEditingDeviceId(null);
+    setDeviceNameDraft("");
+    setDeviceNameError("");
+  };
+
+  const confirmRenameDevice = async () => {
+    if (!editingDeviceId) return;
+    const nextName = deviceNameDraft.trim();
+    if (!nextName) {
+      setDeviceNameError("Введите название устройства");
+      return;
+    }
+
+    setIsDeviceNameSaving(true);
+    setDeviceNameError("");
+    try {
+      await renameDevice(editingDeviceId, nextName);
+      cancelRenameDevice();
+    } catch (err) {
+      setDeviceNameError(err?.message || "Не удалось переименовать устройство");
+    } finally {
+      setIsDeviceNameSaving(false);
+    }
   };
 
   const persistedProfileFields = useMemo(() => ({
@@ -732,28 +769,100 @@ export function LkPage() {
                   ) : (
                     <>
                       <div className="devices-list">
-                        {devices.map((device, index) => (
-                          <div
-                            className="device-row"
-                            key={device.name + index}
-                          >
-                            <DeviceTypeIcon deviceName={device.name} />
-                            <div className="device-info">
-                              <div className={`${mainText} device-name text-[#1A1A1A]`}>{device.name}</div>
-                              <div className={`${mainText} device-meta text-[#8D8D8D] md:!text-[16px]`}>{device.location}</div>
-                            </div>
-                            <button
-                              className="device-remove"
-                              aria-label="Удалить"
-                              onClick={() => setDeviceToRemove(device)}
+                        {devices.map((device) => {
+                          const isRenaming = editingDeviceId === device.id;
+
+                          return (
+                            <div
+                              className="device-row"
+                              key={device.id}
                             >
-                              ×
-                            </button>
-                          </div>
-                        ))}
+                              <DeviceTypeIcon deviceName={device.name} />
+                              <div className="device-info">
+                                {isRenaming ? (
+                                  <>
+                                    <input
+                                      className={`${mainText} device-name w-full min-w-0 rounded-[8px] border border-[#D9E3F1] bg-white px-[12px] py-[8px] text-[#1A1A1A] outline-none focus:border-[#00459D]`}
+                                      value={deviceNameDraft}
+                                      maxLength={80}
+                                      autoFocus
+                                      onChange={(event) => {
+                                        setDeviceNameDraft(event.target.value);
+                                        if (deviceNameError) setDeviceNameError("");
+                                      }}
+                                      onKeyDown={(event) => {
+                                        if (event.key === "Enter") {
+                                          event.preventDefault();
+                                          confirmRenameDevice();
+                                        }
+                                        if (event.key === "Escape") {
+                                          cancelRenameDevice();
+                                        }
+                                      }}
+                                    />
+                                    {deviceNameError && (
+                                      <div className={`${mainText} device-meta text-[#FF383C] md:!text-[16px]`}>{deviceNameError}</div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className={`${mainText} device-name text-[#1A1A1A]`}>{device.name}</div>
+                                    {!!device.displayName && device.defaultName && (
+                                      <div className={`${mainText} device-meta text-[#8D8D8D] md:!text-[16px]`}>{device.defaultName}</div>
+                                    )}
+                                  </>
+                                )}
+                                <div className={`${mainText} device-meta text-[#8D8D8D] md:!text-[16px]`}>{device.location}</div>
+                              </div>
+                              <div className="flex shrink-0 items-start gap-[12px]">
+                                {isRenaming ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="device-remove text-[#00459D] disabled:cursor-not-allowed disabled:opacity-60"
+                                      aria-label="Сохранить название устройства"
+                                      disabled={isDeviceNameSaving}
+                                      onClick={confirmRenameDevice}
+                                    >
+                                      <ConfirmFieldSvg />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="device-remove"
+                                      aria-label="Отменить переименование"
+                                      disabled={isDeviceNameSaving}
+                                      onClick={cancelRenameDevice}
+                                    >
+                                      <ClearFieldSvg />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="device-remove"
+                                      aria-label="Переименовать устройство"
+                                      onClick={() => startRenameDevice(device)}
+                                    >
+                                      <EditFieldSvg />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="device-remove"
+                                      aria-label="Удалить"
+                                      onClick={() => setDeviceToRemove(device)}
+                                    >
+                                      ×
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                       <p className={`${mainText} devices-hint text-center font-bold md:text-left md:font-light`}>
-                        Удалить привязанное устройство можно 1 раз в месяц
+                        Удалить привязанное устройство можно 1 раз в 10 минут
                       </p>
                     </>
                   )}

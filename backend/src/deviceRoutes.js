@@ -29,7 +29,7 @@ async function rotateActiveSession(userId) {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const result = await query(
-      "SELECT id, device_key, device_name, device_type, created_at, last_active_at FROM devices WHERE user_id = $1 ORDER BY created_at DESC",
+      "SELECT id, device_key, device_name, display_name, device_type, created_at, last_active_at FROM devices WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
     return res.json({ devices: result.rows });
@@ -56,7 +56,7 @@ router.post("/register", authMiddleware, async (req, res) => {
              device_type = $4,
              last_active_at = NOW()
          WHERE user_id = $1 AND device_key = $2
-         RETURNING id, device_key, device_name, device_type, created_at, last_active_at`,
+         RETURNING id, device_key, device_name, display_name, device_type, created_at, last_active_at`,
         [req.user.id, normalizedDeviceKey, device_name, device_type]
       );
 
@@ -75,7 +75,7 @@ router.post("/register", authMiddleware, async (req, res) => {
              device_type = $5,
              last_active_at = NOW()
          WHERE id = $1 AND user_id = $2
-         RETURNING id, device_key, device_name, device_type, created_at, last_active_at`,
+         RETURNING id, device_key, device_name, display_name, device_type, created_at, last_active_at`,
         [currentDeviceId, req.user.id, normalizedDeviceKey, device_name, device_type]
       );
 
@@ -99,12 +99,43 @@ router.post("/register", authMiddleware, async (req, res) => {
     const result = await query(
       `INSERT INTO devices (user_id, device_key, device_name, device_type)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, device_key, device_name, device_type, created_at, last_active_at`,
+       RETURNING id, device_key, device_name, display_name, device_type, created_at, last_active_at`,
       [req.user.id, normalizedDeviceKey, device_name, device_type]
     );
 
     const accessToken = await rotateActiveSession(req.user.id);
     return res.status(201).json({ device: result.rows[0], accessToken });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.patch("/:id", authMiddleware, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "Некорректный идентификатор устройства" });
+  }
+
+  const displayName = String(req.body?.display_name || "").trim().slice(0, 80);
+  if (!displayName) {
+    return res.status(400).json({ error: "Название устройства обязательно" });
+  }
+
+  try {
+    const result = await query(
+      `UPDATE devices
+       SET display_name = $3
+       WHERE id = $1 AND user_id = $2
+       RETURNING id, device_key, device_name, display_name, device_type, created_at, last_active_at`,
+      [id, req.user.id, displayName]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Устройство не найдено" });
+    }
+
+    return res.json({ device: result.rows[0] });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });

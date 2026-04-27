@@ -10,6 +10,7 @@ import {
   apiLogout,
   apiRegisterDevice,
   apiDeleteDevice,
+  apiRenameDevice,
   apiDeleteAdminUser,
   apiUpdateProfileDetails,
   apiUpdateMyPassword,
@@ -254,6 +255,12 @@ export function AppProvider({ children }) {
     return { deletedCurrentDevice };
   };
 
+  const renameDevice = async (deviceId, displayName) => {
+    const updatedDevice = await apiRenameDevice(deviceId, displayName);
+    setDevices((prev) => prev.map((device) => (device.id === deviceId ? updatedDevice : device)));
+    return updatedDevice;
+  };
+
   const handleLogout = () => {
     apiLogout();
     setUser(null);
@@ -402,6 +409,7 @@ export function AppProvider({ children }) {
     removeAdminUser,
     registerCurrentDevice,
     removeDevice,
+    renameDevice,
     saveProfileDetails,
     changeMyPassword,
     setDemoLoggedIn

@@ -46,7 +46,9 @@ function normalizeAdminUserRow(row) {
 function normalizeDeviceRow(row) {
   return {
     id: row.id,
-    name: row.device_name,
+    name: row.display_name || row.device_name,
+    defaultName: row.device_name,
+    displayName: row.display_name || "",
     deviceType: row.device_type,
     createdAt: row.created_at,
     lastActiveAt: row.last_active_at,
@@ -236,7 +238,7 @@ router.get("/users/:id", adminMiddleware, async (req, res) => {
     const userRow = userResult.rows[0];
     const [devicesResult, subscriptionsResult, historyResult, codesResult] = await Promise.all([
       query(
-        `SELECT id, device_name, device_type, created_at, last_active_at
+        `SELECT id, device_name, display_name, device_type, created_at, last_active_at
          FROM devices
          WHERE user_id = $1
          ORDER BY created_at DESC, id DESC`,

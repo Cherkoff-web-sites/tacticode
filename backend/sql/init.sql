@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS devices (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   device_key VARCHAR(128),
   device_name VARCHAR(255) NOT NULL,
+  display_name VARCHAR(255),
   device_type VARCHAR(32) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_active_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -79,6 +80,9 @@ CREATE TABLE IF NOT EXISTS devices (
 
 ALTER TABLE devices
   ADD COLUMN IF NOT EXISTS device_key VARCHAR(128);
+
+ALTER TABLE devices
+  ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
 
 CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_user_device_key
