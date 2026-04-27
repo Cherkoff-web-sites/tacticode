@@ -37,6 +37,9 @@ ALTER TABLE users
   ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 1;
 
 ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS last_device_unlinked_at TIMESTAMPTZ;
+
+ALTER TABLE users
   ALTER COLUMN registered_at SET DEFAULT NOW();
 
 UPDATE users
@@ -67,13 +70,20 @@ ALTER TABLE auth_codes
 CREATE TABLE IF NOT EXISTS devices (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  device_key VARCHAR(128),
   device_name VARCHAR(255) NOT NULL,
   device_type VARCHAR(32) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_active_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE devices
+  ADD COLUMN IF NOT EXISTS device_key VARCHAR(128);
+
 CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_user_device_key
+  ON devices(user_id, device_key)
+  WHERE device_key IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_auth_codes_email_purpose ON auth_codes(email, purpose);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 

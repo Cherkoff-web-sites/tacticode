@@ -16,6 +16,18 @@ function getCurrentDeviceId() {
   return localStorage.getItem("currentDeviceId") || null;
 }
 
+function getDeviceKey() {
+  const existing = localStorage.getItem("deviceKey");
+  if (existing) return existing;
+
+  const next =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  localStorage.setItem("deviceKey", next);
+  return next;
+}
+
 function setToken(token) {
   if (token) {
     localStorage.setItem("accessToken", token);
@@ -206,10 +218,14 @@ export async function apiRegisterDevice({ deviceName, deviceType }) {
   const data = await request("/api/devices/register", {
     method: "POST",
     body: JSON.stringify({
+      device_key: getDeviceKey(),
       device_name: deviceName,
       device_type: deviceType,
     }),
   });
+  if (data.accessToken) {
+    setToken(data.accessToken);
+  }
   setCurrentDeviceId(data.device?.id || null);
   return data.device;
 }
@@ -234,12 +250,14 @@ export async function apiGetDevices() {
 }
 
 export async function apiDeleteDevice(id) {
+  const deletedCurrentDevice = String(getCurrentDeviceId()) === String(id);
   await request(`/api/devices/${id}`, {
     method: "DELETE",
   });
-  if (String(getCurrentDeviceId()) === String(id)) {
+  if (deletedCurrentDevice) {
     setCurrentDeviceId(null);
   }
+  return { deletedCurrentDevice };
 }
 
 export async function apiGetSubscriptions() {

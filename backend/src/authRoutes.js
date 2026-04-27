@@ -30,7 +30,7 @@ const USER_SELECT_FIELDS = `
   updated_at
 `;
 
-function signToken(user) {
+export function signToken(user) {
   const payload = {
     id: user.id,
     login: user.login,
@@ -86,6 +86,16 @@ async function deleteOtherDevices(userId, currentDeviceId) {
   await query("DELETE FROM devices WHERE user_id = $1", [userId]);
 }
 
+async function touchCurrentDevice(req, userId) {
+  const currentDeviceId = getCurrentDeviceId(req);
+  if (!currentDeviceId) return;
+
+  await query(
+    "UPDATE devices SET last_active_at = NOW() WHERE id = $1 AND user_id = $2",
+    [currentDeviceId, userId]
+  );
+}
+
 export async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -111,6 +121,7 @@ export async function authMiddleware(req, res, next) {
       role: result.rows[0].role || "user",
       sessionVersion: currentSessionVersion,
     };
+    await touchCurrentDevice(req, req.user.id);
     next();
   } catch (err) {
     console.error(err);

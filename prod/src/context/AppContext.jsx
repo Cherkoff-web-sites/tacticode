@@ -9,6 +9,7 @@ import {
   apiLogin,
   apiLogout,
   apiRegisterDevice,
+  apiDeleteDevice,
   apiDeleteAdminUser,
   apiUpdateProfileDetails,
   apiUpdateMyPassword,
@@ -233,7 +234,24 @@ export function AppProvider({ children }) {
     const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
     const deviceName = ua.slice(0, 120);
     const deviceType = isMobile ? "mobile" : "desktop";
-    await apiRegisterDevice({ deviceName, deviceType });
+    const device = await apiRegisterDevice({ deviceName, deviceType });
+    setDevices((prev) => {
+      const rest = prev.filter((item) => item.id !== device.id);
+      return [device, ...rest];
+    });
+    return device;
+  };
+
+  const removeDevice = async (deviceId) => {
+    const { deletedCurrentDevice } = await apiDeleteDevice(deviceId);
+    setDevices((prev) => prev.filter((device) => device.id !== deviceId));
+    if (deletedCurrentDevice) {
+      apiLogout();
+      setUser(null);
+      clearAuthorizedData();
+      navigate("/");
+    }
+    return { deletedCurrentDevice };
   };
 
   const handleLogout = () => {
@@ -256,18 +274,13 @@ export function AppProvider({ children }) {
       const identifier = String(login || "").trim();
       const loggedUser = await apiLogin({ identifier, password });
       setUser(loggedUser);
-      setLoginModalOpen(false);
-      setPassword("");
 
-      // регистрируем устройство
-      try {
-        await registerCurrentDevice();
-      } catch (err) {
-        console.warn("Не удалось зарегистрировать устройство:", err?.message || err);
-      }
+      await registerCurrentDevice();
 
       await loadAuthorizedData({ includeUser: true });
 
+      setLoginModalOpen(false);
+      setPassword("");
       navigate("/lk");
     } catch (err) {
       if (err?.code === "SUPER_ADMIN_CODE_REQUIRED") {
@@ -288,6 +301,8 @@ export function AppProvider({ children }) {
         }
       }
 
+      apiLogout();
+      setUser(null);
       setLoginError(err.message || "Ошибка авторизации");
       clearAuthorizedData();
     } finally {
@@ -386,6 +401,7 @@ export function AppProvider({ children }) {
     getAdminUserDetails,
     removeAdminUser,
     registerCurrentDevice,
+    removeDevice,
     saveProfileDetails,
     changeMyPassword,
     setDemoLoggedIn

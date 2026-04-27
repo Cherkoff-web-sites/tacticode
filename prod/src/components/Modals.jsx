@@ -122,7 +122,7 @@ export function Modals() {
     setPeriod,
     deviceToRemove,
     setDeviceToRemove,
-    setDevices,
+    removeDevice,
     subscriptionHistory,
     historyModalOpen,
     setHistoryModalOpen,
@@ -153,6 +153,8 @@ export function Modals() {
   const [restoreEmail, setRestoreEmail] = useState("");
   const [restoreEmailError, setRestoreEmailError] = useState("");
   const [restoreLoading, setRestoreLoading] = useState(false);
+  const [deviceRemoveError, setDeviceRemoveError] = useState("");
+  const [deviceRemoveLoading, setDeviceRemoveLoading] = useState(false);
 
   const [newPasswordModalOpen, setNewPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -555,6 +557,8 @@ export function Modals() {
               if (codePurpose === "register") {
                 const user = await apiRegisterConfirm({ email: codeEmail, code });
                 setUser(user);
+                await registerCurrentDevice();
+                await loadAuthorizedData({ includeUser: true });
                 setCodeModalOpen(false);
                 setAuthMode("login");
                 navigate("/lk");
@@ -570,11 +574,7 @@ export function Modals() {
               } else if (codePurpose === "admin_login") {
                 const user = await apiAdminConfirmCode({ email: codeEmail, code });
                 setUser(user);
-                try {
-                  await registerCurrentDevice();
-                } catch (err) {
-                  console.warn("Не удалось зарегистрировать устройство супер-админа:", err?.message || err);
-                }
+                await registerCurrentDevice();
                 await loadAuthorizedData({ includeUser: true });
                 setCodeModalOpen(false);
                 setLoginModalOpen(false);
@@ -683,6 +683,8 @@ export function Modals() {
               setNewPasswordLoading(true);
               const user = await apiPasswordReset({ email: resetEmail, code: resetCode, password: newPassword });
               setUser(user);
+              await registerCurrentDevice();
+              await loadAuthorizedData({ includeUser: true });
               setNewPasswordModalOpen(false);
               navigate("/lk");
             } catch (err) {
@@ -853,29 +855,50 @@ export function Modals() {
       {/* Удалить устройство */}
       <BaseModal
         isOpen={Boolean(deviceToRemove && isLk)}
-        onClose={() => setDeviceToRemove(null)}
+        onClose={() => {
+          setDeviceToRemove(null);
+          setDeviceRemoveError("");
+        }}
         title="Вы уверены, что хотите удалить устройство?"
         panelClassName="w-full !max-w-[444px]"
         titleClassName="md:!mb-[16px]"
       >
         <p className={`${MODAL_TEXT_FONT} m-0 mb-[24px] text-center text-[#8D8D8D]`}>
-          Удалить привязанное устройство можно 1 раз в месяц
+          Удалить привязанное устройство можно 1 раз в 10 минут
         </p>
+        {deviceRemoveError && (
+          <p className={`${MODAL_TEXT_FONT} m-0 mb-[16px] text-center text-[#FF383C]`}>
+            {deviceRemoveError}
+          </p>
+        )}
         <div className="flex flex-col gap-[16px]">
           <button
             type="button"
-            className={`${secondButtonClass} w-full md:w-full`}
-            onClick={() => {
-              setDevices((prev) => prev.filter((d) => d.name !== deviceToRemove?.name));
-              setDeviceToRemove(null);
+            className={`${secondButtonClass} w-full md:w-full disabled:cursor-not-allowed disabled:opacity-70`}
+            disabled={deviceRemoveLoading}
+            onClick={async () => {
+              if (!deviceToRemove?.id) return;
+              setDeviceRemoveError("");
+              setDeviceRemoveLoading(true);
+              try {
+                await removeDevice(deviceToRemove.id);
+                setDeviceToRemove(null);
+              } catch (err) {
+                setDeviceRemoveError(err?.message || "Не удалось удалить устройство");
+              } finally {
+                setDeviceRemoveLoading(false);
+              }
             }}
           >
-            Удалить устройство
+            {deviceRemoveLoading ? "Удаляем..." : "Удалить устройство"}
           </button>
           <button
             type="button"
             className={`${secondButtonClass} w-full md:w-full`}
-            onClick={() => setDeviceToRemove(null)}
+            onClick={() => {
+              setDeviceToRemove(null);
+              setDeviceRemoveError("");
+            }}
           >
             Вернуться назад
           </button>
