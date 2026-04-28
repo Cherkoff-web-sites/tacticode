@@ -55,31 +55,34 @@ function getBrowserName(ua) {
   return "Браузер";
 }
 
-function getDeviceModel(ua) {
+function getDeviceModel(ua, deviceType = "") {
   if (/iPhone/i.test(ua)) return "iPhone";
   if (/iPad/i.test(ua) || (/Macintosh/i.test(ua) && /Mobile\//i.test(ua))) return "iPad";
   if (/Android/i.test(ua)) {
-    const match = ua.match(/Android[^;)]*;\s*([^;)]+)/i);
-    const rawModel = match?.[1]?.replace(/\s+Build\/.*/i, "").trim();
-    return rawModel && !/wv|mobile/i.test(rawModel) ? rawModel : "Android";
+    const modelMatch = ua.match(/;\s*([A-Za-z0-9._\- ]{2,40})\s+Build\//i);
+    const rawModel = (modelMatch?.[1] || "").trim();
+    if (rawModel && !/^K$/i.test(rawModel)) return rawModel;
+    return "Android";
   }
   if (/Windows NT/i.test(ua)) return "Windows PC";
   if (/Mac OS X|Macintosh/i.test(ua)) return "Mac";
   if (/Linux/i.test(ua)) return "Linux PC";
+  if (/mobile/i.test(deviceType)) return "Мобильное устройство";
+  if (/desktop/i.test(deviceType)) return "Компьютер";
   return "Устройство";
 }
 
-function getReadableDeviceName(ua) {
-  return `${getBrowserName(ua)} · ${getDeviceModel(ua)}`;
+function getReadableDeviceName(ua, deviceType = "") {
+  return `${getBrowserName(ua)} · ${getDeviceModel(ua, deviceType)}`;
 }
 
-function normalizeStoredDeviceName(deviceName) {
+function normalizeStoredDeviceName(deviceName, deviceType = "") {
   const value = String(deviceName || "").trim();
-  return /Mozilla\/|AppleWebKit\//i.test(value) ? getReadableDeviceName(value) : value;
+  return /Mozilla\/|AppleWebKit\//i.test(value) ? getReadableDeviceName(value, deviceType) : value;
 }
 
 function mapDevice(device) {
-  const defaultName = normalizeStoredDeviceName(device.device_name);
+  const defaultName = normalizeStoredDeviceName(device.device_name, device.device_type);
   const isCurrentDevice = String(getCurrentDeviceId() || "") === String(device.id);
   return {
     id: device.id,
@@ -272,7 +275,7 @@ export async function apiConfirmLoginChange({ login, code }) {
 }
 
 export async function apiRegisterDevice({ deviceName, deviceType }) {
-  const readableDeviceName = getReadableDeviceName(deviceName);
+  const readableDeviceName = getReadableDeviceName(deviceName, deviceType);
   const data = await request("/api/devices/register", {
     method: "POST",
     body: JSON.stringify({
