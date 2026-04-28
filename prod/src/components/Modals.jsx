@@ -859,7 +859,7 @@ export function Modals() {
           setDeviceToRemove(null);
           setDeviceRemoveError("");
         }}
-        title="Вы уверены, что хотите удалить устройство?"
+        title={deviceToRemove?.isCurrentDevice ? "Вы уверены, что хотите удалить текущее устройство?" : "Вы уверены, что хотите удалить устройство?"}
         panelClassName="w-full !max-w-[444px]"
         titleClassName="md:!mb-[16px]"
       >
@@ -890,7 +890,11 @@ export function Modals() {
               }
             }}
           >
-            {deviceRemoveLoading ? "Удаляем..." : "Удалить устройство"}
+            {deviceRemoveLoading
+              ? "Удаляем..."
+              : deviceToRemove?.isCurrentDevice
+                ? "Удалить текущее устройство"
+                : "Удалить устройство"}
           </button>
           <button
             type="button"

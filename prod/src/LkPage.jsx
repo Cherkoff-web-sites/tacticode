@@ -806,7 +806,15 @@ export function LkPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <div className={`${mainText} device-name text-[#1A1A1A]`}>{device.name}</div>
+                                    <div className="flex min-w-0 items-center gap-[8px]">
+                                      <div className={`${mainText} device-name text-[#1A1A1A]`}>{device.name}</div>
+                                      {device.isCurrentDevice && (
+                                        <span className="inline-flex shrink-0 items-center gap-[6px] rounded-full bg-[#D9E3F1] px-[8px] py-[2px] text-[12px] leading-[1.2] text-[#00459D]">
+                                          <span className="h-[6px] w-[6px] rounded-full bg-[#00459D]" />
+                                          Текущее
+                                        </span>
+                                      )}
+                                    </div>
                                     {!!device.displayName && device.defaultName && (
                                       <div className={`${mainText} device-meta text-[#8D8D8D] md:!text-[16px]`}>{device.defaultName}</div>
                                     )}

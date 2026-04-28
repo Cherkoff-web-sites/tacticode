@@ -80,11 +80,13 @@ function normalizeStoredDeviceName(deviceName) {
 
 function mapDevice(device) {
   const defaultName = normalizeStoredDeviceName(device.device_name);
+  const isCurrentDevice = String(getCurrentDeviceId() || "") === String(device.id);
   return {
     id: device.id,
     name: device.display_name || defaultName,
     defaultName,
     displayName: device.display_name || "",
+    isCurrentDevice,
     location: device.last_active_at
       ? new Intl.DateTimeFormat("ru-RU", {
           day: "2-digit",
