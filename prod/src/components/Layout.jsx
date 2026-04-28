@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
@@ -13,8 +13,24 @@ export function Layout() {
   const isDocuments = path === "/privacy" || path === "/terms";
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname]);
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    resetScroll();
+    const raf = window.requestAnimationFrame(resetScroll);
+    return () => window.cancelAnimationFrame(raf);
+  }, [location.pathname, location.key]);
 
   const mainClass = isHome
     ? "flex-1 flex flex-col items-stretch pt-0 pb-[80px] md:pb-[160px]"

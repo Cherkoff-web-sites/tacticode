@@ -167,7 +167,26 @@ export function Header() {
                     <NavLink to="/contacts" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Контакты</NavLink>
                   </li>
                   <li>
-                    <NavLink to="/lk" className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`} onClick={closeMobileMenu}>Личный кабинет</NavLink>
+                    {isLoggedIn ? (
+                      <NavLink
+                        to="/lk"
+                        className={({ isActive }) => `${mobileMenuNavLinkClass} ${isActive ? "!text-[#00459D] !font-bold" : ""}`}
+                        onClick={closeMobileMenu}
+                      >
+                        Личный кабинет
+                      </NavLink>
+                    ) : (
+                      <button
+                        type="button"
+                        className={mobileMenuNavLinkClass}
+                        onClick={() => {
+                          setLoginModalOpen(true);
+                          closeMobileMenu();
+                        }}
+                      >
+                        Личный кабинет
+                      </button>
+                    )}
                   </li>
                   {isSuperAdmin && (
                     <li>

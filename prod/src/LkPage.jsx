@@ -4,6 +4,7 @@ import { flushSync } from "react-dom";
 import { subscriptionItems } from "./data";
 import { useApp } from "./context/AppContext";
 import { apiRequestLoginChange } from "./api/client";
+import BaseModal from "./components/BaseModal";
 
 function EditFieldSvg({ active }) {
   return (
@@ -191,11 +192,31 @@ function EditableField({
 
   const startEditWithFocus = () => {
     if (isEditing) return;
+    const wasFocused = document.activeElement === inputRef.current;
+    if (wasFocused) {
+      // На iOS readOnly-input может остаться в фокусе без клавиатуры.
+      // Сбрасываем фокус перед переключением в режим редактирования.
+      inputRef.current?.blur();
+    }
     flushSync(() => {
       onStartEdit?.();
     });
+    const focusEditableInput = () => {
+      const input = inputRef.current;
+      if (!input) return;
+      // iOS иногда не показывает клавиатуру, если поле осталось "как бы" readOnly.
+      input.removeAttribute("readonly");
+      input.focus({ preventScroll: true });
+      try {
+        const caretPosition = input.value.length;
+        input.setSelectionRange?.(caretPosition, caretPosition);
+      } catch {
+        // setSelectionRange не поддерживается, например, для некоторых типов input.
+      }
+    };
     // iOS открывает клавиатуру надёжнее, когда focus вызывается в рамках пользовательского действия.
-    inputRef.current?.focus();
+    focusEditableInput();
+    window.requestAnimationFrame(focusEditableInput);
   };
 
   useEffect(() => {
@@ -341,6 +362,7 @@ export function LkPage() {
   const [birthDateError, setBirthDateError] = useState("");
   const [profileSaveError, setProfileSaveError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [passwordSuccessModalOpen, setPasswordSuccessModalOpen] = useState(false);
   const [editingDeviceId, setEditingDeviceId] = useState(null);
   const [deviceNameDraft, setDeviceNameDraft] = useState("");
   const [deviceNameError, setDeviceNameError] = useState("");
@@ -523,6 +545,7 @@ export function LkPage() {
       await changeMyPassword({ password: nextValue });
       setIsPasswordVisible(false);
       setEditingField(null);
+      setPasswordSuccessModalOpen(true);
     } catch (err) {
       console.error("Failed to update password:", err);
     }
@@ -1026,6 +1049,24 @@ export function LkPage() {
           Выйти из аккаунта
         </button>
       </div>
+
+      <BaseModal
+        isOpen={passwordSuccessModalOpen}
+        onClose={() => setPasswordSuccessModalOpen(false)}
+        title="Ваш пароль успешно изменен"
+        panelClassName="w-full !max-w-[444px]"
+        titleClassName="md:!mb-[16px]"
+      >
+        <div className="flex flex-col gap-[16px]">
+          <button
+            type="button"
+            className={`${secondaryButtonClass} w-full md:w-full`}
+            onClick={() => setPasswordSuccessModalOpen(false)}
+          >
+            Хорошо
+          </button>
+        </div>
+      </BaseModal>
     </>
   );
 }
