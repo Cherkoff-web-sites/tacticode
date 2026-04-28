@@ -286,6 +286,30 @@ router.get("/users/:id", adminMiddleware, async (req, res) => {
   }
 });
 
+router.delete("/users/:id/devices/:deviceId", adminMiddleware, async (req, res) => {
+  const userId = parseUserId(req.params.id);
+  const deviceId = parseUserId(req.params.deviceId);
+  if (!userId || !deviceId) {
+    return res.status(400).json({ error: "Некорректный идентификатор пользователя или устройства" });
+  }
+
+  try {
+    const result = await query(
+      "DELETE FROM devices WHERE id = $1 AND user_id = $2",
+      [deviceId, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Устройство не найдено" });
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error(`DELETE /api/admin/users/${req.params.id}/devices/${req.params.deviceId} error:`, err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 router.delete("/users/:id", adminMiddleware, async (req, res) => {
   const userId = parseUserId(req.params.id);
   if (!userId) {

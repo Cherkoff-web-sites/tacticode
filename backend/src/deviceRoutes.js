@@ -91,6 +91,28 @@ router.post("/register", authMiddleware, async (req, res) => {
     );
 
     if (current.rowCount >= MAX_DEVICES) {
+      const legacyDevice = await query(
+        `UPDATE devices
+         SET device_key = $2,
+             device_name = $3,
+             device_type = $4,
+             last_active_at = NOW()
+         WHERE id = (
+           SELECT id
+           FROM devices
+           WHERE user_id = $1 AND device_key IS NULL
+           ORDER BY created_at ASC, id ASC
+           LIMIT 1
+         )
+         RETURNING id, device_key, device_name, display_name, device_type, created_at, last_active_at`,
+        [req.user.id, normalizedDeviceKey, device_name, device_type]
+      );
+
+      if (legacyDevice.rowCount > 0) {
+        const accessToken = await rotateActiveSession(req.user.id);
+        return res.json({ device: legacyDevice.rows[0], accessToken });
+      }
+
       return res
         .status(409)
         .json({ error: "Достигнут лимит устройств (3). Удалите одно из устройств в личном кабинете." });

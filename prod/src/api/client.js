@@ -336,6 +336,12 @@ export async function apiGetAdminUserDetails(id) {
   return request(`/api/admin/users/${id}`);
 }
 
+export async function apiAdminDeleteUserDevice(userId, deviceId) {
+  return request(`/api/admin/users/${userId}/devices/${deviceId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function apiDeleteAdminUser(id) {
   return request(`/api/admin/users/${id}`, {
     method: "DELETE",

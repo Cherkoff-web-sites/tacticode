@@ -129,6 +129,7 @@ export function AdminPage() {
     isAdminUsersLoading,
     loadAdminUsers,
     getAdminUserDetails,
+    removeAdminUserDevice,
     removeAdminUser,
   } = useApp();
 
@@ -144,6 +145,7 @@ export function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeActionUserId, setActiveActionUserId] = useState(null);
+  const [deletingDeviceId, setDeletingDeviceId] = useState(null);
 
   useEffect(() => {
     if (!isAuthResolved) return;
@@ -237,6 +239,22 @@ export function AdminPage() {
       setPageError(err?.message || "Не удалось удалить пользователя");
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteUserDevice = async (deviceId) => {
+    const userId = detailData?.user?.id;
+    if (!userId || !deviceId) return;
+
+    setDeletingDeviceId(deviceId);
+    setDetailError("");
+    try {
+      const updatedDetails = await removeAdminUserDevice(userId, deviceId);
+      setDetailData(updatedDetails);
+    } catch (err) {
+      setDetailError(err?.message || "Не удалось удалить устройство");
+    } finally {
+      setDeletingDeviceId(null);
     }
   };
 
@@ -592,9 +610,19 @@ export function AdminPage() {
                   ) : (
                     detailData.devices.map((device) => (
                       <div key={device.id} className="rounded-[12px] bg-white p-[16px]">
-                        <p className={`${mainText} m-0 text-[#1A1A1A]`}>
-                          {device.name || "Без названия"}
-                        </p>
+                        <div className="flex flex-col gap-[12px] md:flex-row md:items-start md:justify-between">
+                          <p className={`${mainText} m-0 text-[#1A1A1A]`}>
+                            {device.name || "Без названия"}
+                          </p>
+                          <button
+                            type="button"
+                            className={smallActionButtonClass}
+                            disabled={deletingDeviceId === device.id}
+                            onClick={() => handleDeleteUserDevice(device.id)}
+                          >
+                            {deletingDeviceId === device.id ? "Удаляем..." : "Удалить устройство"}
+                          </button>
+                        </div>
                         {!!device.displayName && device.defaultName && (
                           <p className={`${mainText} mt-[8px] mb-0 text-[#8D8D8D]`}>
                             Автоназвание: {device.defaultName}

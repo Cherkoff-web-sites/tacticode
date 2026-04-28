@@ -5,6 +5,7 @@ import {
   apiGetDevices,
   apiGetAdminUserDetails,
   apiGetAdminUsers,
+  apiAdminDeleteUserDevice,
   apiGetMe,
   apiLogin,
   apiLogout,
@@ -335,6 +336,13 @@ export function AppProvider({ children }) {
 
   const getAdminUserDetails = async (id) => apiGetAdminUserDetails(id);
 
+  const removeAdminUserDevice = async (userId, deviceId) => {
+    await apiAdminDeleteUserDevice(userId, deviceId);
+    const updatedDetails = await apiGetAdminUserDetails(userId);
+    await loadAdminUsers();
+    return updatedDetails;
+  };
+
   const removeAdminUser = async (id) => {
     await apiDeleteAdminUser(id);
     setAdminUsers((prev) => prev.filter((item) => item.id !== id));
@@ -406,6 +414,7 @@ export function AppProvider({ children }) {
     loadAuthorizedData,
     loadAdminUsers,
     getAdminUserDetails,
+    removeAdminUserDevice,
     removeAdminUser,
     registerCurrentDevice,
     removeDevice,
