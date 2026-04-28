@@ -146,6 +146,7 @@ function EditableField({
   onConfirm,
   onClear,
   onExitWithoutSave,
+  dismissOnOutside = true,
   mainText,
   fieldValueClass,
   inputType = "text",
@@ -190,6 +191,19 @@ function EditableField({
 
   const hasChanges = isEditing && draft !== initialValueRef.current;
 
+  const focusEditableInput = () => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.removeAttribute("readonly");
+    input.focus({ preventScroll: true });
+    try {
+      const caretPosition = input.value.length;
+      input.setSelectionRange?.(caretPosition, caretPosition);
+    } catch {
+      // setSelectionRange не поддерживается, например, для некоторых типов input.
+    }
+  };
+
   const startEditWithFocus = () => {
     if (isEditing) return;
     const wasFocused = document.activeElement === inputRef.current;
@@ -201,26 +215,13 @@ function EditableField({
     flushSync(() => {
       onStartEdit?.();
     });
-    const focusEditableInput = () => {
-      const input = inputRef.current;
-      if (!input) return;
-      // iOS иногда не показывает клавиатуру, если поле осталось "как бы" readOnly.
-      input.removeAttribute("readonly");
-      input.focus({ preventScroll: true });
-      try {
-        const caretPosition = input.value.length;
-        input.setSelectionRange?.(caretPosition, caretPosition);
-      } catch {
-        // setSelectionRange не поддерживается, например, для некоторых типов input.
-      }
-    };
     // iOS открывает клавиатуру надёжнее, когда focus вызывается в рамках пользовательского действия.
     focusEditableInput();
     window.requestAnimationFrame(focusEditableInput);
   };
 
   useEffect(() => {
-    if (!isEditing || hasChanges || !onExitWithoutSave) return;
+    if (!dismissOnOutside || !isEditing || hasChanges || !onExitWithoutSave) return;
     const isFocusInsideField = () => {
       const ae = document.activeElement;
       return Boolean(ae && wrapperRef.current?.contains(ae));
@@ -249,7 +250,7 @@ function EditableField({
         outsideDismissTimeoutRef.current = null;
       }
     };
-  }, [isEditing, hasChanges, onExitWithoutSave, nativeDatePickerRef]);
+  }, [dismissOnOutside, isEditing, hasChanges, onExitWithoutSave, nativeDatePickerRef]);
 
   const wrapperBgClass = isEditing ? "!bg-[#F2F5FA]" : "lg:hover:!bg-[#F2F5FA]";
   const resolvedSecondaryControl =
@@ -289,6 +290,12 @@ function EditableField({
           }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          onClick={() => {
+            if (!isEditing) return;
+            // На iOS повторный клик по editable input иногда не поднимает клавиатуру.
+            focusEditableInput();
+            window.requestAnimationFrame(focusEditableInput);
+          }}
           readOnly={!isEditing}
           className={`w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] placeholder:text-[#8D8D8D] ${isEditing ? "cursor-text" : "cursor-default"}`}
         />
@@ -933,6 +940,7 @@ export function LkPage() {
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("surname")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("surname")}
                 startEditOnFieldClick={!hasPersistedProfileValue("surname")}
+                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -950,6 +958,7 @@ export function LkPage() {
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("firstName")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("firstName")}
                 startEditOnFieldClick={!hasPersistedProfileValue("firstName")}
+                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -975,6 +984,7 @@ export function LkPage() {
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("birthDate")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("birthDate")}
                 startEditOnFieldClick={!hasPersistedProfileValue("birthDate")}
+                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
                 inputMode="numeric"
@@ -1026,6 +1036,7 @@ export function LkPage() {
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("club")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("club")}
                 startEditOnFieldClick={!hasPersistedProfileValue("club")}
+                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
