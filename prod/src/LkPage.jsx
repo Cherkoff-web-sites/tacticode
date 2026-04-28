@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { flushSync } from "react-dom";
 import { subscriptionItems } from "./data";
 import { useApp } from "./context/AppContext";
 import { apiRequestLoginChange } from "./api/client";
@@ -188,6 +189,15 @@ function EditableField({
 
   const hasChanges = isEditing && draft !== initialValueRef.current;
 
+  const startEditWithFocus = () => {
+    if (isEditing) return;
+    flushSync(() => {
+      onStartEdit?.();
+    });
+    // iOS открывает клавиатуру надёжнее, когда focus вызывается в рамках пользовательского действия.
+    inputRef.current?.focus();
+  };
+
   useEffect(() => {
     if (!isEditing || hasChanges || !onExitWithoutSave) return;
     const isFocusInsideField = () => {
@@ -239,7 +249,7 @@ function EditableField({
         className={`${fieldValueClass} gap-[16px] ${wrapperBgClass} ${startEditOnFieldClick && !isEditing ? "cursor-text" : "cursor-default"}`}
         onClick={() => {
           if (!isEditing && startEditOnFieldClick) {
-            onStartEdit?.();
+            startEditWithFocus();
           }
         }}
       >
@@ -278,7 +288,7 @@ function EditableField({
                 <button
                   type="button"
                   className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#00459D]"
-                  onClick={onStartEdit}
+                  onClick={startEditWithFocus}
                   aria-label={`Редактировать поле ${label}`}
                 >
                   <EditFieldSvg active />
@@ -293,7 +303,7 @@ function EditableField({
               <button
                 type="button"
                 className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
-                onClick={onStartEdit}
+                onClick={startEditWithFocus}
                 aria-label={`Редактировать поле ${label}`}
               >
                 <EditFieldSvg active={false} />

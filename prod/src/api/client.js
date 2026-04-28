@@ -78,7 +78,21 @@ function getReadableDeviceName(ua, deviceType = "") {
 
 function normalizeStoredDeviceName(deviceName, deviceType = "") {
   const value = String(deviceName || "").trim();
-  return /Mozilla\/|AppleWebKit\//i.test(value) ? getReadableDeviceName(value, deviceType) : value;
+  if (/Mozilla\/|AppleWebKit\//i.test(value)) {
+    return getReadableDeviceName(value, deviceType);
+  }
+
+  // Legacy fallback: раньше часть мобильных могла сохраниться как "Safari · Mac".
+  if (String(deviceType || "").toLowerCase() === "mobile") {
+    const parts = value.split("·").map((part) => part.trim()).filter(Boolean);
+    const browser = parts[0] || "Браузер";
+    const model = parts[1] || "";
+    if (!model || /mac|windows|linux|pc/i.test(model)) {
+      return `${browser} · Мобильное устройство`;
+    }
+  }
+
+  return value;
 }
 
 function mapDevice(device) {

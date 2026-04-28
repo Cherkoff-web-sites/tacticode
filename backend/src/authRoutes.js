@@ -146,15 +146,17 @@ export async function adminMiddleware(req, res, next) {
 
 router.post("/register", async (req, res) => {
   const { login, email, password } = req.body || {};
+  const normalizedLogin = String(login || "").trim().toLowerCase();
+  const normalizedEmail = email ? String(email).trim().toLowerCase() : null;
 
-  if (!login || !password) {
+  if (!normalizedLogin || !password) {
     return res.status(400).json({ error: "Логин и пароль обязательны" });
   }
 
   try {
     const existing = await query(
-      "SELECT id FROM users WHERE login = $1 OR (email IS NOT NULL AND email = $2)",
-      [login, email || null]
+      "SELECT id FROM users WHERE LOWER(login) = LOWER($1) OR (email IS NOT NULL AND LOWER(email) = LOWER($2))",
+      [normalizedLogin, normalizedEmail]
     );
     if (existing.rowCount > 0) {
       return res.status(409).json({ error: "Логин или почта уже заняты" });
@@ -165,7 +167,7 @@ router.post("/register", async (req, res) => {
       `INSERT INTO users (login, email, password_hash)
        VALUES ($1, $2, $3)
        RETURNING ${USER_SELECT_FIELDS}`,
-      [login, email || null, passwordHash]
+      [normalizedLogin, normalizedEmail, passwordHash]
     );
 
     const user = normalizeUserRow(result.rows[0]);
@@ -236,7 +238,7 @@ router.post("/register/confirm", async (req, res) => {
     const codeRow = codeResult.rows[0];
 
     const existing = await query(
-      "SELECT id FROM users WHERE email = $1",
+      "SELECT id FROM users WHERE LOWER(email) = LOWER($1)",
       [trimmedEmail]
     );
     if (existing.rowCount > 0) {
@@ -247,7 +249,7 @@ router.post("/register/confirm", async (req, res) => {
       `INSERT INTO users (login, email, password_hash)
        VALUES ($1, $2, $3)
        RETURNING ${USER_SELECT_FIELDS}`,
-      [codeRow.login || trimmedEmail, trimmedEmail, codeRow.password_hash]
+      [String(codeRow.login || trimmedEmail).trim().toLowerCase(), trimmedEmail, codeRow.password_hash]
     );
 
     await query(
@@ -268,7 +270,7 @@ router.post("/register/confirm", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { identifier, password } = req.body || {};
 
-  const rawIdentifier = String(identifier || "").trim();
+  const rawIdentifier = String(identifier || "").trim().toLowerCase();
   const rawPassword = String(password || "");
 
   if (!rawIdentifier) {
@@ -279,7 +281,7 @@ router.post("/login", async (req, res) => {
     const result = await query(
       `SELECT ${USER_SELECT_FIELDS}, password_hash
        FROM users
-       WHERE login = $1 OR email = $1`,
+       WHERE LOWER(login) = LOWER($1) OR LOWER(email) = LOWER($1)`,
       [rawIdentifier]
     );
 
@@ -337,7 +339,7 @@ router.post("/admin/request-code", async (req, res) => {
     const result = await query(
       `SELECT ${USER_SELECT_FIELDS}
        FROM users
-       WHERE (email = $1 OR login = $1)
+       WHERE (LOWER(email) = LOWER($1) OR LOWER(login) = LOWER($1))
        LIMIT 1`,
       [rawEmail]
     );
@@ -432,7 +434,7 @@ router.post("/password/request-reset", async (req, res) => {
 
   try {
     const userResult = await query(
-      "SELECT id, email, role FROM users WHERE email = $1 OR login = $1 LIMIT 1",
+      "SELECT id, email, role FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(login) = LOWER($1) LIMIT 1",
       [rawIdentifier]
     );
 
@@ -515,7 +517,7 @@ router.post("/password/reset", async (req, res) => {
     }
 
     const userResult = await query(
-      "SELECT id, login, email FROM users WHERE email = $1",
+      "SELECT id, login, email FROM users WHERE LOWER(email) = LOWER($1)",
       [trimmedEmail]
     );
 
@@ -595,7 +597,7 @@ router.patch("/me", authMiddleware, async (req, res) => {
     const hasClub = Object.prototype.hasOwnProperty.call(body, "club");
 
     const nextLogin = Object.prototype.hasOwnProperty.call(body, "login")
-      ? (body.login ? String(body.login).trim() : null)
+      ? (body.login ? String(body.login).trim().toLowerCase() : null)
       : undefined;
     const nextEmail = Object.prototype.hasOwnProperty.call(body, "email")
       ? (body.email ? String(body.email).trim().toLowerCase() : null)
@@ -619,7 +621,7 @@ router.patch("/me", authMiddleware, async (req, res) => {
 
     if (nextLogin || nextEmail) {
       const check = await query(
-        "SELECT id FROM users WHERE id <> $1 AND (login = COALESCE($2, login) OR (email IS NOT NULL AND email = COALESCE($3, email)))",
+        "SELECT id FROM users WHERE id <> $1 AND (LOWER(login) = LOWER(COALESCE($2, login)) OR (email IS NOT NULL AND LOWER(email) = LOWER(COALESCE($3, email))))",
         [req.user.id, nextLogin ?? null, nextEmail ?? null]
       );
       if (check.rowCount > 0) {
@@ -710,7 +712,7 @@ router.post("/me/request-login-change", authMiddleware, async (req, res) => {
 
   try {
     const existing = await query(
-      "SELECT id FROM users WHERE (login = $1 OR email = $1) AND id <> $2",
+      "SELECT id FROM users WHERE (LOWER(login) = LOWER($1) OR LOWER(email) = LOWER($1)) AND id <> $2",
       [newLogin, req.user.id]
     );
     if (existing.rowCount > 0) {
