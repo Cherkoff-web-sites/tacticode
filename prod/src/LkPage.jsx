@@ -190,13 +190,31 @@ function EditableField({
 
   const hasChanges = isEditing && draft !== initialValueRef.current;
 
+  const focusEditableInput = () => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.removeAttribute("readonly");
+    input.focus({ preventScroll: true });
+    try {
+      const caretPosition = input.value.length;
+      input.setSelectionRange?.(caretPosition, caretPosition);
+    } catch {
+      // Для некоторых input-типа setSelectionRange не поддерживается.
+    }
+  };
+
   const startEditWithFocus = () => {
-    if (isEditing) return;
+    if (isEditing) {
+      focusEditableInput();
+      window.requestAnimationFrame(focusEditableInput);
+      return;
+    }
     flushSync(() => {
       onStartEdit?.();
     });
     // iOS открывает клавиатуру надёжнее, когда focus вызывается в рамках пользовательского действия.
-    inputRef.current?.focus();
+    focusEditableInput();
+    window.requestAnimationFrame(focusEditableInput);
   };
 
   useEffect(() => {
@@ -268,6 +286,11 @@ function EditableField({
           }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          onPointerDown={() => {
+            if (!isEditing) return;
+            // Дополнительная страховка под iOS: первый же тап по editable полю поднимает клавиатуру.
+            focusEditableInput();
+          }}
           readOnly={!isEditing}
           className={`w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] placeholder:text-[#8D8D8D] ${isEditing ? "cursor-text" : "cursor-default"}`}
         />
