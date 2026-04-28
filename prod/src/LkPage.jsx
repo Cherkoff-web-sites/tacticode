@@ -146,7 +146,6 @@ function EditableField({
   onConfirm,
   onClear,
   onExitWithoutSave,
-  dismissOnOutside = true,
   mainText,
   fieldValueClass,
   inputType = "text",
@@ -191,37 +190,17 @@ function EditableField({
 
   const hasChanges = isEditing && draft !== initialValueRef.current;
 
-  const focusEditableInput = () => {
-    const input = inputRef.current;
-    if (!input) return;
-    input.removeAttribute("readonly");
-    input.focus({ preventScroll: true });
-    try {
-      const caretPosition = input.value.length;
-      input.setSelectionRange?.(caretPosition, caretPosition);
-    } catch {
-      // setSelectionRange не поддерживается, например, для некоторых типов input.
-    }
-  };
-
   const startEditWithFocus = () => {
     if (isEditing) return;
-    const wasFocused = document.activeElement === inputRef.current;
-    if (wasFocused) {
-      // На iOS readOnly-input может остаться в фокусе без клавиатуры.
-      // Сбрасываем фокус перед переключением в режим редактирования.
-      inputRef.current?.blur();
-    }
     flushSync(() => {
       onStartEdit?.();
     });
     // iOS открывает клавиатуру надёжнее, когда focus вызывается в рамках пользовательского действия.
-    focusEditableInput();
-    window.requestAnimationFrame(focusEditableInput);
+    inputRef.current?.focus();
   };
 
   useEffect(() => {
-    if (!dismissOnOutside || !isEditing || hasChanges || !onExitWithoutSave) return;
+    if (!isEditing || hasChanges || !onExitWithoutSave) return;
     const isFocusInsideField = () => {
       const ae = document.activeElement;
       return Boolean(ae && wrapperRef.current?.contains(ae));
@@ -237,10 +216,9 @@ function EditableField({
         outsideDismissTimeoutRef.current = null;
         const ae = document.activeElement;
         if (nativeDatePickerRef?.current && ae === nativeDatePickerRef.current) return;
-        if (ae instanceof HTMLInputElement && !ae.readOnly) return;
         if (isFocusInsideField()) return;
         onExitWithoutSave();
-      }, 180);
+      }, 80);
     };
     document.addEventListener("pointerdown", handlePointerDown, true);
     return () => {
@@ -250,7 +228,7 @@ function EditableField({
         outsideDismissTimeoutRef.current = null;
       }
     };
-  }, [dismissOnOutside, isEditing, hasChanges, onExitWithoutSave, nativeDatePickerRef]);
+  }, [isEditing, hasChanges, onExitWithoutSave, nativeDatePickerRef]);
 
   const wrapperBgClass = isEditing ? "!bg-[#F2F5FA]" : "lg:hover:!bg-[#F2F5FA]";
   const resolvedSecondaryControl =
@@ -290,12 +268,6 @@ function EditableField({
           }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          onClick={() => {
-            if (!isEditing) return;
-            // На iOS повторный клик по editable input иногда не поднимает клавиатуру.
-            focusEditableInput();
-            window.requestAnimationFrame(focusEditableInput);
-          }}
           readOnly={!isEditing}
           className={`w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] placeholder:text-[#8D8D8D] ${isEditing ? "cursor-text" : "cursor-default"}`}
         />
@@ -487,11 +459,6 @@ export function LkPage() {
       setBirthDateError("");
     }
     setEditingField(null);
-  };
-
-  const exitProfileFieldWithoutSave = (field) => {
-    if (editingField !== field) return;
-    resetProfileFieldDraft(field);
   };
 
   const commitProfileField = async (field, nextValue) => {
@@ -935,12 +902,11 @@ export function LkPage() {
                 onStartEdit={() => { setEditingField("surname"); setProfileSaveError(""); }}
                 onConfirm={(val) => commitProfileField("surname", val)}
                 onClear={() => resetProfileFieldDraft("surname")}
-                onExitWithoutSave={() => exitProfileFieldWithoutSave("surname")}
+                onExitWithoutSave={() => resetProfileFieldDraft("surname")}
                 onDraftChange={(val) => updateEditableField("surname", val)}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("surname")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("surname")}
                 startEditOnFieldClick={!hasPersistedProfileValue("surname")}
-                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -953,12 +919,11 @@ export function LkPage() {
                 onStartEdit={() => { setEditingField("firstName"); setProfileSaveError(""); }}
                 onConfirm={(val) => commitProfileField("firstName", val)}
                 onClear={() => resetProfileFieldDraft("firstName")}
-                onExitWithoutSave={() => exitProfileFieldWithoutSave("firstName")}
+                onExitWithoutSave={() => resetProfileFieldDraft("firstName")}
                 onDraftChange={(val) => updateEditableField("firstName", val)}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("firstName")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("firstName")}
                 startEditOnFieldClick={!hasPersistedProfileValue("firstName")}
-                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
@@ -976,7 +941,7 @@ export function LkPage() {
                 }}
                 onConfirm={(val) => commitProfileField("birthDate", val)}
                 onClear={() => resetProfileFieldDraft("birthDate")}
-                onExitWithoutSave={() => exitProfileFieldWithoutSave("birthDate")}
+                onExitWithoutSave={() => resetProfileFieldDraft("birthDate")}
                 onDraftChange={(val) => {
                   updateEditableField("birthDate", val);
                   if (birthDateError) setBirthDateError("");
@@ -984,7 +949,6 @@ export function LkPage() {
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("birthDate")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("birthDate")}
                 startEditOnFieldClick={!hasPersistedProfileValue("birthDate")}
-                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
                 inputMode="numeric"
@@ -1031,12 +995,11 @@ export function LkPage() {
                 onStartEdit={() => { setEditingField("club"); setProfileSaveError(""); }}
                 onConfirm={(val) => commitProfileField("club", val)}
                 onClear={() => resetProfileFieldDraft("club")}
-                onExitWithoutSave={() => exitProfileFieldWithoutSave("club")}
+                onExitWithoutSave={() => resetProfileFieldDraft("club")}
                 onDraftChange={(val) => updateEditableField("club", val)}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("club")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("club")}
                 startEditOnFieldClick={!hasPersistedProfileValue("club")}
-                dismissOnOutside={false}
                 mainText={mainText}
                 fieldValueClass={fieldValueClass}
               />
