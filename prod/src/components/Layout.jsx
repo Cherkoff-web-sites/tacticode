@@ -22,6 +22,9 @@ export function Layout() {
 
   useLayoutEffect(() => {
     const resetScroll = () => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -29,7 +32,11 @@ export function Layout() {
 
     resetScroll();
     const raf = window.requestAnimationFrame(resetScroll);
-    return () => window.cancelAnimationFrame(raf);
+    const timeout = window.setTimeout(resetScroll, 120);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+    };
   }, [location.pathname, location.key]);
 
   const mainClass = isHome

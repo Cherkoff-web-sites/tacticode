@@ -236,9 +236,10 @@ function EditableField({
         outsideDismissTimeoutRef.current = null;
         const ae = document.activeElement;
         if (nativeDatePickerRef?.current && ae === nativeDatePickerRef.current) return;
+        if (ae instanceof HTMLInputElement && !ae.readOnly) return;
         if (isFocusInsideField()) return;
         onExitWithoutSave();
-      }, 80);
+      }, 180);
     };
     document.addEventListener("pointerdown", handlePointerDown, true);
     return () => {
@@ -479,6 +480,11 @@ export function LkPage() {
       setBirthDateError("");
     }
     setEditingField(null);
+  };
+
+  const exitProfileFieldWithoutSave = (field) => {
+    if (editingField !== field) return;
+    resetProfileFieldDraft(field);
   };
 
   const commitProfileField = async (field, nextValue) => {
@@ -922,7 +928,7 @@ export function LkPage() {
                 onStartEdit={() => { setEditingField("surname"); setProfileSaveError(""); }}
                 onConfirm={(val) => commitProfileField("surname", val)}
                 onClear={() => resetProfileFieldDraft("surname")}
-                onExitWithoutSave={() => resetProfileFieldDraft("surname")}
+                onExitWithoutSave={() => exitProfileFieldWithoutSave("surname")}
                 onDraftChange={(val) => updateEditableField("surname", val)}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("surname")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("surname")}
@@ -939,7 +945,7 @@ export function LkPage() {
                 onStartEdit={() => { setEditingField("firstName"); setProfileSaveError(""); }}
                 onConfirm={(val) => commitProfileField("firstName", val)}
                 onClear={() => resetProfileFieldDraft("firstName")}
-                onExitWithoutSave={() => resetProfileFieldDraft("firstName")}
+                onExitWithoutSave={() => exitProfileFieldWithoutSave("firstName")}
                 onDraftChange={(val) => updateEditableField("firstName", val)}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("firstName")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("firstName")}
@@ -961,7 +967,7 @@ export function LkPage() {
                 }}
                 onConfirm={(val) => commitProfileField("birthDate", val)}
                 onClear={() => resetProfileFieldDraft("birthDate")}
-                onExitWithoutSave={() => resetProfileFieldDraft("birthDate")}
+                onExitWithoutSave={() => exitProfileFieldWithoutSave("birthDate")}
                 onDraftChange={(val) => {
                   updateEditableField("birthDate", val);
                   if (birthDateError) setBirthDateError("");
@@ -1015,7 +1021,7 @@ export function LkPage() {
                 onStartEdit={() => { setEditingField("club"); setProfileSaveError(""); }}
                 onConfirm={(val) => commitProfileField("club", val)}
                 onClear={() => resetProfileFieldDraft("club")}
-                onExitWithoutSave={() => resetProfileFieldDraft("club")}
+                onExitWithoutSave={() => exitProfileFieldWithoutSave("club")}
                 onDraftChange={(val) => updateEditableField("club", val)}
                 hideEditButtonWhileEditing={!hasPersistedProfileValue("club")}
                 hideEditButtonWhenIdle={!hasPersistedProfileValue("club")}
