@@ -12,6 +12,8 @@ const smallActionButtonClass =
   "inline-flex items-center justify-center rounded-full border-none px-[16px] py-[10px] text-[14px] md:text-[16px] leading-[1.25] font-light cursor-pointer transition-colors bg-[#F2F5FA] text-[#00459D] md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
 
 const mainText = "text-[16px] md:text-[20px] leading-[1.25] font-light";
+const adminInputClass =
+  "w-full rounded-full border border-[#D9E3F1] bg-white px-[20px] py-[12px] text-[16px] leading-[1.25] font-light text-[#1A1A1A] outline-none focus:border-[#00459D]";
 
 function formatDateTime(value) {
   if (!value) return "—";
@@ -146,6 +148,11 @@ export function AdminPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [activeActionUserId, setActiveActionUserId] = useState(null);
   const [deletingDeviceId, setDeletingDeviceId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState("all");
+  const [deviceFilter, setDeviceFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("registered_desc");
 
   useEffect(() => {
     if (!isAuthResolved) return;
@@ -169,7 +176,9 @@ export function AdminPage() {
   const summary = useMemo(() => {
     return adminUsers.reduce(
       (acc, current) => {
-        acc.totalUsers += 1;
+        if (current.role === "user") {
+          acc.totalUsers += 1;
+        }
         acc.totalDevices += Number(current.devicesCount || 0);
         acc.totalActiveSubscriptions += Number(current.activeSubscriptionsCount || 0);
         acc.totalHistory += Number(current.historyCount || 0);
@@ -185,6 +194,65 @@ export function AdminPage() {
       }
     );
   }, [adminUsers]);
+
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const getTime = (value) => {
+      const time = value ? new Date(value).getTime() : 0;
+      return Number.isFinite(time) ? time : 0;
+    };
+
+    const list = adminUsers.filter((item) => {
+      if (roleFilter !== "all" && item.role !== roleFilter) return false;
+      if (subscriptionFilter === "with" && Number(item.activeSubscriptionsCount || 0) === 0) return false;
+      if (subscriptionFilter === "without" && Number(item.activeSubscriptionsCount || 0) > 0) return false;
+      if (deviceFilter === "with" && Number(item.devicesCount || 0) === 0) return false;
+      if (deviceFilter === "without" && Number(item.devicesCount || 0) > 0) return false;
+
+      if (!query) return true;
+      const haystack = [
+        item.id,
+        item.login,
+        item.email,
+        item.firstName,
+        item.surname,
+        item.club,
+        item.role,
+      ]
+        .map((value) => String(value || "").toLowerCase())
+        .join(" ");
+      return haystack.includes(query);
+    });
+
+    list.sort((a, b) => {
+      switch (sortBy) {
+        case "registered_asc":
+          return getTime(a.registeredAt) - getTime(b.registeredAt);
+        case "registered_desc":
+          return getTime(b.registeredAt) - getTime(a.registeredAt);
+        case "last_purchase_desc":
+          return getTime(b.lastPurchaseAt) - getTime(a.lastPurchaseAt);
+        case "last_purchase_asc":
+          return getTime(a.lastPurchaseAt) - getTime(b.lastPurchaseAt);
+        case "devices_desc":
+          return Number(b.devicesCount || 0) - Number(a.devicesCount || 0);
+        case "devices_asc":
+          return Number(a.devicesCount || 0) - Number(b.devicesCount || 0);
+        case "sessions_desc":
+          return Number(b.sessionVersion || 0) - Number(a.sessionVersion || 0);
+        case "sessions_asc":
+          return Number(a.sessionVersion || 0) - Number(b.sessionVersion || 0);
+        case "id_desc":
+          return Number(b.id || 0) - Number(a.id || 0);
+        case "id_asc":
+        default:
+          return Number(a.id || 0) - Number(b.id || 0);
+      }
+    });
+
+    return list;
+  }, [adminUsers, deviceFilter, roleFilter, searchQuery, sortBy, subscriptionFilter]);
 
   const openUserDetails = async (userId) => {
     setActiveActionUserId(userId);
@@ -346,6 +414,64 @@ export function AdminPage() {
           </button>
         </div>
 
+        <div className="rounded-[16px] bg-white p-[20px] md:p-[24px]">
+          <div className="grid grid-cols-1 gap-[12px] md:grid-cols-2 xl:grid-cols-5">
+            <input
+              type="text"
+              className={adminInputClass}
+              placeholder="Поиск: ID, логин, почта, имя, клуб"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+            <select
+              className={adminInputClass}
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+            >
+              <option value="all">Все роли</option>
+              <option value="user">Только user</option>
+              <option value="super_admin">Только super_admin</option>
+            </select>
+            <select
+              className={adminInputClass}
+              value={subscriptionFilter}
+              onChange={(event) => setSubscriptionFilter(event.target.value)}
+            >
+              <option value="all">Подписки: все</option>
+              <option value="with">С активными подписками</option>
+              <option value="without">Без активных подписок</option>
+            </select>
+            <select
+              className={adminInputClass}
+              value={deviceFilter}
+              onChange={(event) => setDeviceFilter(event.target.value)}
+            >
+              <option value="all">Устройства: все</option>
+              <option value="with">С устройствами</option>
+              <option value="without">Без устройств</option>
+            </select>
+            <select
+              className={adminInputClass}
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+            >
+              <option value="registered_desc">Сортировка: новые по регистрации</option>
+              <option value="registered_asc">Сортировка: старые по регистрации</option>
+              <option value="last_purchase_desc">Сортировка: недавние покупки</option>
+              <option value="last_purchase_asc">Сортировка: старые покупки</option>
+              <option value="devices_desc">Сортировка: больше устройств</option>
+              <option value="devices_asc">Сортировка: меньше устройств</option>
+              <option value="sessions_desc">Сортировка: больше сессий</option>
+              <option value="sessions_asc">Сортировка: меньше сессий</option>
+              <option value="id_desc">Сортировка: ID по убыванию</option>
+              <option value="id_asc">Сортировка: ID по возрастанию</option>
+            </select>
+          </div>
+          <p className={`${mainText} mt-[12px] mb-0 text-[#8D8D8D]`}>
+            Показано аккаунтов: {filteredUsers.length}
+          </p>
+        </div>
+
         <div className="hidden overflow-x-auto rounded-[24px] bg-white p-[16px] lg:block">
           <table className="min-w-[1780px] w-full border-separate border-spacing-y-[8px]">
             <thead>
@@ -376,7 +502,7 @@ export function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {adminUsers.map((item, index) => {
+              {filteredUsers.map((item, index) => {
                 const rowBg = index % 2 === 0 ? "bg-white" : "bg-[#F8F8F8]";
                 const isBusy = activeActionUserId === item.id;
                 return (
@@ -461,7 +587,7 @@ export function AdminPage() {
               })}
             </tbody>
           </table>
-          {!isAdminUsersLoading && adminUsers.length === 0 && (
+          {!isAdminUsersLoading && filteredUsers.length === 0 && (
             <div className="py-[24px] text-center text-[#8D8D8D]">
               <p className={`${mainText} m-0`}>Пользователи пока не найдены.</p>
             </div>
@@ -478,12 +604,12 @@ export function AdminPage() {
             <div className="rounded-[16px] bg-white p-[24px] text-center text-[#8D8D8D]">
               <p className={`${mainText} m-0`}>Загружаем пользователей...</p>
             </div>
-          ) : adminUsers.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="rounded-[16px] bg-white p-[24px] text-center text-[#8D8D8D]">
               <p className={`${mainText} m-0`}>Пользователи пока не найдены.</p>
             </div>
           ) : (
-            adminUsers.map((item, index) => {
+            filteredUsers.map((item, index) => {
               const bg = index % 2 === 0 ? "bg-white" : "bg-[#F8F8F8]";
               const isBusy = activeActionUserId === item.id;
               return (
