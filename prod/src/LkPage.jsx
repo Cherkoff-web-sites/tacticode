@@ -189,32 +189,32 @@ function EditableField({
   }, [isEditing, normalizedEditingValue, normalizedValue]);
 
   const hasChanges = isEditing && draft !== initialValueRef.current;
+  const isInputReadOnly = !isEditing && !startEditOnFieldClick;
 
-  const focusEditableInput = () => {
-    const input = inputRef.current;
-    if (!input) return;
-    input.removeAttribute("readonly");
-    input.focus({ preventScroll: true });
-    try {
-      const caretPosition = input.value.length;
-      input.setSelectionRange?.(caretPosition, caretPosition);
-    } catch {
-      // Для некоторых input-типа setSelectionRange не поддерживается.
-    }
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+
+  const startEdit = () => {
+    if (isEditing) return;
+    flushSync(() => {
+      onStartEdit?.();
+    });
   };
 
   const startEditWithFocus = () => {
     if (isEditing) {
-      focusEditableInput();
-      window.requestAnimationFrame(focusEditableInput);
+      focusInput();
       return;
     }
-    flushSync(() => {
-      onStartEdit?.();
-    });
+    startEdit();
     // iOS открывает клавиатуру надёжнее, когда focus вызывается в рамках пользовательского действия.
-    focusEditableInput();
-    window.requestAnimationFrame(focusEditableInput);
+    focusInput();
+  };
+
+  const handleEditButtonPointerDown = (event) => {
+    event.preventDefault();
+    startEditWithFocus();
   };
 
   useEffect(() => {
@@ -284,14 +284,14 @@ function EditableField({
             setDraft(nextDraft);
             onDraftChange?.(nextDraft);
           }}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          onPointerDown={() => {
-            if (!isEditing) return;
-            // Дополнительная страховка под iOS: первый же тап по editable полю поднимает клавиатуру.
-            focusEditableInput();
+          onFocus={() => {
+            setIsFocused(true);
+            if (!isEditing && startEditOnFieldClick) {
+              startEdit();
+            }
           }}
-          readOnly={!isEditing}
+          onBlur={() => setIsFocused(false)}
+          readOnly={isInputReadOnly}
           className={`w-full min-w-0 border-none outline-none bg-transparent p-0 text-[20px] leading-[1.25] font-light text-[#000] placeholder:text-[#8D8D8D] ${isEditing ? "cursor-text" : "cursor-default"}`}
         />
         {isEditing ? (
@@ -312,6 +312,7 @@ function EditableField({
                 <button
                   type="button"
                   className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#00459D]"
+                  onPointerDown={handleEditButtonPointerDown}
                   onClick={startEditWithFocus}
                   aria-label={`Редактировать поле ${label}`}
                 >
@@ -327,6 +328,7 @@ function EditableField({
               <button
                 type="button"
                 className="border-none bg-transparent p-0 cursor-pointer shrink-0 text-[#8D8D8D] lg:hover:text-[#00459D] active:text-[#00459D]"
+                onPointerDown={handleEditButtonPointerDown}
                 onClick={startEditWithFocus}
                 aria-label={`Редактировать поле ${label}`}
               >
