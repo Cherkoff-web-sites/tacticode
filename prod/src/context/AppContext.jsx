@@ -135,7 +135,7 @@ export function AppProvider({ children }) {
     });
   }, [isLoggedIn, location.pathname]);
 
-  // Подписки: бесплатный период с тестовой длительностью (год = 2 минуты, месяц = 1 минута)
+  // Подписки: бесплатный период с тестовой длительностью (год = 60 минут, месяц = 7 минут)
   const enrichSubscription = (sub) => {
     if (!sub.startedAt || !sub.expiresAt) {
       return {

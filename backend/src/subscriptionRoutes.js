@@ -5,9 +5,9 @@ import { authMiddleware } from "./authRoutes.js";
 const router = express.Router();
 
 // Для боевого режима можно вынести в env (например, 30 дней),
-// но по ТЗ сейчас тестовые длительности: год = 2 минуты, месяц = 1 минута.
-const TEST_YEAR_MS = 2 * 60 * 1000;
-const TEST_MONTH_MS = 1 * 60 * 1000;
+// Тестовые длительности: год = 60 минут, месяц = 7 минут.
+const TEST_YEAR_MS = 60 * 60 * 1000;
+const TEST_MONTH_MS = 7 * 60 * 1000;
 
 function normalizeSubscriptionRow(row) {
   return {
