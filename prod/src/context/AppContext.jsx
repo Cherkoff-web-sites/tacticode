@@ -9,7 +9,6 @@ import {
   apiGetMe,
   apiLogin,
   apiLogout,
-  apiRegisterDevice,
   apiDeleteDevice,
   apiRenameDevice,
   apiDeleteAdminUser,
@@ -232,16 +231,8 @@ export function AppProvider({ children }) {
   const handleDownloadClick = () => setDownloadModalOpen(true);
 
   const registerCurrentDevice = async () => {
-    const ua = navigator.userAgent || "";
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
-    const deviceName = ua.slice(0, 120);
-    const deviceType = isMobile ? "mobile" : "desktop";
-    const device = await apiRegisterDevice({ deviceName, deviceType });
-    setDevices((prev) => {
-      const rest = prev.filter((item) => item.id !== device.id);
-      return [device, ...rest];
-    });
-    return device;
+    // Браузерные сессии не регистрируем: в квоту и ЛК попадают только устройства приложения (UE5).
+    return null;
   };
 
   const removeDevice = async (deviceId) => {

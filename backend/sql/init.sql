@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS devices (
   device_name VARCHAR(255) NOT NULL,
   display_name VARCHAR(255),
   device_type VARCHAR(32) NOT NULL,
+  client VARCHAR(16) NOT NULL DEFAULT 'app',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_active_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -83,6 +84,23 @@ ALTER TABLE devices
 
 ALTER TABLE devices
   ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
+
+ALTER TABLE devices
+  ADD COLUMN IF NOT EXISTS client VARCHAR(16) NOT NULL DEFAULT 'app';
+
+-- Старые браузерные записи не входят в квоту приложения.
+UPDATE devices
+SET client = 'web'
+WHERE client = 'app'
+  AND (
+    device_name ILIKE '%Chrome%'
+    OR device_name ILIKE '%Firefox%'
+    OR device_name ILIKE '%Safari%'
+    OR device_name ILIKE '%Edg%'
+    OR device_name ILIKE '%Mozilla%'
+    OR device_name ILIKE '%YaBrowser%'
+    OR device_name ILIKE '%Opera%'
+  );
 
 CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_user_device_key

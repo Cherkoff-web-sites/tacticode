@@ -129,7 +129,7 @@ router.get("/users", adminMiddleware, async (_req, res) => {
          SELECT COUNT(*)::int AS devices_count,
                 MAX(last_active_at) AS last_device_active_at
          FROM devices
-         WHERE user_id = u.id
+         WHERE user_id = u.id AND client = 'app'
        ) AS device_metrics ON TRUE
        LEFT JOIN LATERAL (
          SELECT COUNT(*)::int AS active_subscriptions_count
@@ -200,7 +200,7 @@ router.get("/users/:id", adminMiddleware, async (req, res) => {
          SELECT COUNT(*)::int AS devices_count,
                 MAX(last_active_at) AS last_device_active_at
          FROM devices
-         WHERE user_id = u.id
+         WHERE user_id = u.id AND client = 'app'
        ) AS device_metrics ON TRUE
        LEFT JOIN LATERAL (
          SELECT COUNT(*)::int AS active_subscriptions_count
@@ -240,7 +240,7 @@ router.get("/users/:id", adminMiddleware, async (req, res) => {
       query(
         `SELECT id, device_name, display_name, device_type, created_at, last_active_at
          FROM devices
-         WHERE user_id = $1
+         WHERE user_id = $1 AND client = 'app'
          ORDER BY created_at DESC, id DESC`,
         [userId]
       ),
@@ -295,7 +295,7 @@ router.delete("/users/:id/devices/:deviceId", adminMiddleware, async (req, res) 
 
   try {
     const result = await query(
-      "DELETE FROM devices WHERE id = $1 AND user_id = $2",
+      "DELETE FROM devices WHERE id = $1 AND user_id = $2 AND client = 'app'",
       [deviceId, userId]
     );
 

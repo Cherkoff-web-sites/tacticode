@@ -80,10 +80,13 @@ function getCurrentDeviceId(req) {
 
 async function deleteOtherDevices(userId, currentDeviceId) {
   if (currentDeviceId) {
-    await query("DELETE FROM devices WHERE user_id = $1 AND id <> $2", [userId, currentDeviceId]);
+    await query(
+      "DELETE FROM devices WHERE user_id = $1 AND id <> $2 AND client = 'app'",
+      [userId, currentDeviceId]
+    );
     return;
   }
-  await query("DELETE FROM devices WHERE user_id = $1", [userId]);
+  await query("DELETE FROM devices WHERE user_id = $1 AND client = 'app'", [userId]);
 }
 
 async function touchCurrentDevice(req, userId) {
