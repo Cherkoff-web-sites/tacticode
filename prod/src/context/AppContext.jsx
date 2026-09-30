@@ -17,7 +17,9 @@ import {
   apiGetSubscriptions,
   apiGetSubscriptionHistory,
   apiActivateSubscription,
+  apiGetNews,
 } from "../api/client";
+import { newsItems as fallbackNewsItems } from "../data";
 
 const AppContext = createContext(null);
 
@@ -46,6 +48,8 @@ export function AppProvider({ children }) {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [displayedNewsCount, setDisplayedNewsCount] = useState(8);
   const [newsModalItem, setNewsModalItem] = useState(null);
+  const [newsItems, setNewsItems] = useState(fallbackNewsItems);
+  const [isNewsLoading, setIsNewsLoading] = useState(false);
   const [authMode, setAuthMode] = useState("login"); // "login" | "register"
   const [codeModalOpen, setCodeModalOpen] = useState(false);
   const [codePurpose, setCodePurpose] = useState(null); // 'register' | 'reset' | 'change_login'
@@ -122,6 +126,35 @@ export function AppProvider({ children }) {
     };
     bootstrap();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadNews = async () => {
+      setIsNewsLoading(true);
+      try {
+        const items = await apiGetNews();
+        if (!cancelled && Array.isArray(items) && items.length > 0) {
+          setNewsItems(items);
+        }
+      } catch (err) {
+        console.error("Failed to load news:", err);
+      } finally {
+        if (!cancelled) setIsNewsLoading(false);
+      }
+    };
+    loadNews();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const reloadNews = async () => {
+    const items = await apiGetNews();
+    if (Array.isArray(items)) {
+      setNewsItems(items);
+    }
+    return items;
+  };
 
   useEffect(() => {
     if (!isLoggedIn || !["/lk", "/admin"].includes(location.pathname)) return;
@@ -391,6 +424,9 @@ export function AppProvider({ children }) {
     setLogoutModalOpen,
     displayedNewsCount,
     setDisplayedNewsCount,
+    newsItems,
+    isNewsLoading,
+    reloadNews,
     newsModalItem,
     setNewsModalItem,
     codeModalOpen,

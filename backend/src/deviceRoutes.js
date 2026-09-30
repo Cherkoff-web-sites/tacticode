@@ -1,11 +1,18 @@
 import express from "express";
 import { authMiddleware } from "./authRoutes.js";
 import { query } from "./db.js";
+import { buildAppDeviceName, humanizeDeviceRow } from "./deviceName.js";
 
 const router = express.Router();
 
-// Временно 2 для проверки квоты (боевой план — 3).
-const MAX_DEVICES = 2;
+function resolveMaxDevices() {
+  const raw = Number(process.env.MAX_DEVICES);
+  if (Number.isInteger(raw) && raw >= 1 && raw <= 3) return raw;
+  // Дефолт для продакшена по ТЗ — 3; для теста в Timeweb ставь MAX_DEVICES=1|2.
+  return 3;
+}
+
+const MAX_DEVICES = resolveMaxDevices();
 const DEVICE_UNLINK_COOLDOWN_MINUTES = 10;
 const APP_CLIENT = "app";
 const WEB_CLIENTS = new Set(["web", "browser"]);
@@ -36,6 +43,16 @@ function deviceSelectFields() {
   return `id, device_key, device_name, display_name, device_type, client, created_at, last_active_at`;
 }
 
+function resolveAppDeviceName(body = {}) {
+  return buildAppDeviceName({
+    device_name: body.device_name,
+    device_type: body.device_type,
+    os: body.os,
+    platform: body.platform,
+    form_factor: body.form_factor || body.formFactor,
+  });
+}
+
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const result = await query(
@@ -45,7 +62,10 @@ router.get("/", authMiddleware, async (req, res) => {
        ORDER BY created_at DESC`,
       [req.user.id, APP_CLIENT]
     );
-    return res.json({ devices: result.rows, maxDevices: MAX_DEVICES });
+    return res.json({
+      devices: result.rows.map(humanizeDeviceRow),
+      maxDevices: MAX_DEVICES,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });
@@ -71,6 +91,7 @@ router.post("/register", authMiddleware, async (req, res) => {
     });
   }
 
+  const friendlyName = resolveAppDeviceName(req.body);
   const normalizedDeviceKey = device_key ? String(device_key).trim().slice(0, 128) : null;
 
   try {
@@ -83,13 +104,13 @@ router.post("/register", authMiddleware, async (req, res) => {
              last_active_at = NOW()
          WHERE user_id = $1 AND device_key = $2 AND client = $5
          RETURNING ${deviceSelectFields()}`,
-        [req.user.id, normalizedDeviceKey, device_name, device_type, APP_CLIENT]
+        [req.user.id, normalizedDeviceKey, friendlyName, device_type, APP_CLIENT]
       );
 
       if (existingByKey.rowCount > 0) {
         // Тот же инсталл приложения — без ротации session_version (сайт и другие app-сессии живут).
         return res.json({
-          device: existingByKey.rows[0],
+          device: humanizeDeviceRow(existingByKey.rows[0]),
           skipped: false,
           maxDevices: MAX_DEVICES,
         });
@@ -107,12 +128,12 @@ router.post("/register", authMiddleware, async (req, res) => {
              last_active_at = NOW()
          WHERE id = $1 AND user_id = $2 AND client = $6
          RETURNING ${deviceSelectFields()}`,
-        [currentDeviceId, req.user.id, normalizedDeviceKey, device_name, device_type, APP_CLIENT]
+        [currentDeviceId, req.user.id, normalizedDeviceKey, friendlyName, device_type, APP_CLIENT]
       );
 
       if (existingById.rowCount > 0) {
         return res.json({
-          device: existingById.rows[0],
+          device: humanizeDeviceRow(existingById.rows[0]),
           skipped: false,
           maxDevices: MAX_DEVICES,
         });
@@ -140,12 +161,12 @@ router.post("/register", authMiddleware, async (req, res) => {
            LIMIT 1
          )
          RETURNING ${deviceSelectFields()}`,
-        [req.user.id, normalizedDeviceKey, device_name, device_type, APP_CLIENT]
+        [req.user.id, normalizedDeviceKey, friendlyName, device_type, APP_CLIENT]
       );
 
       if (legacyDevice.rowCount > 0) {
         return res.json({
-          device: legacyDevice.rows[0],
+          device: humanizeDeviceRow(legacyDevice.rows[0]),
           skipped: false,
           maxDevices: MAX_DEVICES,
         });
@@ -162,11 +183,11 @@ router.post("/register", authMiddleware, async (req, res) => {
       `INSERT INTO devices (user_id, device_key, device_name, device_type, client)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING ${deviceSelectFields()}`,
-      [req.user.id, normalizedDeviceKey, device_name, device_type, APP_CLIENT]
+      [req.user.id, normalizedDeviceKey, friendlyName, device_type, APP_CLIENT]
     );
 
     return res.status(201).json({
-      device: result.rows[0],
+      device: humanizeDeviceRow(result.rows[0]),
       skipped: false,
       maxDevices: MAX_DEVICES,
     });
@@ -200,7 +221,7 @@ router.patch("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Устройство не найдено" });
     }
 
-    return res.json({ device: result.rows[0] });
+    return res.json({ device: humanizeDeviceRow(result.rows[0]) });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Ошибка сервера" });

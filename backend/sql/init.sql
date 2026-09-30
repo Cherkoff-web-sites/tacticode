@@ -144,4 +144,20 @@ CREATE TABLE IF NOT EXISTS subscription_history (
 CREATE INDEX IF NOT EXISTS idx_subscription_history_user_id
   ON subscription_history(user_id);
 
+-- News (editable by super-admin, persists across deploys)
+CREATE TABLE IF NOT EXISTS news (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(500) NOT NULL,
+  description TEXT NOT NULL,
+  image_url TEXT NOT NULL DEFAULT '',
+  display_date VARCHAR(32) NOT NULL DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_news_published_sort
+  ON news(is_published, sort_order DESC, id DESC);
+
 

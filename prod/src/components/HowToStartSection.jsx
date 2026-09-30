@@ -53,7 +53,7 @@ export function HowToStartSection() {
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[20px] leading-[25px] font-light text-[#8D8D8D]">Email</span>
-                <a href="mailto:support@tacticode.pro" className="text-[20px] leading-[25px] font-light text-[#00459D] transition-colors hover:text-primary-dark hover:underline">support@tacticode.pro</a>
+                <a href="mailto:support@tacticode.ru" className="text-[20px] leading-[25px] font-light text-[#00459D] transition-colors hover:text-primary-dark hover:underline">support@tacticode.ru</a>
               </div>
             </div>
           </div>

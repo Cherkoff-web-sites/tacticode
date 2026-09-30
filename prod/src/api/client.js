@@ -76,10 +76,46 @@ function getReadableDeviceName(ua, deviceType = "") {
   return `${getBrowserName(ua)} · ${getDeviceModel(ua, deviceType)}`;
 }
 
+function pickOsFromText(text) {
+  const value = String(text || "").toLowerCase();
+  if (/windows|win32|win64/i.test(value)) return "Windows";
+  if (/mac\s*os|macos|osx|darwin|macintosh/i.test(value)) return "macOS";
+  if (/android/i.test(value)) return "Android";
+  if (/\bios\b|iphone|ipad/i.test(value)) return "iOS";
+  if (/linux/i.test(value)) return "Linux";
+  return null;
+}
+
+function pickFormFromText(text, deviceType = "") {
+  const value = `${text || ""} ${deviceType || ""}`.toLowerCase();
+  if (/laptop|notebook|ноут|macbook/i.test(value)) return "Ноут";
+  if (/tablet|ipad|планшет/i.test(value)) return "Планшет";
+  if (/phone|mobile|iphone|телефон/i.test(value) || /mobile/i.test(deviceType)) return "Телефон";
+  if (/pc|desktop|computer|пк|windows|linux|mac/i.test(value) || /desktop/i.test(deviceType)) return "ПК";
+  return "Устройство";
+}
+
 function normalizeStoredDeviceName(deviceName, deviceType = "") {
   const value = String(deviceName || "").trim();
   if (/Mozilla\/|AppleWebKit\//i.test(value)) {
     return getReadableDeviceName(value, deviceType);
+  }
+
+  // Старые/тех. имена из UE5 → по-русски: "ПК · Windows", "Ноут · macOS"
+  if (!value || /tacticode|ue5|unreal|client/i.test(value)) {
+    const form = pickFormFromText(value, deviceType);
+    const os = pickOsFromText(value);
+    return os ? `${form} · ${os}` : form;
+  }
+
+  if (/[А-Яа-яЁё]/.test(value) && /(ПК|Ноут|Телефон|Планшет|Устройство)/.test(value)) {
+    return value;
+  }
+
+  const form = pickFormFromText(value, deviceType);
+  const os = pickOsFromText(value);
+  if (form !== "Устройство" || os) {
+    return os ? `${form} · ${os}` : form;
   }
 
   // Legacy fallback: раньше часть мобильных могла сохраниться как "Safari · Mac".
@@ -361,8 +397,34 @@ export async function apiAdminDeleteUserDevice(userId, deviceId) {
   });
 }
 
-export async function apiDeleteAdminUser(id) {
-  return request(`/api/admin/users/${id}`, {
+export async function apiGetNews() {
+  const data = await request("/api/news");
+  return data.news || [];
+}
+
+export async function apiGetAdminNews() {
+  const data = await request("/api/admin/news");
+  return data.news || [];
+}
+
+export async function apiCreateAdminNews(payload) {
+  const data = await request("/api/admin/news", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return data.news;
+}
+
+export async function apiUpdateAdminNews(id, payload) {
+  const data = await request(`/api/admin/news/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return data.news;
+}
+
+export async function apiDeleteAdminNews(id) {
+  return request(`/api/admin/news/${id}`, {
     method: "DELETE",
   });
 }

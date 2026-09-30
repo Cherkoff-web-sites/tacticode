@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "../context/AppContext";
+import { SHOW_SUBSCRIPTION_PRICES } from "../data";
 import lockIcon from "../assets/icons/lockikon.svg";
 
 const paymentButtonClass =
   "w-full md:w-auto md:self-start flex justify-center md:justify-start px-[40px] py-[12px] md:px-[min(2.08vw,40px)] md:py-[min(0.63vw,12px)] lg:py-[min(0.83vw,16px)] rounded-full border-none text-[16px] md:text-[min(0.83vw,16px)] lg:text-[min(1.04vw,20px)] leading-[20px] md:leading-[min(1.04vw,20px)] lg:leading-[min(1.3vw,25px)] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
+const subscriptionPricesVisibilityClass = SHOW_SUBSCRIPTION_PRICES ? "" : "invisible";
 
 export function SubscriptionCard({ item, className }) {
   const { period, setPeriod, setSubscriptions } = useApp();
@@ -128,7 +130,7 @@ export function SubscriptionCard({ item, className }) {
               </button>
             </div>
 
-            <div className="flex max-md:justify-center md:min-h-[min(5vw,96px)] h-full">
+            <div className={`flex max-md:justify-center md:min-h-[min(5vw,96px)] h-full ${subscriptionPricesVisibilityClass}`}>
               {period === "year" ? (
                 <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[min(0.83vw,16px)] max-md:max-w-[242px]">
                   <div className="flex items-baseline max-md:justify-center gap-[16px] md:gap-[min(0.83vw,16px)] flex-wrap">

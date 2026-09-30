@@ -1,11 +1,10 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
-import { newsItems } from "../data";
 import { HowToStartSection } from "../components/HowToStartSection";
 import { NewsCard } from "../components/NewsCard";
 
 export function NewsPage() {
-  const { displayedNewsCount, setDisplayedNewsCount } = useApp();
+  const { displayedNewsCount, setDisplayedNewsCount, newsItems } = useApp();
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
   const totalNews = newsItems.length;
   const visibleCount = Math.min(displayedNewsCount, totalNews);

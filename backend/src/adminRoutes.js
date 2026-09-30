@@ -1,6 +1,7 @@
 import express from "express";
 import { adminMiddleware, SUPER_ADMIN_ROLE } from "./authRoutes.js";
 import { pool, query } from "./db.js";
+import { normalizeNewsProps } from "./newsSeed.js";
 
 const router = express.Router();
 
@@ -358,6 +359,139 @@ router.delete("/users/:id", adminMiddleware, async (req, res) => {
     return res.status(500).json({ error: "Ошибка сервера" });
   } finally {
     client.release();
+  }
+});
+
+function parseNewsPayload(body = {}) {
+  const title = String(body.title || "").trim();
+  const description = String(body.description || "").trim();
+  const imageUrl = String(body.imageUrl || body.image_url || "").trim();
+  const displayDate = String(body.displayDate || body.date || body.display_date || "").trim();
+  const sortOrderRaw = body.sortOrder ?? body.sort_order;
+  const sortOrder = Number.isFinite(Number(sortOrderRaw)) ? Number(sortOrderRaw) : 0;
+  const isPublished =
+    body.isPublished === undefined && body.is_published === undefined
+      ? true
+      : Boolean(body.isPublished ?? body.is_published);
+
+  if (!title) {
+    return { error: "Заголовок обязателен" };
+  }
+  if (!description) {
+    return { error: "Текст новости обязателен" };
+  }
+
+  return {
+    title: title.slice(0, 500),
+    description,
+    imageUrl: imageUrl.slice(0, 1000),
+    displayDate: displayDate.slice(0, 32),
+    sortOrder,
+    isPublished,
+  };
+}
+
+router.get("/news", adminMiddleware, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, title, description, image_url, display_date, sort_order, is_published, created_at, updated_at
+       FROM news
+       ORDER BY sort_order DESC, id DESC`
+    );
+    return res.json({ news: result.rows.map(normalizeNewsProps) });
+  } catch (err) {
+    console.error("GET /api/admin/news error:", err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.post("/news", adminMiddleware, async (req, res) => {
+  const payload = parseNewsPayload(req.body);
+  if (payload.error) {
+    return res.status(400).json({ error: payload.error });
+  }
+
+  try {
+    const result = await query(
+      `INSERT INTO news (title, description, image_url, display_date, sort_order, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, title, description, image_url, display_date, sort_order, is_published, created_at, updated_at`,
+      [
+        payload.title,
+        payload.description,
+        payload.imageUrl,
+        payload.displayDate,
+        payload.sortOrder,
+        payload.isPublished,
+      ]
+    );
+    return res.status(201).json({ news: normalizeNewsProps(result.rows[0]) });
+  } catch (err) {
+    console.error("POST /api/admin/news error:", err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.patch("/news/:id", adminMiddleware, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Некорректный id" });
+  }
+
+  const payload = parseNewsPayload(req.body);
+  if (payload.error) {
+    return res.status(400).json({ error: payload.error });
+  }
+
+  try {
+    const result = await query(
+      `UPDATE news
+       SET title = $2,
+           description = $3,
+           image_url = $4,
+           display_date = $5,
+           sort_order = $6,
+           is_published = $7,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, title, description, image_url, display_date, sort_order, is_published, created_at, updated_at`,
+      [
+        id,
+        payload.title,
+        payload.description,
+        payload.imageUrl,
+        payload.displayDate,
+        payload.sortOrder,
+        payload.isPublished,
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Новость не найдена" });
+    }
+
+    return res.json({ news: normalizeNewsProps(result.rows[0]) });
+  } catch (err) {
+    console.error(`PATCH /api/admin/news/${req.params.id} error:`, err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+router.delete("/news/:id", adminMiddleware, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Некорректный id" });
+  }
+
+  try {
+    const result = await query("DELETE FROM news WHERE id = $1", [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Новость не найдена" });
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error(`DELETE /api/admin/news/${req.params.id} error:`, err);
+    return res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 

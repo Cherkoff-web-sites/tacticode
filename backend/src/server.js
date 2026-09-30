@@ -6,8 +6,10 @@ import authRoutes from "./authRoutes.js";
 import adminRoutes from "./adminRoutes.js";
 import deviceRoutes from "./deviceRoutes.js";
 import subscriptionRoutes from "./subscriptionRoutes.js";
+import newsRoutes from "./newsRoutes.js";
 import { query } from "./db.js";
 import { getConfiguredSuperAdminEmails } from "./superAdminConfig.js";
+import { ensureNewsSeed } from "./newsSeed.js";
 import fs from "fs";
 import http from "http";
 import path from "path";
@@ -92,18 +94,20 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/devices", deviceRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/news", newsRoutes);
 
 // SPA fallback for direct navigation (e.g. /subscription)
 app.get("*", (req, res) => {
   res.sendFile(path.join(staticDir, "index.html"));
 });
 
-async function ensureSchema() {
+export async function ensureSchema() {
   try {
     const initPath = path.join(__dirname, "..", "sql", "init.sql");
     const sql = fs.readFileSync(initPath, "utf8");
     await query(sql);
     console.log("Database schema ensured");
+    await ensureNewsSeed();
   } catch (err) {
     console.error("Failed to ensure schema (DB unavailable):", err.message);
     // Не завершаем процесс — контейнер поднимется, /api/health сработает

@@ -27,8 +27,8 @@ export function ContactsPage() {
               </div>
               <div>
                 <p className="mb-[4px] lg:mb-[0px] text-[20px] lg:text-[24px] leading-[25px] lg:leading-[30px] font-light text[#8D8D8D]">Email</p>
-                <a href="mailto:support@tacticode.pro" className="block text-[30px] md:text-[56px] leading-[35px] md:leading-[66px] font-black text-primary no-underline transition-colors md:hover:text-[#003982] active:text[#003982]" target="_blank">
-                  support@tacticode.pro
+                <a href="mailto:support@tacticode.ru" className="block text-[30px] md:text-[56px] leading-[35px] md:leading-[66px] font-black text-primary no-underline transition-colors md:hover:text-[#003982] active:text[#003982]" target="_blank">
+                  support@tacticode.ru
                 </a>
               </div>
             </div>

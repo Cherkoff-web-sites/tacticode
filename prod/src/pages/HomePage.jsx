@@ -1,5 +1,6 @@
 import React from "react";
-import { newsItems, subscriptionItems } from "../data";
+import { subscriptionItems } from "../data";
+import { useApp } from "../context/AppContext";
 import heroVideo from "../assets/video/hero.mp4";
 import heroPoster from "../assets/images/hero-poster.svg";
 import { HowToStartSection } from "../components/HowToStartSection";
@@ -8,6 +9,7 @@ import { SubscriptionCard } from "../components/SubscriptionCard";
 import { SwiperSection } from "../components/SwiperSection";
 
 export function HomePage() {
+  const { newsItems } = useApp();
   const containerClass = "w-full max-w-[1868px] px-[24px] mx-auto";
   const heroAdvantagesClass = "flex-1 text-center text-[16px] lg:text-[min(1.25vw,24px)] leading-[1.25] font-light text-[#1A1A1A]";
   const heroAdvantagesDiscClass = "w-[5px] h-[5px] lg:w-[min(0.42vw,8px)] lg:h-[min(0.42vw,8px)] shrink-0 rounded-full bg-[#D9E3F1]";

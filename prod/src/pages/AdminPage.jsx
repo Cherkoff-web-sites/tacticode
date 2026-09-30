@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import BaseModal from "../components/BaseModal";
 import { useApp } from "../context/AppContext";
 import { subscriptionItems } from "../data";
+import {
+  apiCreateAdminNews,
+  apiDeleteAdminNews,
+  apiGetAdminNews,
+  apiUpdateAdminNews,
+} from "../api/client";
 
 const secondButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
@@ -10,6 +16,17 @@ const primaryModalButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-white bg-[#00459D] cursor-pointer transition-colors md:hover:bg-[#F2F5FA] md:hover:text-[#00459D] active:bg-[#D9E3F1] active:text-[#00459D]";
 const smallActionButtonClass =
   "inline-flex items-center justify-center rounded-full border-none px-[16px] py-[10px] text-[14px] md:text-[16px] leading-[1.25] font-light cursor-pointer transition-colors bg-[#F2F5FA] text-[#00459D] md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
+const adminTextareaClass =
+  "w-full min-h-[140px] rounded-[16px] border border-[#D9E3F1] bg-white px-[20px] py-[12px] text-[16px] leading-[1.25] font-light text-[#1A1A1A] outline-none focus:border-[#00459D] resize-y";
+
+const EMPTY_NEWS_FORM = {
+  title: "",
+  description: "",
+  imageUrl: "/news/news_1.png",
+  displayDate: "",
+  sortOrder: 0,
+  isPublished: true,
+};
 
 const mainText = "text-[16px] md:text-[20px] leading-[1.25] font-light";
 const adminInputClass =
@@ -133,6 +150,7 @@ export function AdminPage() {
     getAdminUserDetails,
     removeAdminUserDevice,
     removeAdminUser,
+    reloadNews,
   } = useApp();
 
   const [pageError, setPageError] = useState("");
@@ -153,6 +171,97 @@ export function AdminPage() {
   const [subscriptionFilter, setSubscriptionFilter] = useState("all");
   const [deviceFilter, setDeviceFilter] = useState("all");
   const [sortBy, setSortBy] = useState("registered_desc");
+  const [adminNews, setAdminNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [newsError, setNewsError] = useState("");
+  const [newsModalOpen, setNewsModalOpen] = useState(false);
+  const [newsSaving, setNewsSaving] = useState(false);
+  const [editingNewsId, setEditingNewsId] = useState(null);
+  const [newsForm, setNewsForm] = useState(EMPTY_NEWS_FORM);
+  const [newsDeleteId, setNewsDeleteId] = useState(null);
+  const [newsDeleteLoading, setNewsDeleteLoading] = useState(false);
+
+  const loadAdminNews = async () => {
+    setNewsLoading(true);
+    setNewsError("");
+    try {
+      const items = await apiGetAdminNews();
+      setAdminNews(items || []);
+    } catch (err) {
+      setNewsError(err?.message || "Не удалось загрузить новости");
+    } finally {
+      setNewsLoading(false);
+    }
+  };
+
+  const openCreateNews = () => {
+    setEditingNewsId(null);
+    setNewsForm(EMPTY_NEWS_FORM);
+    setNewsModalOpen(true);
+  };
+
+  const openEditNews = (item) => {
+    setEditingNewsId(item.id);
+    setNewsForm({
+      title: item.title || "",
+      description: item.description || "",
+      imageUrl: item.imageUrl || item.image || "",
+      displayDate: item.displayDate || item.date || "",
+      sortOrder: Number(item.sortOrder || 0),
+      isPublished: item.isPublished !== false,
+    });
+    setNewsModalOpen(true);
+  };
+
+  const saveNews = async () => {
+    setNewsSaving(true);
+    setNewsError("");
+    try {
+      const payload = {
+        title: newsForm.title,
+        description: newsForm.description,
+        imageUrl: newsForm.imageUrl,
+        displayDate: newsForm.displayDate,
+        sortOrder: Number(newsForm.sortOrder) || 0,
+        isPublished: Boolean(newsForm.isPublished),
+      };
+      if (editingNewsId) {
+        await apiUpdateAdminNews(editingNewsId, payload);
+      } else {
+        await apiCreateAdminNews(payload);
+      }
+      setNewsModalOpen(false);
+      await loadAdminNews();
+      try {
+        await reloadNews();
+      } catch {
+        /* ignore public reload errors */
+      }
+    } catch (err) {
+      setNewsError(err?.message || "Не удалось сохранить новость");
+    } finally {
+      setNewsSaving(false);
+    }
+  };
+
+  const confirmDeleteNews = async () => {
+    if (!newsDeleteId) return;
+    setNewsDeleteLoading(true);
+    try {
+      await apiDeleteAdminNews(newsDeleteId);
+      setNewsDeleteId(null);
+      await loadAdminNews();
+      try {
+        await reloadNews();
+      } catch {
+        /* ignore */
+      }
+    } catch (err) {
+      setNewsError(err?.message || "Не удалось удалить новость");
+    } finally {
+      setNewsDeleteLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isAuthResolved) return;
@@ -164,6 +273,7 @@ export function AdminPage() {
     loadAdminUsers().catch((err) => {
       setPageError(err?.message || "Не удалось загрузить пользователей");
     });
+    loadAdminNews();
   }, [isAuthResolved, user, navigate]);
 
   const subscriptionNameMap = useMemo(
@@ -395,6 +505,78 @@ export function AdminPage() {
             <p className={`${mainText} m-0`}>{pageError}</p>
           </div>
         )}
+
+        <div className="flex flex-col gap-[16px] md:flex-row md:items-center md:justify-between">
+          <h2 className="m-0 text-[24px] leading-[1.2] font-bold text-[#1A1A1A] md:text-[32px]">
+            Новости
+          </h2>
+          <div className="flex flex-wrap gap-[12px]">
+            <button type="button" className={secondButtonClass} onClick={loadAdminNews} disabled={newsLoading}>
+              {newsLoading ? "Загрузка..." : "Обновить новости"}
+            </button>
+            <button type="button" className={primaryModalButtonClass} onClick={openCreateNews}>
+              Добавить новость
+            </button>
+          </div>
+        </div>
+
+        {newsError && (
+          <div className="rounded-[16px] bg-[#FFE3E3] p-[20px] text-[#FF383C]">
+            <p className={`${mainText} m-0`}>{newsError}</p>
+          </div>
+        )}
+
+        <div className="overflow-x-auto rounded-[16px] bg-white">
+          <table className="min-w-full border-collapse text-left">
+            <thead>
+              <tr className="border-b border-[#F2F2F2] bg-[#F8F8F8]">
+                <th className={`${mainText} px-[16px] py-[14px] font-bold`}>ID</th>
+                <th className={`${mainText} px-[16px] py-[14px] font-bold`}>Заголовок</th>
+                <th className={`${mainText} px-[16px] py-[14px] font-bold`}>Дата</th>
+                <th className={`${mainText} px-[16px] py-[14px] font-bold`}>Порядок</th>
+                <th className={`${mainText} px-[16px] py-[14px] font-bold`}>Статус</th>
+                <th className={`${mainText} px-[16px] py-[14px] font-bold`}>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adminNews.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className={`${mainText} px-[16px] py-[20px] text-[#8D8D8D]`}>
+                    {newsLoading ? "Загрузка..." : "Новостей пока нет"}
+                  </td>
+                </tr>
+              ) : (
+                adminNews.map((item) => (
+                  <tr key={item.id} className="border-b border-[#F2F2F2]">
+                    <td className={`${mainText} px-[16px] py-[14px]`}>{item.id}</td>
+                    <td className={`${mainText} max-w-[360px] px-[16px] py-[14px]`}>
+                      <div className="line-clamp-2 font-bold">{item.title}</div>
+                    </td>
+                    <td className={`${mainText} px-[16px] py-[14px]`}>{item.displayDate || item.date || "—"}</td>
+                    <td className={`${mainText} px-[16px] py-[14px]`}>{item.sortOrder}</td>
+                    <td className={`${mainText} px-[16px] py-[14px]`}>
+                      {item.isPublished ? "Опубликована" : "Скрыта"}
+                    </td>
+                    <td className={`${mainText} px-[16px] py-[14px]`}>
+                      <div className="flex flex-wrap gap-[8px]">
+                        <button type="button" className={smallActionButtonClass} onClick={() => openEditNews(item)}>
+                          Редактировать
+                        </button>
+                        <button
+                          type="button"
+                          className={`${smallActionButtonClass} !bg-[#FFE3E3] !text-[#FF383C]`}
+                          onClick={() => setNewsDeleteId(item.id)}
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
         <div className="flex items-center justify-between gap-[16px]">
           <h2 className="m-0 text-[24px] leading-[1.2] font-bold text-[#1A1A1A] md:text-[32px]">
@@ -947,6 +1129,101 @@ export function AdminPage() {
             disabled={deleteLoading}
           >
             Вернуться назад
+          </button>
+        </div>
+      </BaseModal>
+
+      <BaseModal
+        isOpen={newsModalOpen}
+        onClose={() => setNewsModalOpen(false)}
+        title={editingNewsId ? "Редактировать новость" : "Новая новость"}
+        panelClassName="!max-w-[720px]"
+        long
+      >
+        <div className="flex flex-col gap-[16px] pb-[24px]">
+          <input
+            type="text"
+            className={adminInputClass}
+            placeholder="Заголовок"
+            value={newsForm.title}
+            onChange={(e) => setNewsForm((prev) => ({ ...prev, title: e.target.value }))}
+          />
+          <textarea
+            className={adminTextareaClass}
+            placeholder="Текст новости"
+            value={newsForm.description}
+            onChange={(e) => setNewsForm((prev) => ({ ...prev, description: e.target.value }))}
+          />
+          <input
+            type="text"
+            className={adminInputClass}
+            placeholder="URL картинки, напр. /news/news_1.png"
+            value={newsForm.imageUrl}
+            onChange={(e) => setNewsForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+          />
+          <p className={`${mainText} m-0 text-[#8D8D8D]`}>
+            Готовые картинки: /news/news_1.png … /news/news_4.png, /news/news_5.webp или любой внешний URL
+          </p>
+          <div className="grid grid-cols-1 gap-[12px] md:grid-cols-2">
+            <input
+              type="text"
+              className={adminInputClass}
+              placeholder="Дата (ДД.ММ.ГГГГ)"
+              value={newsForm.displayDate}
+              onChange={(e) => setNewsForm((prev) => ({ ...prev, displayDate: e.target.value }))}
+            />
+            <input
+              type="number"
+              className={adminInputClass}
+              placeholder="Порядок (больше = выше)"
+              value={newsForm.sortOrder}
+              onChange={(e) => setNewsForm((prev) => ({ ...prev, sortOrder: e.target.value }))}
+            />
+          </div>
+          <label className={`flex items-center gap-2 ${mainText} cursor-pointer select-none`}>
+            <input
+              type="checkbox"
+              checked={Boolean(newsForm.isPublished)}
+              onChange={(e) => setNewsForm((prev) => ({ ...prev, isPublished: e.target.checked }))}
+            />
+            Опубликована на сайте
+          </label>
+          <button
+            type="button"
+            className={`${primaryModalButtonClass} w-full md:w-full`}
+            onClick={saveNews}
+            disabled={newsSaving}
+          >
+            {newsSaving ? "Сохраняем..." : "Сохранить"}
+          </button>
+        </div>
+      </BaseModal>
+
+      <BaseModal
+        isOpen={Boolean(newsDeleteId)}
+        onClose={() => setNewsDeleteId(null)}
+        title="Удалить новость?"
+        panelClassName="w-full !max-w-[444px]"
+      >
+        <p className={`${mainText} m-0 mb-[24px] text-center text-[#8D8D8D]`}>
+          Новость будет удалена из базы и пропадёт с сайта.
+        </p>
+        <div className="flex flex-col gap-[16px]">
+          <button
+            type="button"
+            className={`${primaryModalButtonClass} w-full md:w-full`}
+            onClick={confirmDeleteNews}
+            disabled={newsDeleteLoading}
+          >
+            {newsDeleteLoading ? "Удаляем..." : "Удалить"}
+          </button>
+          <button
+            type="button"
+            className={`${secondButtonClass} w-full md:w-full`}
+            onClick={() => setNewsDeleteId(null)}
+            disabled={newsDeleteLoading}
+          >
+            Отмена
           </button>
         </div>
       </BaseModal>

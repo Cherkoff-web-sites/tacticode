@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { subscriptionItems } from "../data";
+import { subscriptionItems, SHOW_SUBSCRIPTION_PRICES } from "../data";
 import BaseModal from "./BaseModal";
 import {
   apiAdminConfirmCode,
@@ -17,6 +17,7 @@ const secondButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-[#00459D] bg-[#F2F5FA] cursor-pointer transition-colors md:hover:bg-[#00459D] md:hover:text-white active:bg-[#003982] active:text-white";
 const primaryModalButtonClass =
   "w-full md:w-auto md:self-start flex justify-center items-center px-[40px] py-[16px] rounded-full border-none text-[20px] leading-[1.25] font-light text-white bg-[#00459D] cursor-pointer transition-colors md:hover:bg-[#F2F5FA] md:hover:text-[#00459D] active:bg-[#D9E3F1] active:text-[#00459D]";
+const subscriptionPricesVisibilityClass = SHOW_SUBSCRIPTION_PRICES ? "" : "invisible";
 
 /** Стили для синих текстовых ссылок во всех модалках */
 const MODAL_LINK_CLASS = "p-0 border-none bg-transparent cursor-pointer text-[16px] md:text-[20px] leading-[1.25] font-light text-[#00459D] hover:text-[#003982] active:text-[#003982]";
@@ -169,6 +170,7 @@ export function Modals() {
   const [registerPassword2, setRegisterPassword2] = useState("");
   const [registerError, setRegisterError] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerAgreeTerms, setRegisterAgreeTerms] = useState(false);
 
   const handleCodeChange = (index, value) => {
     const digit = value.replace(/\D/g, "").slice(-1);
@@ -362,7 +364,7 @@ export function Modals() {
       {/* Вход / Регистрация */}
       <BaseModal
         isOpen={Boolean(loginModalOpen)}
-        onClose={() => { setLoginModalOpen(false); setAuthMode("login"); }}
+        onClose={() => { setLoginModalOpen(false); setAuthMode("login"); setRegisterAgreeTerms(false); }}
         title=""
         titleClassName="sr-only"
         panelClassName="w-full max-w-[390px]"
@@ -371,7 +373,7 @@ export function Modals() {
           {authMode === "login" ? (
             <>
               <h3 className="mb-0 text-[20px] md:text-[24px] leading-[1.25] text-center font-bold">Войти</h3>
-              <button type="button" className="p-0 border-none text-[16px] md:text-[20px] leading-[1.25] font-light text-[#00459D] bg-transparent cursor-pointer hover:text-[#003982] active:text-[#003982]" onClick={() => setAuthMode("register")}>Зарегистрироваться</button>
+              <button type="button" className="p-0 border-none text-[16px] md:text-[20px] leading-[1.25] font-light text-[#00459D] bg-transparent cursor-pointer hover:text-[#003982] active:text-[#003982]" onClick={() => { setAuthMode("register"); setRegisterAgreeTerms(false); setRegisterError(""); }}>Зарегистрироваться</button>
             </>
           ) : (
             <>
@@ -464,7 +466,7 @@ export function Modals() {
             <button
               type="button"
               className={`${secondButtonClass} w-full md:w-full justify-center mt-[8px] md:mt-[16px] mb-0 disabled:cursor-not-allowed disabled:opacity-70`}
-              disabled={registerLoading}
+              disabled={registerLoading || !registerAgreeTerms}
               onClick={async () => {
                 setRegisterError("");
                 const email = registerEmail.trim();
@@ -476,6 +478,10 @@ export function Modals() {
                   setRegisterError("Пароли не совпадают");
                   return;
                 }
+                if (!registerAgreeTerms) {
+                  setRegisterError("Нужно согласие с политикой и пользовательским соглашением");
+                  return;
+                }
                 try {
                   setRegisterLoading(true);
                   await apiRegisterRequestCode({ email, password: registerPassword });
@@ -483,6 +489,7 @@ export function Modals() {
                   setCodeEmail(email);
                   setCodeDigits(["", "", "", "", "", ""]);
                   setCodeError("");
+                  setRegisterAgreeTerms(false);
                   setLoginModalOpen(false);
                   setCodeModalOpen(true);
                 } catch (err) {
@@ -494,12 +501,27 @@ export function Modals() {
             >
               {registerLoading ? "Отправляем..." : "Отправить код"}
             </button>
-            <p className={`!text-[16px] text-[#8D8D8D] text-center md:text-left ${MODAL_TEXT_FONT}`}>
-              Отправляя данные, вы соглашаетесь с нашей{" "}
-              <Link to="/privacy" className={`!text-[16px] ${MODAL_LINK_CLASS}`} onClick={() => setLoginModalOpen(false)}>политикой конфиденциальности</Link>
-              {" "}и{" "}
-              <Link to="/terms" className={`!text-[16px] ${MODAL_LINK_CLASS}`} onClick={() => setLoginModalOpen(false)}>пользовательским соглашением</Link>
-            </p>
+            <label className={`flex items-start gap-2 text-[#8D8D8D] !text-[16px] ${MODAL_TEXT_FONT} cursor-pointer select-none`}>
+              <span className={`${MODAL_CHECKBOX_WRAPPER} mt-[2px]`}>
+                <input
+                  type="checkbox"
+                  className={MODAL_CHECKBOX_INPUT}
+                  checked={registerAgreeTerms}
+                  onChange={(e) => {
+                    setRegisterAgreeTerms(e.target.checked);
+                    if (registerError) setRegisterError("");
+                  }}
+                />
+                <span className={MODAL_CHECKBOX_BOX} aria-hidden />
+                <svg className="absolute inset-0 m-auto w-3.5 h-3.5 opacity-0 peer-checked:opacity-100 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              </span>
+              <span className="text-left">
+                Я согласен с{" "}
+                <Link to="/privacy" className={`!text-[16px] ${MODAL_LINK_CLASS}`} onClick={() => setLoginModalOpen(false)}>политикой конфиденциальности</Link>
+                {" "}и{" "}
+                <Link to="/terms" className={`!text-[16px] ${MODAL_LINK_CLASS}`} onClick={() => setLoginModalOpen(false)}>пользовательским соглашением</Link>
+              </span>
+            </label>
           </div>
         )}
       </BaseModal>
@@ -794,7 +816,7 @@ export function Modals() {
               На месяц
             </button>
           </div>
-          <div className="flex max-md:justify-center md:min-h-[96px] h-full">
+          <div className={`flex max-md:justify-center md:min-h-[96px] h-full ${subscriptionPricesVisibilityClass}`}>
             {period === "year" ? (
               <div className="flex flex-1 flex-col items-center md:items-start justify-center gap-[8px] md:gap-[16px] max-md:max-w-[242px]">
                 <div className="flex items-baseline max-md:justify-center gap-[16px] flex-wrap">
