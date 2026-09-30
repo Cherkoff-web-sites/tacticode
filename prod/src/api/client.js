@@ -397,6 +397,12 @@ export async function apiAdminDeleteUserDevice(userId, deviceId) {
   });
 }
 
+export async function apiDeleteAdminUser(id) {
+  return request(`/api/admin/users/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export async function apiGetNews() {
   const data = await request("/api/news");
   return data.news || [];
