@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BaseModal from "../components/BaseModal";
 import { useApp } from "../context/AppContext";
@@ -22,11 +22,56 @@ const adminTextareaClass =
 const EMPTY_NEWS_FORM = {
   title: "",
   description: "",
-  imageUrl: "/news/news_1.png",
+  imageUrl: "",
   displayDate: "",
   sortOrder: 0,
   isPublished: true,
 };
+
+const NEWS_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
+const NEWS_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+const NEWS_PAGE_SIZE = 10;
+
+async function compressNewsImageFile(file, { maxSide = 1600, quality = 0.82 } = {}) {
+  if (!file?.type?.startsWith("image/")) {
+    throw new Error("Выберите файл изображения");
+  }
+  if (file.size > NEWS_IMAGE_MAX_BYTES) {
+    throw new Error("Файл слишком большой (макс. 8 МБ)");
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Не удалось открыть изображение"));
+      img.src = objectUrl;
+    });
+
+    const scale = Math.min(1, maxSide / Math.max(image.width || 1, image.height || 1));
+    const width = Math.max(1, Math.round((image.width || 1) * scale));
+    const height = Math.max(1, Math.round((image.height || 1) * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Не удалось обработать изображение");
+    ctx.drawImage(image, 0, 0, width, height);
+
+    const keepPng = file.type === "image/png" || file.type === "image/gif";
+    const dataUrl = keepPng
+      ? canvas.toDataURL("image/png")
+      : canvas.toDataURL("image/jpeg", quality);
+
+    if (!dataUrl || dataUrl.length > 5_500_000) {
+      throw new Error("Изображение слишком большое после обработки");
+    }
+    return dataUrl;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
 
 const mainText = "text-[16px] md:text-[20px] leading-[1.25] font-light";
 const adminInputClass =
@@ -180,6 +225,57 @@ export function AdminPage() {
   const [newsForm, setNewsForm] = useState(EMPTY_NEWS_FORM);
   const [newsDeleteId, setNewsDeleteId] = useState(null);
   const [newsDeleteLoading, setNewsDeleteLoading] = useState(false);
+  const [newsImagePreview, setNewsImagePreview] = useState("");
+  const [newsSearchQuery, setNewsSearchQuery] = useState("");
+  const [newsPage, setNewsPage] = useState(1);
+  const newsFileInputRef = useRef(null);
+  const newsPendingFileRef = useRef(null);
+  const newsPreviewObjectUrlRef = useRef(null);
+
+  const clearNewsPreviewObjectUrl = () => {
+    if (newsPreviewObjectUrlRef.current) {
+      URL.revokeObjectURL(newsPreviewObjectUrlRef.current);
+      newsPreviewObjectUrlRef.current = null;
+    }
+  };
+
+  const resetNewsImageState = (nextPreview = "") => {
+    clearNewsPreviewObjectUrl();
+    newsPendingFileRef.current = null;
+    setNewsImagePreview(nextPreview);
+    if (newsFileInputRef.current) {
+      newsFileInputRef.current.value = "";
+    }
+  };
+
+  const clearNewsImage = () => {
+    resetNewsImageState("");
+    setNewsForm((prev) => ({ ...prev, imageUrl: "" }));
+  };
+
+  const handleNewsImagePick = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setNewsError("Выберите файл изображения (JPG, PNG, WEBP, GIF)");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > NEWS_IMAGE_MAX_BYTES) {
+      setNewsError("Файл слишком большой (макс. 8 МБ)");
+      event.target.value = "";
+      return;
+    }
+
+    clearNewsPreviewObjectUrl();
+    const previewUrl = URL.createObjectURL(file);
+    newsPreviewObjectUrlRef.current = previewUrl;
+    newsPendingFileRef.current = file;
+    setNewsImagePreview(previewUrl);
+    setNewsForm((prev) => ({ ...prev, imageUrl: "" }));
+    setNewsError("");
+  };
 
   const loadAdminNews = async () => {
     setNewsLoading(true);
@@ -197,30 +293,43 @@ export function AdminPage() {
   const openCreateNews = () => {
     setEditingNewsId(null);
     setNewsForm(EMPTY_NEWS_FORM);
+    resetNewsImageState("");
     setNewsModalOpen(true);
   };
 
   const openEditNews = (item) => {
+    const imageUrl = item.imageUrl || item.image || "";
     setEditingNewsId(item.id);
     setNewsForm({
       title: item.title || "",
       description: item.description || "",
-      imageUrl: item.imageUrl || item.image || "",
+      imageUrl,
       displayDate: item.displayDate || item.date || "",
       sortOrder: Number(item.sortOrder || 0),
       isPublished: item.isPublished !== false,
     });
+    resetNewsImageState(imageUrl);
     setNewsModalOpen(true);
+  };
+
+  const closeNewsModal = () => {
+    setNewsModalOpen(false);
+    resetNewsImageState("");
   };
 
   const saveNews = async () => {
     setNewsSaving(true);
     setNewsError("");
     try {
+      let imageUrl = newsForm.imageUrl;
+      if (newsPendingFileRef.current) {
+        imageUrl = await compressNewsImageFile(newsPendingFileRef.current);
+      }
+
       const payload = {
         title: newsForm.title,
         description: newsForm.description,
-        imageUrl: newsForm.imageUrl,
+        imageUrl,
         displayDate: newsForm.displayDate,
         sortOrder: Number(newsForm.sortOrder) || 0,
         isPublished: Boolean(newsForm.isPublished),
@@ -230,7 +339,7 @@ export function AdminPage() {
       } else {
         await apiCreateAdminNews(payload);
       }
-      setNewsModalOpen(false);
+      closeNewsModal();
       await loadAdminNews();
       try {
         await reloadNews();
@@ -276,6 +385,12 @@ export function AdminPage() {
     loadAdminNews();
   }, [isAuthResolved, user, navigate]);
 
+  useEffect(() => {
+    return () => {
+      clearNewsPreviewObjectUrl();
+    };
+  }, []);
+
   const subscriptionNameMap = useMemo(
     () => new Map(subscriptionItems.map((item) => [item.id, item.name])),
     []
@@ -304,6 +419,43 @@ export function AdminPage() {
       }
     );
   }, [adminUsers]);
+
+  const filteredNews = useMemo(() => {
+    const query = newsSearchQuery.trim().toLowerCase();
+    if (!query) return adminNews;
+
+    return adminNews.filter((item) => {
+      const haystack = [
+        item.id,
+        item.title,
+        item.description,
+        item.displayDate || item.date,
+        item.sortOrder,
+        item.isPublished === false ? "скрыта" : "опубликована",
+      ]
+        .map((value) => String(value ?? "").toLowerCase())
+        .join(" ");
+      return haystack.includes(query);
+    });
+  }, [adminNews, newsSearchQuery]);
+
+  const newsTotalPages = Math.max(1, Math.ceil(filteredNews.length / NEWS_PAGE_SIZE));
+  const newsCurrentPage = Math.min(newsPage, newsTotalPages);
+
+  const pagedNews = useMemo(() => {
+    const start = (newsCurrentPage - 1) * NEWS_PAGE_SIZE;
+    return filteredNews.slice(start, start + NEWS_PAGE_SIZE);
+  }, [filteredNews, newsCurrentPage]);
+
+  useEffect(() => {
+    setNewsPage(1);
+  }, [newsSearchQuery]);
+
+  useEffect(() => {
+    if (newsPage > newsTotalPages) {
+      setNewsPage(newsTotalPages);
+    }
+  }, [newsPage, newsTotalPages]);
 
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -526,6 +678,22 @@ export function AdminPage() {
           </div>
         )}
 
+        <div className="rounded-[16px] bg-white p-[20px] md:p-[24px]">
+          <input
+            type="text"
+            className={adminInputClass}
+            placeholder="Поиск: ID, заголовок, текст, дата, статус"
+            value={newsSearchQuery}
+            onChange={(event) => setNewsSearchQuery(event.target.value)}
+          />
+          <p className={`${mainText} m-0 mt-[12px] text-[#8D8D8D]`}>
+            Найдено: {filteredNews.length}
+            {filteredNews.length > NEWS_PAGE_SIZE
+              ? ` · страница ${newsCurrentPage} из ${newsTotalPages}`
+              : ""}
+          </p>
+        </div>
+
         <div className="overflow-x-auto rounded-[16px] bg-white">
           <table className="min-w-full border-collapse text-left">
             <thead>
@@ -539,14 +707,18 @@ export function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {adminNews.length === 0 ? (
+              {pagedNews.length === 0 ? (
                 <tr>
                   <td colSpan={6} className={`${mainText} px-[16px] py-[20px] text-[#8D8D8D]`}>
-                    {newsLoading ? "Загрузка..." : "Новостей пока нет"}
+                    {newsLoading
+                      ? "Загрузка..."
+                      : newsSearchQuery.trim()
+                        ? "Ничего не найдено"
+                        : "Новостей пока нет"}
                   </td>
                 </tr>
               ) : (
-                adminNews.map((item) => (
+                pagedNews.map((item) => (
                   <tr key={item.id} className="border-b border-[#F2F2F2]">
                     <td className={`${mainText} px-[16px] py-[14px]`}>{item.id}</td>
                     <td className={`${mainText} max-w-[360px] px-[16px] py-[14px]`}>
@@ -577,6 +749,30 @@ export function AdminPage() {
             </tbody>
           </table>
         </div>
+
+        {filteredNews.length > NEWS_PAGE_SIZE && (
+          <div className="flex flex-wrap items-center justify-between gap-[12px]">
+            <button
+              type="button"
+              className={smallActionButtonClass}
+              disabled={newsCurrentPage <= 1}
+              onClick={() => setNewsPage((prev) => Math.max(1, prev - 1))}
+            >
+              Назад
+            </button>
+            <p className={`${mainText} m-0 text-[#8D8D8D]`}>
+              Страница {newsCurrentPage} из {newsTotalPages}
+            </p>
+            <button
+              type="button"
+              className={smallActionButtonClass}
+              disabled={newsCurrentPage >= newsTotalPages}
+              onClick={() => setNewsPage((prev) => Math.min(newsTotalPages, prev + 1))}
+            >
+              Вперёд
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-[16px]">
           <h2 className="m-0 text-[24px] leading-[1.2] font-bold text-[#1A1A1A] md:text-[32px]">
@@ -1135,12 +1331,12 @@ export function AdminPage() {
 
       <BaseModal
         isOpen={newsModalOpen}
-        onClose={() => setNewsModalOpen(false)}
+        onClose={closeNewsModal}
         title={editingNewsId ? "Редактировать новость" : "Новая новость"}
-        panelClassName="!max-w-[720px]"
+        panelClassName="!max-w-[720px] w-[calc(100%-32px)] md:w-full"
         long
       >
-        <div className="flex flex-col gap-[16px] pb-[24px]">
+        <div className="flex flex-1 min-h-0 flex-col gap-[16px] overflow-y-auto overscroll-contain pb-[24px] pr-[2px]">
           <input
             type="text"
             className={adminInputClass}
@@ -1149,21 +1345,62 @@ export function AdminPage() {
             onChange={(e) => setNewsForm((prev) => ({ ...prev, title: e.target.value }))}
           />
           <textarea
-            className={adminTextareaClass}
+            className={`${adminTextareaClass} !min-h-[100px] max-h-[220px] md:!min-h-[120px]`}
             placeholder="Текст новости"
             value={newsForm.description}
             onChange={(e) => setNewsForm((prev) => ({ ...prev, description: e.target.value }))}
           />
-          <input
-            type="text"
-            className={adminInputClass}
-            placeholder="URL картинки, напр. /news/news_1.png"
-            value={newsForm.imageUrl}
-            onChange={(e) => setNewsForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-          />
-          <p className={`${mainText} m-0 text-[#8D8D8D]`}>
-            Готовые картинки: /news/news_1.png … /news/news_4.png, /news/news_5.webp или любой внешний URL
-          </p>
+
+          <div className="flex flex-col gap-[12px]">
+            <input
+              ref={newsFileInputRef}
+              type="file"
+              accept={NEWS_IMAGE_ACCEPT}
+              className="hidden"
+              onChange={handleNewsImagePick}
+            />
+
+            {newsImagePreview ? (
+              <div className="relative w-full overflow-hidden rounded-[16px] border border-[#D9E3F1] bg-[#F8F8F8]">
+                <img
+                  src={newsImagePreview}
+                  alt="Превью новости"
+                  className="block max-h-[160px] w-full object-contain bg-[#F8F8F8] sm:max-h-[200px] md:max-h-[240px]"
+                />
+                <button
+                  type="button"
+                  aria-label="Удалить фото"
+                  className="absolute right-[12px] top-[12px] flex h-[36px] w-[36px] items-center justify-center rounded-full border-none bg-[rgba(26,26,26,0.72)] text-[22px] leading-none text-white cursor-pointer transition-opacity md:hover:opacity-90"
+                  onClick={clearNewsImage}
+                  disabled={newsSaving}
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="flex w-full flex-col items-center justify-center gap-[8px] rounded-[16px] border border-dashed border-[#D9E3F1] bg-[#F8F8F8] px-[20px] py-[24px] md:py-[36px] text-[16px] leading-[1.25] font-light text-[#00459D] cursor-pointer transition-colors md:hover:bg-[#F2F5FA]"
+                onClick={() => newsFileInputRef.current?.click()}
+                disabled={newsSaving}
+              >
+                <span className="text-[18px] md:text-[20px] font-bold">Прикрепить фото</span>
+                <span className="text-[#8D8D8D]">JPG, PNG, WEBP или GIF · до 8 МБ</span>
+              </button>
+            )}
+
+            {newsImagePreview && (
+              <button
+                type="button"
+                className={`${smallActionButtonClass} self-start`}
+                onClick={() => newsFileInputRef.current?.click()}
+                disabled={newsSaving}
+              >
+                Заменить фото
+              </button>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 gap-[12px] md:grid-cols-2">
             <input
               type="text"
@@ -1190,7 +1427,7 @@ export function AdminPage() {
           </label>
           <button
             type="button"
-            className={`${primaryModalButtonClass} w-full md:w-full`}
+            className={`${primaryModalButtonClass} w-full md:w-full shrink-0`}
             onClick={saveNews}
             disabled={newsSaving}
           >

@@ -17,8 +17,8 @@ export default function BaseModal({
 
   const backdropBaseClass = `fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.7)] z-20${long ? " max-md:items-end" : ""}`;
   const closeClass = "group absolute bottom-[calc(100%+16px)] lg:bottom-auto right-[24px] lg:right-auto lg:top-0 lg:left-[calc(100%+24px)] cursor-pointer rounded-full bg-white transition-colors md:hover:bg-[#00459D] active:bg-[#003982]";
-  const panelBaseClass = `relative w-full max-w-[490px] p-[24px] lg:p-[32px] rounded-[20px] bg-[#FFF]${long ? " flex flex-col max-md:h-[calc(100%-80px)] max-md:rounded-[16px_16px_0_0] !pb-0 lg:!pb-0 md:max-h-[min(725px,90vh)]" : ""}`;
-  const titleBaseClass = "mb-[8px] text-[20px] md:text-[24px] leading-[1.25] text-center font-bold";
+  const panelBaseClass = `relative w-full max-w-[490px] p-[24px] lg:p-[32px] rounded-[20px] bg-[#FFF]${long ? " flex flex-col overflow-hidden max-md:h-[calc(100%-80px)] max-md:rounded-[16px_16px_0_0] !pb-0 lg:!pb-0 max-h-[min(725px,90vh)]" : ""}`;
+  const titleBaseClass = `mb-[8px] text-[20px] md:text-[24px] leading-[1.25] text-center font-bold${long ? " shrink-0" : ""}`;
 
   return (
     <div className={`${backdropBaseClass}${backdropClassName ? " " + backdropClassName : ""}`} onClick={onClose}>

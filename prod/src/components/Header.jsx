@@ -30,6 +30,7 @@ export function Header() {
   const [mobileMenuClosing, setMobileMenuClosing] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const lastScrollYRef = useRef(0);
+  const currentYear = new Date().getFullYear();
 
   const closeMobileMenu = () => {
     if (!mobileMenuOpen || mobileMenuClosing) return;
@@ -206,7 +207,7 @@ export function Header() {
             <div className="flex flex-col gap-6 text-[#8D8D8D] font-light text-base leading-5">
               <Link to="/privacy" className="p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] font-light text-base leading-5 hover:underline" onClick={closeMobileMenu}>Политика конфиденциальности</Link>
               <Link to="/terms" className="p-0 border-none bg-transparent cursor-pointer text-[#8D8D8D] font-light text-base leading-5 hover:underline" onClick={closeMobileMenu}>Пользовательское соглашение</Link>
-              <p className="m-0 p-0 text-[#8D8D8D] font-light text-base leading-5">&copy;&nbsp;2025&nbsp;ООО &laquo;Спорттехлаб&raquo;. Все права защищены</p>
+              <p className="m-0 p-0 text-[#8D8D8D] font-light text-base leading-5">&copy;&nbsp;{currentYear}&nbsp;ООО &laquo;Спорттехлаб&raquo;. Все права защищены</p>
             </div>
           </div>
         </div>

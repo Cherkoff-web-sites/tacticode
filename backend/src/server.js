@@ -24,7 +24,8 @@ console.log("ENV DB_DISABLED:", process.env.DB_DISABLED || "<not set>");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// Новости: image_url может быть data URL после загрузки фото из админки
+app.use(express.json({ limit: "6mb" }));
 app.use((req, res, next) => {
   const start = Date.now();
   const stamp = new Date().toISOString();

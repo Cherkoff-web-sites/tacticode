@@ -362,6 +362,14 @@ router.delete("/users/:id", adminMiddleware, async (req, res) => {
   }
 });
 
+function isAllowedNewsImageUrl(value) {
+  if (!value) return true;
+  if (value.startsWith("data:image/")) return true;
+  if (value.startsWith("https://") || value.startsWith("http://")) return true;
+  if (value.startsWith("/")) return true;
+  return false;
+}
+
 function parseNewsPayload(body = {}) {
   const title = String(body.title || "").trim();
   const description = String(body.description || "").trim();
@@ -380,11 +388,17 @@ function parseNewsPayload(body = {}) {
   if (!description) {
     return { error: "Текст новости обязателен" };
   }
+  if (!isAllowedNewsImageUrl(imageUrl)) {
+    return { error: "Некорректное изображение" };
+  }
+  if (imageUrl.startsWith("data:image/") && imageUrl.length > 5_500_000) {
+    return { error: "Изображение слишком большое" };
+  }
 
   return {
     title: title.slice(0, 500),
     description,
-    imageUrl: imageUrl.slice(0, 1000),
+    imageUrl,
     displayDate: displayDate.slice(0, 32),
     sortOrder,
     isPublished,
